@@ -1,0 +1,27 @@
+{
+  "name": "RxPNodeApp",
+  "description": "medical",
+  "version": "0.0.1",
+  "main": "server.js",
+  "dependencies": {
+    "@sendgrid/mail": "^6.2.1",
+    "angular": "^1.6.9",
+    "async": "latest",
+    "bcrypt-nodejs": "latest",
+    "connect-flash": "^0.1.1",
+    "cors": "^2.8.4",
+    "ejs": "0.8.5",
+    "express": "3.4.8",
+    "flash": "^1.1.0",
+    "fs": "0.0.1-security",
+    "generate-password": "^1.4.0",
+    "http": "0.0.0",
+    "mongoose": "^5.0.11",
+    "ng-multiselect-dropdown": "^0.1.6",
+    "nodemailer": "^4.6.4",
+    "now": ">=0.0.1",
+    "passport": "0.2.0",
+    "passport-local": "0.1.6",
+    "socket.io": "latest"
+  }
+}
