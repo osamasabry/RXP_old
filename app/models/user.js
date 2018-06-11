@@ -16,7 +16,10 @@ rxpUserSchema.methods.generateHash = function(password) {
 };
 
 rxpUserSchema.methods.verifyPassword = function(password) {
-    return bcrypt.compareSync(password, this.User_Password);
+    if(password.localeCompare(this.User_Password) == 0)
+        return 1;
+    else
+        return 0;
 };
 
 
