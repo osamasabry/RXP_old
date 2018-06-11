@@ -1,0 +1,142 @@
+	<% include layout.html %>
+	<div ng-app="myapp" ng-controller="addCount as add">
+
+			<div>
+				<form ng-submit="add.SubmitData()">
+					<div class="row">
+			  			<div class="col-md-9 col-md-push-2">
+							<div class = "panel panel-success">
+							   <div class = "panel-heading">
+							      <h3 class = "panel-title">Assign Role</h3>
+							   </div>
+							   <div class = "panel-body">
+							   	 <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Select Employee</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<select ng-model="add.user.employee_id"   >
+							     			<option ng-repeat="x in employees" value="{{x.Employee_Code}}">{{x.Employee_Name}}</option>
+										</select>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Role</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<select ng-model="add.user.role"   >
+							     			<option ng-repeat="x in roles" value="{{x.Role_Code}}">{{x.Role_Name}}</option>
+										</select>
+							     	</div>
+
+							     	<div class="col-md-2">
+							     		<label> Role Type</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<select ng-model="add.user.roletype"   >
+							     			<option ng-repeat="x in rolesType" value="{{x.RoleType_Code}}">{{x.RoleType_Name}}</option>
+										</select>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row" >
+							    	<div ng-if="add.user.roletype == 1">
+							     		<div class="col-md-2" >
+								     		<label> Account</label>
+								     	</div>
+								     	<div class="col-md-4">
+								     		<select ng-model="add.user.account"   >
+								     			<option ng-repeat="x in accounts" value="{{x.Account_Code}}">{{x.Account_Name}}</option>
+											</select>
+								     	</div>
+							     	</div>
+							     	<div ng-if="add.user.roletype == 4">
+								     	<div class="col-md-2">
+								     		<label> Country</label>
+								     	</div>
+								     	<div class="col-md-4">
+								     		<select ng-model="add.user.country_role"   >
+								     			<option ng-repeat="x in countries" value="{{x.Country_Code}}">{{x.Country_Name}}</option>
+											</select>
+								     	</div>
+							     	</div>
+							     </div>
+							     	
+							    <br>
+							   </div>
+							</div>		
+						</div>
+					</div>
+					<!-- // section 3 -> Subscriber Manager -->
+					<div  id="error"></div>
+					<div class="row">
+						<div class="col-md-9 col-md-push-2">
+							<button type="submit" class="btn btn-primary btn-lg btn-block">Add Employee</button>
+						</div>
+					</div>
+				</form>
+	<% include partial/footer.html %>
+	<script type="text/javascript">
+		
+		var app = angular.module('myapp', ['angularjs-dropdown-multiselect']);
+
+		app.controller('addCount', function($scope, $http) {
+
+			$http.get("/getCountries").then(function (response) {
+			    $scope.countries = response.data;
+			});
+
+			$http.get("/getEmployees").then(function (response) {			   
+			    $scope.employees = response.data;
+			});
+
+
+		   	$http.get("/getRoles").then(function (response) {
+		      	$scope.roles = response.data;
+		    });
+
+		    $http.get("/getRolesType").then(function (response) {
+		      	$scope.rolesType = response.data;
+		    });
+
+		    $http.get("/getAccounts").then(function (response) {
+		    	console.log(response);
+		      	$scope.accounts = response.data;
+		    });
+
+
+            this.SubmitData=function(){
+
+				var myEl = angular.element( document.querySelector( '#error' ) );
+
+            	var data = this.user;
+            	console.log(data);
+
+            	$http({
+		    		method:"POST",
+		    		url:"/assignRole",
+		    		data :JSON.stringify(data)
+				}).then(function(data){
+					console.log(data.data);
+					if (data.data.message==true) {
+						
+						myEl.html('Employee Is Saved'); 
+					}else{
+
+						myEl.html('Error'); 
+					}
+					
+				},function(error){
+						myEl.html('Error'); 
+				});
+            }
+
+
+		});
+
+	</script>
+</body>
+</html>
+

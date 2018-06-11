@@ -1,0 +1,64 @@
+	<% include layout.html %>
+	<div ng-app="myapp" ng-controller="searchAccount as search">
+		<div  id="error"></div>
+		<div id="seachResults">
+			<table class="table table-bordered">
+				<caption>Accounts</caption>
+				<thead>
+					<tr>
+						<th>Account Name</th>
+						<th>Code</th>
+						<th>Address</th>
+						<th>Telephone</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="x in employess">
+						<td>
+							{{x.Employee_Name}}
+						</td>
+						<td>
+							{{x.Employee_Email}}
+						</td>
+						<td>
+							{{x.Employee_Address}},{{x.Employee_City}},{{x.Employee_State}}
+						</td>
+						<td>
+							{{x.Employee_Telephone}}
+						</td>
+						<td>
+							<a href="/viewAccount?id={{x.code}}">View</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<% include partial/footer.html %>
+	<script type="text/javascript">
+		
+		var app = angular.module('myapp', []);
+		var myEl = angular.element( document.querySelector( '#error' ) );
+
+		app.controller('searchAccount', function($scope, $http) {
+			// $scope.IsVisible = false;
+           
+            	
+            	$http({
+		    		method:"GET",
+		    		url:"/getEmployees"
+				}).then(function(data){
+					console.log(data.data);
+					$scope.employess = data.data;
+					myEl.html(data.data.message); 
+				},function(error){
+					
+					myEl.html(data.data.message); 
+				});
+        });
+
+	</script>
+</body>
+</html>
+

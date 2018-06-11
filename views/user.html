@@ -1,0 +1,43 @@
+<% include header.html %>
+<body ng-app="">
+	
+
+<div class="box profile">
+		<fieldset class="">
+			<div  class="row">
+				<div class="span12">
+					<label><strong>User Name:</strong> <%= user.username %></label>
+					<label><strong>Role:</strong> <%= user.role %></label> 
+					<label><strong>Email:</strong> <%= user.email %></label> 
+					<label><strong>Location:</strong> <%= user.address %></label> 
+				</div>
+				<br>
+				<br>
+				<div style="margin-right:600px;">
+					<label>
+					 	<input type="input" ng-model="div_password" class="btnLogin" value="Change Password">
+					</label>
+				</div>
+			</div>
+			<div ng-show="div_password">
+				<form   action=""  enctype="multipart/form-data" 
+					class="box login">
+					<label>Old Password</label>
+					  <input type="password" tabindex="1" placeholder="Enter Your old password" name="username" >
+					
+					<label>Current Password</label>
+					  <input type="password" tabindex="2" placeholder="Current Password" name="email" >
+					 <label>Confirm Current Password</label>
+					  <input type="password" tabindex="3" placeholder="Confirm Current Password" name="address" >
+				    
+				    <!-- <input type="file" name="file"> -->
+					<footer>
+					  <input type="submit" class="btnLogin" value="Update" tabindex="1" />
+					</footer>
+
+				</form>
+			</div>
+		</fieldset>
+	</div>
+</body>
+</html>

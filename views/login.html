@@ -1,0 +1,64 @@
+<% include layout.html %>
+	<div  ng-app="myApp" ng-controller="login as log" > 
+		<form class="box login" ng-submit="log.SubmitData()">
+
+
+<!-- <form action="/" method="post" class="box login"> -->
+	<fieldset class="boxBody">
+		<div  id="error"></div>
+	  <label>Email</label>
+	  <input type="text" tabindex="1" placeholder="Enter Your Email Address" name="email" required ng-model="log.user.email">
+ 	<label>Password</label>
+	  <input type="password" tabindex="2"  name="password" required ng-model="log.user.password">
+	</fieldset>
+	<footer>
+	<!-- <input TYPE="button"class="btnLogin" value="SignUp"  onClick="parent.location='/signup'"> -->
+	  <input type="submit" class="btnLogin" value="Login" tabindex="4">
+	
+	</footer>
+</form>
+</div>
+
+<% include partial/footer.html %>
+
+<script type="">
+	
+var app = angular.module('myApp', []);
+app.controller('login', function($scope, $http,$window) {
+
+var myEl = angular.element( document.querySelector( '#error' ) );
+   
+    this.SubmitData=function(){
+    	
+    	var data  ={
+			email    : this.user.email,
+			password : this.user.password,
+    	}
+
+    	// console.log(data);
+    	$http({
+
+    		method:"POST",
+    		url:"/",
+    		data :JSON.stringify(data)
+		}).then(function(data){
+			console.log(data.data);
+			if (data.data.status==false) {
+				
+				myEl.html(data.data.message); 
+			}else{
+
+				$window.location.href = '/about';
+			}
+			
+		},function(error){
+			
+			$window.location.href = '/';
+
+		})
+    }
+});
+
+</script>
+</body>
+</html>

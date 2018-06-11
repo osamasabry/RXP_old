@@ -1,0 +1,313 @@
+	<% include layout.html %>
+	<div ng-app="myapp" ng-controller="viewAccount">
+
+		<div  id="error"></div>
+			<div>
+				<!-- // section 1 -> General Data -->
+				<div class="row">
+		  			<div class="col-md-9 col-md-push-2">
+						<div class = "panel panel-info">
+						   <div class = "panel-heading">
+						      <h3 class = "panel-title">General Data</h3>
+						   </div>
+						   <div class = "panel-body">
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Name</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.name %></label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Address</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.address %></label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> City</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.city %></label>
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> State</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.state %></label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Country</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{country}}</label>
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> Telephone</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.telephone %></label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Account Manager</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{account_manager}}</label>
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> Sales Rep</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{sales_rep}}</label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> CMS Manager</label>
+						     	</div>
+						     	<div class="col-md-4">
+					     			<label>{{cms_manager}}</label>
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> Parent Account</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{parent_account}}</label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Extra Details</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= account.note %></label>
+						     		<!-- <textarea ng-model="add.user.extra_details"></textarea>  -->
+						     	</div>
+						    </div>
+						    <br>
+						   </div>
+						</div>		
+					</div>
+				</div>
+				<!-- // section 2 -> Plan -->
+				<div class="row">
+		  			<div class="col-md-9 col-md-push-2">
+						<div class = "panel panel-success">
+						   <div class = "panel-heading">
+						      <h3 class = "panel-title">Plan</h3>
+						   </div>
+						   <div class = "panel-body">
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Interface</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<input type="radio" name="inertface" value="mobile" ng-model="add.user.interface">Mobile
+						     		<input type="radio" name="inertface" value="web" ng-model="add.user.interface">Web
+						     		<input type="radio" name="inertface" value="desktop" ng-model="add.user.interface">Desktop
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> External Resource</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{out_source_db}}</label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						     	<div class="col-md-2">
+						     		<label> Tool</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label>{{tool}}</label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						    	<div class="col-md-2">
+						     		<label> Max Concurrent Users</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<label><%= accountPlan.max_concurrent_users %></label>
+						     	</div>
+						     	<div class="col-md-2">
+						     		<label> Max Users</label>
+						     	</div>
+						     	<div class="col-md-4">
+							     	<label><%= accountPlan.max_users %></label>
+						     	</div>
+						    </div>
+						    <br>
+						    <div class = "row">
+					    		<div class="col-md-4">
+						     		<label> Can Customize MedicalData</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<input type="radio" name="can_custom" value="1" ng-model="add.user.can_custom"> Yes
+						     		<input type="radio" name="can_custom" value="0" ng-model="add.user.can_custom"> No
+						     	</div>
+						    </div>
+						    <br>
+						    <div class="row">
+						    	<div class="col-md-2">
+						     		<label> Way Of Access</label>
+						     	</div>
+						     	<div class="col-md-4">
+						     		<input type="radio" name="way_of_access" value="1" ng-click="ShowPassport('Y')" ng-model="add.user.way_access"> Locked
+						     		<input type="radio" name="way_of_access" value="0" ng-click="ShowPassport('N')" ng-model="add.user.way_access"> Unlocked
+						     	</div>
+						     	<div ng-show="IsVisible">
+							     	<div class="col-md-2">
+							     		<label> List Of IPs</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= accountPlan.list_ips %></label>
+							     	</div>
+						     	</div>
+						    </div>
+						    <br>
+						   </div>
+						</div>		
+					</div>
+				</div>
+				<!-- // section 3 -> Subscriber Manager -->
+				<div class="row">
+		  			<div class="col-md-9 col-md-push-2">
+						<div class = "panel panel-danger">
+						   	<div class = "panel-heading">
+						    	<h3 class = "panel-title">Subscriber Manager</h3>
+						   	</div>
+							<div class = "panel-body">
+							   	<div class="row">
+							     	<div class="col-md-2">
+							     		<label> Name</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.subscribe_name %></label>
+							     	</div>
+							     	<div class="col-md-2">
+							     		<label> Email</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.email %></label>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Phone</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.phone %></label>
+							     	</div>
+							     	<div class="col-md-2">
+							     		<label> Mobile</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.mobile %></label>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Role</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.role %></label>
+							     	</div>
+							     	<div class="col-md-2">
+							     		<label> Period Of Month</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.period_of_month %></label>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Start Date</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.start_date %></label>
+							     	</div>
+							     	<div class="col-md-2">
+							     		<label> End Date</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.end_date %></label>
+							     	</div>
+							    </div>
+							    <br>
+							    <div class="row">
+							     	<div class="col-md-2">
+							     		<label> Extra Details</label>
+							     	</div>
+							     	<div class="col-md-4">
+							     		<label><%= subscribeManager.subscribe_note %></label>
+							     	</div>
+							    </div>
+							    <br>
+							</div>		
+						</div>
+					</div>
+				</div>
+				<!-- <div class="row">
+					<div class="col-md-9 col-md-push-2">
+						<button type="submit" class="btn btn-primary btn-lg btn-block">Add Account</button>
+					</div>
+				</div> -->
+	<% include partial/footer.html %>
+	<script type="text/javascript">
+		var app = angular.module('myapp', []);
+
+		app.controller('viewAccount', function($scope, $http) {
+		  	$http.get("/getCountry?code=<%= account.country %>").then(function (response) {
+		  		console.log(response.data.name);
+		      	$scope.country = response.data.name;
+		  	});
+
+		  	$http.get("/getEmployee?code=<%= account.account_manager %>").then(function (response) {
+		      	$scope.account_manager = response.data.name;
+		  	});
+
+		  	$http.get("/getEmployee?code=<%= account.sales_rep %>").then(function (response) {
+		      	$scope.sales_rep = response.data.name;
+		  	});
+
+		  	$http.get("/getEmployee?code=<%= account.cms_manager %>").then(function (response) {
+		      	$scope.cms_manager = response.data.name;
+		  	});
+
+		  	$http.get("/getAccount?code=<%= account.parent_account %>").then(function (response) {
+		      	$scope.parent_account = response.data.name;
+		  	});
+		  	
+		  	$http.get("/getOutSourceDB?code=<%= accountPlan.out_source_dbs %>").then(function (response) {
+		      	$scope.out_source_db = response.data.name;
+		  	});
+
+		  	$http.get("/getTool?code=<%= accountPlan.out_source_tools %>").then(function (response) {
+		      	$scope.tool = response.data.name;
+		  	});
+
+
+		});
+		
+	</script>
+</body>
+</html>
+

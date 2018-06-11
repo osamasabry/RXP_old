@@ -1,0 +1,75 @@
+<% include header.html %>
+<div  ng-app="myApp" ng-controller="customersCtrl as ctrl" > 
+<form class="box login" ng-submit="ctrl.SubmitData()">
+	<fieldset class="boxBody">
+		
+		<div  id="error"></div>
+		
+		<label>User Name</label>
+		  <input type="text" tabindex="1" placeholder="Enter Your Name"  required ng-model="ctrl.user.username">
+		<label>Email</label>
+		  <input type="text" tabindex="2" placeholder="Enter Your Email Address" required ng-model="ctrl.user.email">
+	 	<label>Password</label>
+		  <input type="password" tabindex="3"  required ng-model="ctrl.user.password">
+		<label>Address</label>
+	  	<input type="text" tabindex="4" placeholder="Enter Your Address" required ng-model="ctrl.user.address">
+	  	
+	  
+	  	<div style="height: 200px;"  ng-dropdown-multiselect="" options="example2data" selected-model="example2model" extra-settings="example2settings">
+		</div>
+	  
+	</fieldset>
+
+<footer>
+	<!-- <input TYPE="button"class="btnLogin" value="Login"  onClick="parent.location='/login'"> -->
+	  <input type="submit" class="btnLogin" value="Create User" tabindex="5">
+	</footer>
+</form>
+</div>
+<script>
+var app = angular.module('myApp', ['angularjs-dropdown-multiselect']);
+app.controller('customersCtrl', function($scope, $http) {
+  	$scope.example2model = []; 
+  	$scope.example2data = [ {id:'1',name:'create user'},
+				      		{id:'2',name:'edit user'},
+				      		{id:'3',name:'delete user'}]; 
+    $scope.example2settings = {displayProp: 'name'};
+
+var myEl = angular.element( document.querySelector( '#error' ) );
+   
+    this.SubmitData=function(){
+    	var ids= [];
+
+    	angular.forEach($scope.example2model, function(value,index){
+
+    		ids.push(value.id);
+    	});
+    	
+    	var data  ={
+			ids      : ids,
+			username : this.user.username,
+			email    : this.user.email,
+			password : this.user.password,
+			address  : this.user.address,
+    	}
+
+    	
+    	$http({
+
+    		method:"POST",
+    		url:"/addUser",
+    		data :JSON.stringify(data)
+		}).then(function(data){
+			myEl.html(data.data.message); 
+			
+		},function(error){
+			myEl.html(data.data.message); 
+		})
+    }
+});
+
+
+
+</script>
+</body>
+</html>
