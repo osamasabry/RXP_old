@@ -8,6 +8,7 @@ var rxpUserSchema = mongoose.Schema({
         User_Password    :String,
 		User_IsActive    :Number,
 		User_Employee_ID :Number,
+        User_Permissions_List :String
         // User_Access_Token:String
 });
 
