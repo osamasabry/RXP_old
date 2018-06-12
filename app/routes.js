@@ -15,9 +15,26 @@ var Departments      = require('../app/models/departments');
 var Account_user     = require('../app/models/account_user');
 var System_setting     = require('../app/models/system_setting');
 
+
+// *************************************************
+
+
+var Data_types      			= require('../app/models/field_data_types');
+
+var AI_master_field_structur 	= require('../app/models/AI_master_field_structure');
+
+var AI      					= require('../app/models/AI');
+
+var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
+
+var  AIMasterRevisions          = require('../app/models/AI_master_clinical_data_revisions'); 
+
+
+
 var  nextCode ='';
 var data = [];
 
+var PermissionName = [];
 
 module.exports = function(app, passport, server, generator, sgMail) {
 	
@@ -685,30 +702,256 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		        	// console.log()
 		        	var ids = user.User_Permissions_List.split(',');
 		        	// console.log(ids);
-		        	getpermission(ids);
+		        	 getpermission(ids);
+       			     // console.log(result);
 		        	
 		        } 
 
-		        // var a =  new System_setting();
 		        function getpermission (ids){
- System_setting.findOne({'System_Setting_ConfigName': "CP_Users_Permissions"}).select({ 'System_Setting_ConfigValue': { $elemMatch: { 'Permission_ID': 1 }}}).exec(function (err, permission) {
-		        	// for (var i = 0; i < ids.length; i++) {
-		        		// console.log(ids[i]);
-		        		//System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
-       			     	//	{System_Setting_ConfigValue: { $elemMatch: { Permission_ID: 1 } } }, function(err, permission) { 
-       			      			// console.log(err);
-       			      			var data = permission.System_Setting_ConfigValue;
-
-       			      			data.forEach(function (arrayItem) {
-								    var x = arrayItem;
-								    console.log(x);
-								});
-       			      			// console.log(JSON.parse( data));
+		        	for (var i = 0; i < ids.length; i++) {
+       			      		var res = Number(ids[i]);
+		        		System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
+       			     		{'System_Setting_ConfigValue': { $elemMatch: { Permission_ID: res} } }, function(err, permission) { 
+       			      			var data = permission[0].System_Setting_ConfigValue[0]['PermissionName'];
+       			      			// console.log(data);
+       			      		 	fillData(data);
            			    })
-		        	// }
+		        	} 
+		        	// fillData(PermissionName);
+		        	console.log(PermissionName);
 		        }
+
+		        function fillData(data){
+
+	      		 	PermissionName.push(data);
+		        }
+
+
     		});
     });
+
+
+    // **************************************************
+
+    // new route
+
+    	// get all data types of fields 
+	app.get('/getDataTypes', function(request, response) {
+		Data_types.find({}, function(err, Datatypes) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (Datatypes) {
+	        	
+	            response.send(Datatypes);
+	        } 
+    	});
+    });
+	
+
+	// insert AI Master Fields Structure 
+
+	app.post('/addFieldsAI',function (request, response){
+		AI_master_field_structur.findOne({ 'AI_Master_Clinical_Data_Field_Structure_FieldName' :  request.body.name }, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field already exists'
+				});
+            } else {
+        			
+    			AI_master_field_structur.getLastCode(function(err,field){
+    				if (field) {
+    					nextCode = Number(field.AI_Master_Clinical_Data_Field_Structure_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewFieldAI(nextCode);
+    			})   
+
+    			function insertNewFieldAI(nextCode){
+	                var newFieldAi = new AI_master_field_structur();
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
+		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
+		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
+	                newFieldAi.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	// get all Fields of AI
+	app.get('/getFieldsAI', function(request, response) {
+		AI_master_field_structur.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+    });
+
+
+	// insert Pharmaceutical Category 
+	app.post('/addPharmaceuticalCategory',function (request, response){
+		Pharmaceutical_category.findOne({ 'Pharmaceutical_Category_Name' :  request.body.name }, function(err, Pharmaceutical) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (Pharmaceutical) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Pharmaceutical Category already exists'
+				});
+            } else {
+        			
+    			Pharmaceutical_category.getLastCode(function(err,Pharmaceutical){
+    				if (Pharmaceutical) {
+    					nextCode = Number(Pharmaceutical.Pharmaceutical_Category_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewPharmaceuticalCategory(nextCode);
+    			})   
+
+    			function insertNewPharmaceuticalCategory(nextCode){
+	                var newPharmaCategory = new Pharmaceutical_category();
+	                newPharmaCategory.Pharmaceutical_Category_Code     	 = nextCode;
+		            newPharmaCategory.Pharmaceutical_Category_Name 	     = request.body.name;
+	                newPharmaCategory.Pharmaceutical_Category_IsActive	 = request.body.status;
+	                newPharmaCategory.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	// get all  Pharmaceutical Category 
+
+	app.get('/getPharmaceuticalCategory', function(request, response) {
+		Pharmaceutical_category.find({}, function(err, Pharmaceutical) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (Pharmaceutical) {
+	        	
+	            response.send(Pharmaceutical);
+	        } 
+    	});
+    });
+
+
+	// insert basic data of AI 
+
+	app.post('/addAI',function (request, response){
+		AI.findOne({ 'AI_Name' :  request.body.name }, function(err, ai) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (ai) {
+            	return response.send({
+					// user : request.user ,
+					message: 'AI already exists'
+				});
+            } else {
+        			
+    			AI.getLastCode(function(err,ai){
+    				if (ai) {
+    					nextCode = Number(ai.AI_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewAI(nextCode);
+    			})   
+
+    			function insertNewAI(nextCode){
+	                var newAi = new AI();
+	                newAi.AI_Code     	 					 = nextCode;
+		            newAi.AI_Name 	     					 = request.body.name;
+	                newAi.AI_ATC_Code	 					 = request.body.atc_code;
+	                newAi.AI_Status	     					 = null;
+	                newAi.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids
+	                newAi.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	// get  basic data of AI 
+	app.get('/getAI', function(request, response) {
+		AI.find({}, function(err, ai) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (ai) {
+	        	
+	            response.send(ai);
+	        } 
+    	});
+    });
+
+	
+	// insert data of AI master Clinical Revision 
+	
+	app.post('/addAIMasterClinicalRevisions',function (request, response){
+
+		AIMasterRevisions.getLastCode(function(err,field){
+			
+			if (field) {
+				nextCode = Number(field.AI_Master_Clinical_Data_Revision_Code)+1;
+			}else{
+				nextCode = 1;
+			}
+			
+			insertNewAIRevision(nextCode);
+		})  
+
+		function insertNewAIRevision(nextCode){
+
+			request.body['AI_Master_Clinical_Data_Revision_Code'] = nextCode;
+
+			newAIMasterRevision = new AIMasterRevisions(request.body);
+
+			newAIMasterRevision.save(function(err,doc){
+		        if(err){
+		            console.log('error occured..'+err);
+		        }
+		        else{
+		            console.log(doc);
+		        }
+		    });
+		}
+
+	});
 
    
 };
