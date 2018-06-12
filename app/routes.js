@@ -13,6 +13,7 @@ var Lut_role_types   = require('../app/models/lut_role_types');
 var Roles      		 = require('../app/models/roles');
 var Departments      = require('../app/models/departments');
 var Account_user     = require('../app/models/account_user');
+var System_setting     = require('../app/models/system_setting');
 
 var  nextCode ='';
 var data = [];
@@ -127,6 +128,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 	
 	app.post('/addEmployee',function (request, response){
+		// console.log(request.body.email);
 		Employee.findOne({ 'Employee_Email' :  request.body.email }, function(err, employee) {
     	    if (err){
     	    	return response.send({
@@ -156,8 +158,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				    numbers: true
 				});
 				
-				console.log(password);
-				console.log(nextCode);
+				
 				function insertNewEmployee(nextCode){
 					
 	              	var newEmployee = new Employee();
@@ -179,11 +180,13 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	                var newUser = new User();
 
-	                newUser.User_Code             = nextCode;
-		            newUser.User_Name 	     	  = request.body.email;
-	                newUser.User_Password    	  = newUser.generateHash(password);
-	                newUser.User_IsActive         = 1;
-	                newUser.User_Employee_ID      = nextCode;
+	                newUser.User_Code             	   = nextCode;
+		            newUser.User_Name 	     	  	   = request.body.email;
+	                newUser.User_Password    	  	   = newUser.generateHash(password);
+	                newUser.User_IsActive              = 1;
+	                newUser.User_Employee_ID           = nextCode;
+	                newUser.User_Permissions_List      = request.body.ids_permissions;
+
 	                newUser.save();
 					 const msg = {
 					  to: request.body.email,
@@ -662,18 +665,51 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
     app.get('/getTool', function(request, response) {
 			Tools.findOne({code:request.query.code}, function(err, tool) {
-	        	console.log(err);
-	        	console.log(tool);
-		    
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (tool) {
-	        	console.log(tool);
-	            response.send(tool);
-	        } 
-    	});
+			    if (err){
+			    	response.send({message: 'Error'});
+			    }
+		        if (tool) {
+		        	console.log(tool);
+		            response.send(tool);
+		        } 
+    		});
     });
+
+    app.post('/getpermission', function(request, response) {
+    	// console.log(request.body.code);
+			User.findOne({User_Code:request.body.code}, function(err, user) {
+			    if (err){
+			    	response.send({message: 'Error'});
+			    }
+		        if (user) {
+		        	// console.log()
+		        	var ids = user.User_Permissions_List.split(',');
+		        	// console.log(ids);
+		        	getpermission(ids);
+		        	
+		        } 
+
+		        // var a =  new System_setting();
+		        function getpermission (ids){
+ System_setting.findOne({'System_Setting_ConfigName': "CP_Users_Permissions"}).select({ 'System_Setting_ConfigValue': { $elemMatch: { 'Permission_ID': 1 }}}).exec(function (err, permission) {
+		        	// for (var i = 0; i < ids.length; i++) {
+		        		// console.log(ids[i]);
+		        		//System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
+       			     	//	{System_Setting_ConfigValue: { $elemMatch: { Permission_ID: 1 } } }, function(err, permission) { 
+       			      			// console.log(err);
+       			      			var data = permission.System_Setting_ConfigValue;
+
+       			      			data.forEach(function (arrayItem) {
+								    var x = arrayItem;
+								    console.log(x);
+								});
+       			      			// console.log(JSON.parse( data));
+           			    })
+		        	// }
+		        }
+    		});
+    });
+
    
 };
 function auth(req, res, next) {

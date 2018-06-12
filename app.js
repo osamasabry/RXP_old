@@ -9,7 +9,7 @@ var flash    = require('connect-flash');
 var generator = require('generate-password');
 var  sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-console.log(process.env.SENDGRID_API_KEY);
+// console.log(process.env.SENDGRID_API_KEY);
 var path = require('path');
     // fs = require('fs');
  var urls = require('http');
@@ -18,9 +18,9 @@ var server = urls.createServer(app);
 
 // var configDB = require('./config/database.js');
 
-mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
+// mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
 
-// mongoose.connect("mongodb://localhost:27017/Medical"); 
+mongoose.connect("mongodb://localhost:27017/Medical"); 
 
 require('./config/passport')(passport); 
 
