@@ -2,7 +2,7 @@ var express  = require('express');
 var cors = require('cors')
 var app      = express();
 app.use(cors({credentials: true, origin: true}))
-var port     = process.env.PORT || 3000;
+var port     = process.env.PORT || 3100;
 var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
@@ -17,10 +17,10 @@ var server = urls.createServer(app);
 // comment
 
 // var configDB = require('./config/database.js');
+mongoose.connect("mongodb://webappdba:Ma13579@localhost:27017/RxPediaDB");
+//mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
 
-// mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
-
-mongoose.connect("mongodb://localhost:27017/Medical"); 
+//mongoose.connect("mongodb://localhost:27017/Medical"); 
 
 require('./config/passport')(passport); 
 
