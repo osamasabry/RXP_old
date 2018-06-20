@@ -16,6 +16,7 @@ var Account_user     = require('../app/models/account_user');
 var System_setting     = require('../app/models/system_setting');
 var bcrypt			 = require('bcrypt-nodejs');
 
+
 // *************************************************
 
 
@@ -1041,7 +1042,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	});
 
-<<<<<<< HEAD
+
 	app.get('/getForm', function(request, response) {
 		Forms.find({}, function(err, form) {
 		    if (err){
