@@ -14,7 +14,7 @@ var Roles      		 = require('../app/models/roles');
 var Departments      = require('../app/models/departments');
 var Account_user     = require('../app/models/account_user');
 var System_setting     = require('../app/models/system_setting');
-
+var bcrypt			 = require('bcrypt-nodejs');
 
 // *************************************************
 
@@ -1041,6 +1041,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	});
 
+<<<<<<< HEAD
 	app.get('/getForm', function(request, response) {
 		Forms.find({}, function(err, form) {
 		    if (err){
@@ -1360,6 +1361,12 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			}
 		})
 	});
+	//get a hasshed password tobe saved at client Cookie
+	app.get('/getHashedStrings', function(request, response) {
+		response.send(bcrypt.hashSync(request.body.sttohash, bcrypt.genSaltSync(8), null));
+    });
+
+
    
 };
 function auth(req, res, next) {
