@@ -23,11 +23,28 @@ var Data_types      			= require('../app/models/field_data_types');
 
 var AI_master_field_structur 	= require('../app/models/AI_master_field_structure');
 
+var AI_master_field_structur_log 	= require('../app/models/AI_master_field_structure_log')
+
+
 var AI      					= require('../app/models/AI');
 
 var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
 
 var  AIMasterRevisions          = require('../app/models/AI_master_clinical_data_revisions'); 
+
+var Forms                        = require('../app/models/lut_form');
+
+var Routes                       = require('../app/models/lut_route');
+
+var StrengthUnits				= require('../app/models/lut_strength_units');
+
+var WeightUnits				    = require('../app/models/lut_weight_units');
+
+var VolumeUnits				    = require('../app/models/lut_volume_units');
+
+var SizeUnits				    = require('../app/models/lut_size_units');
+
+
 
 
 
@@ -507,7 +524,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
             }
         });
 	});
-	
+
 
 
 	app.get('/searchAccount', function(request, response) {
@@ -773,12 +790,92 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 0;        
 	                newFieldAi.save();
+
+
+	                var  AILog = new AI_master_field_structur_log();
+
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
+		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
+	              //  AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.user.User_Code;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 0; 
+	                AILog.save();
+
 
 	                return response.send({
 						message: true
 					});
 		        }
+			}
+		})
+	});
+
+
+	// edit AI Master Fields Struture 
+
+	app.post('/editFieldsAI',function (request, response){
+
+		var newvalues = { $set: {
+				AI_Master_Clinical_Data_Field_Structure_FieldName 					: request.body.name,
+				AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
+				AI_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
+				AI_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
+			} };
+
+		var myquery = { AI_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
+
+
+		AI_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field not exists'
+				});
+            } else {
+
+            	// console.log(field);
+        			
+    			AI_master_field_structur_log.getLastCode(function(err,field){
+    				if (field) {
+    					nextCode = Number(field.AI_Master_Clinical_Data_Field_Structure_Log_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewFieldAILog(nextCode);
+    			})   
+
+    			function insertNewFieldAILog(nextCode){
+
+    				var  AILog = new AI_master_field_structur_log();
+
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
+		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
+	              //  AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.user.User_Code;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
+		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
+	                
+	                AILog.save();
+
+
+	                return response.send({
+						message: true
+					});
+
+	    			}
+                
 			}
 		})
 	});
@@ -944,6 +1041,325 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	});
 
+	app.get('/getForm', function(request, response) {
+		Forms.find({}, function(err, form) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (form) {
+	        	
+	            response.send(form);
+	        } 
+    	});
+    });
+
+	app.get('/getRoute', function(request, response) {
+		Routes.find({}, function(err, route) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (route) {
+	        	
+	            response.send(route);
+	        } 
+    	});
+    });
+
+    app.get('/getStrengthUnits', function(request, response) {
+		StrengthUnits.find({}, function(err, strengthUnits) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (strengthUnits) {
+	        	
+	            response.send(strengthUnits);
+	        } 
+    	});
+    });
+
+    app.get('/getWeightUnits', function(request, response) {
+		WeightUnits.find({}, function(err, WeightUnits) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (WeightUnits) {
+	        	
+	            response.send(WeightUnits);
+	        } 
+    	});
+    });
+
+    app.get('/getVolumeUnits', function(request, response) {
+		VolumeUnits.find({}, function(err, VolumeUnits) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (VolumeUnits) {
+	        	
+	            response.send(VolumeUnits);
+	        } 
+    	});
+    });
+
+    app.get('/getSizeUnits', function(request, response) {
+		SizeUnits.find({}, function(err, SizeUnits) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (SizeUnits) {
+	        	
+	            response.send(SizeUnits);
+	        } 
+    	});
+    });
+
+
+
+    app.post('/addForm',function (request, response){
+		Forms.findOne({ 'Form_Name' :  request.body.name }, function(err, Form) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (Form) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Form Name already exists'
+				});
+            } else {
+        			
+    			Forms.getLastCode(function(err,Form){
+    				if (Form) {
+    					nextCode = Number(Form.Form_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewForm(nextCode);
+    			})   
+
+    			function insertNewForm(nextCode){
+	                var newForm = new Forms();
+	                newForm.Form_Code     	 		 = nextCode;
+		            newForm.Form_Name 	     		 = request.body.name;
+		            newForm.Form_Description 	     = request.body.desc;
+	                newForm.Form_IsActive	         = 0;
+	                newForm.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+    app.post('/addRoute',function (request, response){
+		Routes.findOne({ 'Route_Name' :  request.body.name }, function(err, Route) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (Route) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Route Name already exists'
+				});
+            } else {
+        			
+    			Routes.getLastCode(function(err,Route){
+    				if (Route) {
+    					nextCode = Number(Route.Route_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewRoute(nextCode);
+    			})   
+
+    			function insertNewRoute(nextCode){
+	                var newRoute = new Routes();
+	                newRoute.Route_Code     	 		 = nextCode;
+		            newRoute.Route_Name 	     		 = request.body.name;
+		            newRoute.Route_Description 	         = request.body.desc;
+	                newRoute.Route_IsActive	             = 0;
+	                newRoute.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+    app.post('/addStrengthUnits',function (request, response){
+		StrengthUnits.findOne({ 'StrengthUnit_Name' :  request.body.name }, function(err, StrengthUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (StrengthUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'StrengthUnit Name already exists'
+				});
+            } else {
+        			
+    			StrengthUnits.getLastCode(function(err,StrengthUnit){
+    				if (StrengthUnit) {
+    					nextCode = Number(StrengthUnit.StrengthUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewStrengthUnit(nextCode);
+    			})   
+
+    			function insertNewStrengthUnit(nextCode){
+	                var newStrengthUnit = new StrengthUnits();
+	                newStrengthUnit.StrengthUnit_Code     	 		 = nextCode;
+		            newStrengthUnit.StrengthUnit_Name 	     		 = request.body.name;
+		            newStrengthUnit.StrengthUnit_Description 	     = request.body.desc;
+	                newStrengthUnit.StrengthUnit_IsActive	         = 0;
+	                newStrengthUnit.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	app.post('/addWeightUnits',function (request, response){
+		WeightUnits.findOne({ 'WeightUnit_Name' :  request.body.name }, function(err, WeightUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (WeightUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Weight Unit Name already exists'
+				});
+            } else {
+        			
+    			WeightUnits.getLastCode(function(err,WeightUnit){
+    				if (WeightUnit) {
+    					nextCode = Number(WeightUnit.WeightUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewWeightUnit(nextCode);
+    			})   
+
+    			function insertNewWeightUnit(nextCode){
+	                var newWeightUnit = new WeightUnits();
+	                newWeightUnit.WeightUnit_Code     	 		 = nextCode;
+		            newWeightUnit.WeightUnit_Name 	     		 = request.body.name;
+		            newWeightUnit.WeightUnit_Description 	     = request.body.desc;
+	                newWeightUnit.WeightUnit_IsActive	         = 0;
+	                newWeightUnit.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	app.post('/addVolumeUnits',function (request, response){
+		VolumeUnits.findOne({ 'VolumeUnit_Name' :  request.body.name }, function(err, VolumeUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (VolumeUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Volume Unit Name already exists'
+				});
+            } else {
+        			
+    			VolumeUnits.getLastCode(function(err,VolumeUnit){
+    				if (VolumeUnit) {
+    					nextCode = Number(VolumeUnit.VolumeUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewVolumeUnit(nextCode);
+    			})   
+
+    			function insertNewVolumeUnit(nextCode){
+	                var newVolumeUnit = new VolumeUnits();
+	                newVolumeUnit.VolumeUnit_Code     	 		 = nextCode;
+		            newVolumeUnit.VolumeUnit_Name 	     		 = request.body.name;
+		            newVolumeUnit.VolumeUnit_Description 	     = request.body.desc;
+	                newVolumeUnit.VolumeUnit_IsActive	         = 0;
+	                newVolumeUnit.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	app.post('/addSizeUnits',function (request, response){
+		SizeUnits.findOne({ 'SizeUnit_Name' :  request.body.name }, function(err, SizeUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (SizeUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Volume Unit Name already exists'
+				});
+            } else {
+        			
+    			SizeUnits.getLastCode(function(err,SizeUnit){
+    				if (SizeUnit) {
+    					nextCode = Number(SizeUnit.SizeUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewSizeUnit(nextCode);
+    			})   
+
+    			function insertNewSizeUnit(nextCode){
+	                var newSizeUnit = new SizeUnits();
+	                newSizeUnit.SizeUnit_Code     	 		 = nextCode;
+		            newSizeUnit.SizeUnit_Name 	     		 = request.body.name;
+		            newSizeUnit.SizeUnit_Description 	     = request.body.desc;
+	                newSizeUnit.SizeUnit_IsActive	         = 0;
+	                newSizeUnit.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
    
 };
 function auth(req, res, next) {
