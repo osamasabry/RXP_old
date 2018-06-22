@@ -896,44 +896,41 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 
 	// insert Pharmaceutical Category 
-	app.post('/addPharmaceuticalCategory',function (request, response){
-		Pharmaceutical_category.findOne({ 'Pharmaceutical_Category_Name' :  request.body.name }, function(err, Pharmaceutical) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (Pharmaceutical) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Pharmaceutical Category already exists'
-				});
-            } else {
-        			
-    			Pharmaceutical_category.getLastCode(function(err,Pharmaceutical){
-    				if (Pharmaceutical) {
-    					nextCode = Number(Pharmaceutical.Pharmaceutical_Category_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewPharmaceuticalCategory(nextCode);
-    			})   
-
-    			function insertNewPharmaceuticalCategory(nextCode){
-	                var newPharmaCategory = new Pharmaceutical_category();
-	                newPharmaCategory.Pharmaceutical_Category_Code     	 = nextCode;
-		            newPharmaCategory.Pharmaceutical_Category_Name 	     = request.body.name;
-	                newPharmaCategory.Pharmaceutical_Category_IsActive	 = request.body.status;
-	                newPharmaCategory.save();
-
-	                return response.send({
+	app.post('/addPharmaceuticalCategory',function (request, response){	
+		async function getLastPharmaceuticalCat(){
+			var pharmceuticalCatNextCode = await getNextPhamcuticalCat();
+			insetIntoPharmacuticalCat(pharmceuticalCatNextCode);
+		}
+		function getNextPhamcuticalCat(){
+			return new Promise((resolve, reject) => {
+				Pharmaceutical_category.getLastCode(function(err,Pharmaceutical){
+					if (Pharmaceutical) 
+						resolve( Number(Pharmaceutical.Pharmaceutical_Category_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoPharmacuticalCat(PharCeuCatnextCode){
+			var newPharmaCategory = new Pharmaceutical_category();
+			newPharmaCategory.Pharmaceutical_Category_Code     	 = PharCeuCatnextCode;
+			newPharmaCategory.Pharmaceutical_Category_Name 	     = request.body.name;
+			newPharmaCategory.Pharmaceutical_Category_IsActive	 = request.body.status;
+			newPharmaCategory.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+			
+		}
+		getLastPharmaceuticalCat();
 	});
 
 	// get all  Pharmaceutical Category 
