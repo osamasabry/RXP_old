@@ -527,7 +527,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 
 
-
 	app.get('/searchAccount', function(request, response) {
     	response.render('search-account.html', {
 			user : request.user ,
@@ -864,7 +863,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	              //  AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.user.User_Code;
+	              	AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
 	                
@@ -947,7 +946,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	});
     });
 
-
 	// insert basic data of AI 
 
 	app.post('/addAI',function (request, response){
@@ -1004,7 +1002,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	        } 
     	});
     });
-
 	
 	// insert data of AI master Clinical Revision 
 	
@@ -1039,7 +1036,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	});
 
-
+	//  get data  
 	app.get('/getForm', function(request, response) {
 		Forms.find({}, function(err, form) {
 		    if (err){
@@ -1113,7 +1110,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
     });
 
 
-
+    // insert data
     app.post('/addForm',function (request, response){
 		Forms.findOne({ 'Form_Name' :  request.body.name }, function(err, Form) {
     	    if (err){
@@ -1359,6 +1356,206 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			}
 		})
 	});
+
+
+	//  edit data
+	app.post('/editForm',function (request, response){
+
+		var newvalues = { $set: {
+				Form_Name 					: request.body.name,
+				Form_Description 			: request.body.desc, 
+				Form_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { Form_Code: request.body.row_id }; 
+
+
+		Forms.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Form not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+	app.post('/editRoute',function (request, response){
+
+		var newvalues = { $set: {
+				Route_Name 					: request.body.name,
+				Route_Description 			: request.body.desc, 
+				Route_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { Route_Code: request.body.row_id }; 
+
+
+		Routes.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Route not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editStrengthUnits',function (request, response){
+
+		var newvalues = { $set: {
+				StrengthUnit_Name 					: request.body.name,
+				StrengthUnit_Description 			: request.body.desc, 
+				StrengthUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { StrengthUnit_Code: request.body.row_id }; 
+
+
+		StrengthUnits.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Strength Unit not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+	
+
+	app.post('/editWeightUnits',function (request, response){
+
+		var newvalues = { $set: {
+				WeightUnit_Name 					: request.body.name,
+				WeightUnit_Description 			: request.body.desc, 
+				WeightUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { WeightUnit_Code: request.body.row_id }; 
+
+
+		WeightUnits.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Weight Unit not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editVolumeUnits',function (request, response){
+
+		var newvalues = { $set: {
+				VolumeUnit_Name 					: request.body.name,
+				VolumeUnit_Description 			: request.body.desc, 
+				VolumeUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { VolumeUnit_Code: request.body.row_id }; 
+
+
+		VolumeUnits.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Volume Unit not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+	app.post('/editSizeUnits',function (request, response){
+
+		var newvalues = { $set: {
+				SizeUnit_Name 					: request.body.name,
+				SizeUnit_Description 			: request.body.desc, 
+				SizeUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { SizeUnit_Code: request.body.row_id }; 
+
+
+		SizeUnits.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Size Unit not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+
 	//get a hasshed password tobe saved at client Cookie
 	app.get('/getHashedStrings', function(request, response) {
 		response.send(bcrypt.hashSync(request.body.sttohash, bcrypt.genSaltSync(8), null));
