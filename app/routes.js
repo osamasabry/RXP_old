@@ -914,7 +914,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			var newPharmaCategory = new Pharmaceutical_category();
 			newPharmaCategory.Pharmaceutical_Category_Code     	 = PharCeuCatnextCode;
 			newPharmaCategory.Pharmaceutical_Category_Name 	     = request.body.name;
-			newPharmaCategory.Pharmaceutical_Category_IsActive	 = request.body.status;
+			newPharmaCategory.Pharmaceutical_Category_IsActive	 = 1;
 			newPharmaCategory.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -927,7 +927,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					});
 				}
 			});
-			
 		}
 		getLastPharmaceuticalCat();
 	});
@@ -1112,44 +1111,41 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
     // insert data
     app.post('/addForm',function (request, response){
-		Forms.findOne({ 'Form_Name' :  request.body.name }, function(err, Form) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (Form) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Form Name already exists'
-				});
-            } else {
-        			
-    			Forms.getLastCode(function(err,Form){
-    				if (Form) {
-    					nextCode = Number(Form.Form_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewForm(nextCode);
-    			})   
 
-    			function insertNewForm(nextCode){
-	                var newForm = new Forms();
-	                newForm.Form_Code     	 		 = nextCode;
-		            newForm.Form_Name 	     		 = request.body.name;
-		            newForm.Form_Description 	     = request.body.desc;
-	                newForm.Form_IsActive	         = 0;
-	                newForm.save();
-
-	                return response.send({
+		async function getLastTNForm(){
+			var FormNextCode = await getNextForm();
+			insetIntoForm(FormNextCode);
+		}
+		function getNextForm(){
+			return new Promise((resolve, reject) => {
+				Forms.getLastCode(function(err,tnForm){
+					if (tnForm) 
+						resolve( Number(tnForm.Form_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoForm(FormNextCode){
+			var newForm = new Forms();
+			newForm.Form_Code     	 		 = FormNextCode;
+			newForm.Form_Name 	     		 = request.body.name;
+			newForm.Form_Description 	     = request.body.desc;
+			newForm.Form_IsActive	         = 1;
+			newForm.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastTNForm();
 	});
 
     app.post('/addRoute',function (request, response){
