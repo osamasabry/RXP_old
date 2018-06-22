@@ -790,7 +790,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 0;        
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
 	                newFieldAi.save();
 
 
@@ -802,7 +802,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
 	              //  AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.user.User_Code;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 0; 
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
 	                AILog.save();
 
 
