@@ -1149,208 +1149,188 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 
     app.post('/addRoute',function (request, response){
-		Routes.findOne({ 'Route_Name' :  request.body.name }, function(err, Route) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (Route) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Route Name already exists'
-				});
-            } else {
-        			
-    			Routes.getLastCode(function(err,Route){
-    				if (Route) {
-    					nextCode = Number(Route.Route_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewRoute(nextCode);
-    			})   
-
-    			function insertNewRoute(nextCode){
-	                var newRoute = new Routes();
-	                newRoute.Route_Code     	 		 = nextCode;
-		            newRoute.Route_Name 	     		 = request.body.name;
-		            newRoute.Route_Description 	         = request.body.desc;
-	                newRoute.Route_IsActive	             = 0;
-	                newRoute.save();
-
-	                return response.send({
+		async function getLastRoute(){
+			var RouteNextCode = await getNextRoute();
+			insetIntoRoute(RouteNextCode);
+		}
+		function getNextRoute(){
+			return new Promise((resolve, reject) => {
+				Routes.getLastCode(function(err,NextRoute){
+					if (NextRoute) 
+						resolve( Number(NextRoute.Route_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoRoute(routeNextCode){
+			var newRoute = new Routes();
+			newRoute.Route_Code     	 = routeNextCode;
+			newRoute.Route_Name 	     = request.body.name;
+			newRoute.Route_Description 	 = request.body.desc;
+			newRoute.Route_IsActive	 	 = 1;
+			newRoute.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastRoute();
 	});
 
     app.post('/addStrengthUnits',function (request, response){
-		StrengthUnits.findOne({ 'StrengthUnit_Name' :  request.body.name }, function(err, StrengthUnit) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (StrengthUnit) {
-            	return response.send({
-					// user : request.user ,
-					message: 'StrengthUnit Name already exists'
-				});
-            } else {
-        			
-    			StrengthUnits.getLastCode(function(err,StrengthUnit){
-    				if (StrengthUnit) {
-    					nextCode = Number(StrengthUnit.StrengthUnit_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewStrengthUnit(nextCode);
-    			})   
-
-    			function insertNewStrengthUnit(nextCode){
-	                var newStrengthUnit = new StrengthUnits();
-	                newStrengthUnit.StrengthUnit_Code     	 		 = nextCode;
-		            newStrengthUnit.StrengthUnit_Name 	     		 = request.body.name;
-		            newStrengthUnit.StrengthUnit_Description 	     = request.body.desc;
-	                newStrengthUnit.StrengthUnit_IsActive	         = 0;
-	                newStrengthUnit.save();
-
-	                return response.send({
+		async function getLastStrengthUnit(){
+			var StrengthUnitNextCode = await getNextStrengthUnit();
+			insetIntoStrengthUnit(StrengthUnitNextCode);
+		}
+		function getNextStrengthUnit(){
+			return new Promise((resolve, reject) => {
+				StrengthUnits.getLastCode(function(err,NextStrengthUnit){
+					if (NextStrengthUnit) 
+						resolve( Number(NextStrengthUnit.StrengthUnit_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoStrengthUnit(StrengthUnitNextCode){
+			var newStrengthUnit = new StrengthUnits();
+			newStrengthUnit.StrengthUnit_Code     	 = StrengthUnitNextCode;
+			newStrengthUnit.StrengthUnit_Name 	     = request.body.name;
+			newStrengthUnit.StrengthUnit_Description 	 = request.body.desc;
+			newStrengthUnit.StrengthUnit_IsActive	 	 = 1;
+			newStrengthUnit.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastStrengthUnit();
 	});
 
 	app.post('/addWeightUnits',function (request, response){
-		WeightUnits.findOne({ 'WeightUnit_Name' :  request.body.name }, function(err, WeightUnit) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (WeightUnit) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Weight Unit Name already exists'
-				});
-            } else {
-        			
-    			WeightUnits.getLastCode(function(err,WeightUnit){
-    				if (WeightUnit) {
-    					nextCode = Number(WeightUnit.WeightUnit_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewWeightUnit(nextCode);
-    			})   
-
-    			function insertNewWeightUnit(nextCode){
-	                var newWeightUnit = new WeightUnits();
-	                newWeightUnit.WeightUnit_Code     	 		 = nextCode;
-		            newWeightUnit.WeightUnit_Name 	     		 = request.body.name;
-		            newWeightUnit.WeightUnit_Description 	     = request.body.desc;
-	                newWeightUnit.WeightUnit_IsActive	         = 0;
-	                newWeightUnit.save();
-
-	                return response.send({
+		async function getLastWeightUnit(){
+			var WeightUnitNextCode = await getNextWeightUnit();
+			insetIntoWeighthUnit(WeightUnitNextCode);
+		}
+		function getNextWeightUnit(){
+			return new Promise((resolve, reject) => {
+				WeightUnits.getLastCode(function(err,NextWeightUnit){
+					if (NextWeightUnit) 
+						resolve( Number(NextWeightUnit.WeightUnit_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoWeighthUnit(WeightUnitNextCode){
+			var newWeightUnit = new WeightUnits();
+			newWeightUnit.WeightUnit_Code     	 = WeightUnitNextCode;
+			newWeightUnit.WeightUnit_Name 	     = request.body.name;
+			newWeightUnit.WeightUnit_Description 	 = request.body.desc;
+			newWeightUnit.WeightUnit_IsActive	 	 = 1;
+			newWeightUnit.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastWeightUnit();
 	});
 
 	app.post('/addVolumeUnits',function (request, response){
-		VolumeUnits.findOne({ 'VolumeUnit_Name' :  request.body.name }, function(err, VolumeUnit) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (VolumeUnit) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Volume Unit Name already exists'
-				});
-            } else {
-        			
-    			VolumeUnits.getLastCode(function(err,VolumeUnit){
-    				if (VolumeUnit) {
-    					nextCode = Number(VolumeUnit.VolumeUnit_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewVolumeUnit(nextCode);
-    			})   
-
-    			function insertNewVolumeUnit(nextCode){
-	                var newVolumeUnit = new VolumeUnits();
-	                newVolumeUnit.VolumeUnit_Code     	 		 = nextCode;
-		            newVolumeUnit.VolumeUnit_Name 	     		 = request.body.name;
-		            newVolumeUnit.VolumeUnit_Description 	     = request.body.desc;
-	                newVolumeUnit.VolumeUnit_IsActive	         = 0;
-	                newVolumeUnit.save();
-
-	                return response.send({
+		async function getLastVolumeUnit(){
+			var VolumeUnitNextCode = await getNextVolumetUnit();
+			insetIntoVolumeUnit(VolumeUnitNextCode);
+		}
+		function getNextVolumetUnit(){
+			return new Promise((resolve, reject) => {
+				VolumeUnits.getLastCode(function(err,NextVolumeUnit){
+					if (NextVolumeUnit) 
+						resolve( Number(NextVolumeUnit.VolumeUnit_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoVolumeUnit(VolumeUnitNextCode){
+			var newVolumeUnit = new VolumeUnits();
+			newVolumeUnit.VolumeUnit_Code     	 = VolumeUnitNextCode;
+			newVolumeUnit.VolumeUnit_Name 	     = request.body.name;
+			newVolumeUnit.VolumeUnit_Description 	 = request.body.desc;
+			newVolumeUnit.VolumeUnit_IsActive	 	 = 1;
+			newVolumeUnit.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastVolumeUnit();
 	});
 
 	app.post('/addSizeUnits',function (request, response){
-		SizeUnits.findOne({ 'SizeUnit_Name' :  request.body.name }, function(err, SizeUnit) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (SizeUnit) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Volume Unit Name already exists'
-				});
-            } else {
-        			
-    			SizeUnits.getLastCode(function(err,SizeUnit){
-    				if (SizeUnit) {
-    					nextCode = Number(SizeUnit.SizeUnit_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewSizeUnit(nextCode);
-    			})   
-
-    			function insertNewSizeUnit(nextCode){
-	                var newSizeUnit = new SizeUnits();
-	                newSizeUnit.SizeUnit_Code     	 		 = nextCode;
-		            newSizeUnit.SizeUnit_Name 	     		 = request.body.name;
-		            newSizeUnit.SizeUnit_Description 	     = request.body.desc;
-	                newSizeUnit.SizeUnit_IsActive	         = 0;
-	                newSizeUnit.save();
-
-	                return response.send({
+		async function getLastSizeUnit(){
+			var SizeUnitNextCode = await getNextSizetUnit();
+			insetIntoSizeUnit(SizeUnitNextCode);
+		}
+		function getNextSizetUnit(){
+			return new Promise((resolve, reject) => {
+				SizeUnits.getLastCode(function(err,NextSizeUnit){
+					if (NextSizeUnit) 
+						resolve( Number(NextSizeUnit.SizeUnit_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoSizeUnit(SizeUnitNextCode){
+			var newSizeUnit = new SizeUnits();
+			newSizeUnit.SizeUnit_Code     	 = SizeUnitNextCode;
+			newSizeUnit.SizeUnit_Name 	     = request.body.name;
+			newSizeUnit.SizeUnit_Description 	 = request.body.desc;
+			newSizeUnit.SizeUnit_IsActive	 	 = 1;
+			newSizeUnit.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
 						message: true
 					});
-		        }
-			}
-		})
+				}
+			});
+		}
+		getLastSizeUnit();
 	});
 
 
