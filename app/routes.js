@@ -45,6 +45,16 @@ var VolumeUnits				    = require('../app/models/lut_volume_units');
 
 var SizeUnits				    = require('../app/models/lut_size_units');
 
+var TN_master_field_structur 	= require('../app/models/TN_master_field_structure');
+
+var TN_master_field_structur_log 	= require('../app/models/TN_master_field_structure_log');
+
+var TN     					     = require('../app/models/TN');
+
+var TNMasterRevisions          = require('../app/models/TN_master_clinical_data_revisions');
+
+
+
 
 
 
@@ -791,6 +801,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
+	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Priority						= request.body.priority;
 	                newFieldAi.save();
 
 
@@ -800,9 +812,10 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	              //  AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.user.User_Code;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
 	                AILog.save();
 
 
@@ -1149,188 +1162,208 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 
     app.post('/addRoute',function (request, response){
-		async function getLastRoute(){
-			var RouteNextCode = await getNextRoute();
-			insetIntoRoute(RouteNextCode);
-		}
-		function getNextRoute(){
-			return new Promise((resolve, reject) => {
-				Routes.getLastCode(function(err,NextRoute){
-					if (NextRoute) 
-						resolve( Number(NextRoute.Route_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-		function insetIntoRoute(routeNextCode){
-			var newRoute = new Routes();
-			newRoute.Route_Code     	 = routeNextCode;
-			newRoute.Route_Name 	     = request.body.name;
-			newRoute.Route_Description 	 = request.body.desc;
-			newRoute.Route_IsActive	 	 = 1;
-			newRoute.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}
-				else{
-					return response.send({
+		Routes.findOne({ 'Route_Name' :  request.body.name }, function(err, Route) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (Route) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Route Name already exists'
+				});
+            } else {
+        			
+    			Routes.getLastCode(function(err,Route){
+    				if (Route) {
+    					nextCode = Number(Route.Route_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewRoute(nextCode);
+    			})   
+
+    			function insertNewRoute(nextCode){
+	                var newRoute = new Routes();
+	                newRoute.Route_Code     	 		 = nextCode;
+		            newRoute.Route_Name 	     		 = request.body.name;
+		            newRoute.Route_Description 	         = request.body.desc;
+	                newRoute.Route_IsActive	             = 0;
+	                newRoute.save();
+
+	                return response.send({
 						message: true
 					});
-				}
-			});
-		}
-		getLastRoute();
+		        }
+			}
+		})
 	});
 
     app.post('/addStrengthUnits',function (request, response){
-		async function getLastStrengthUnit(){
-			var StrengthUnitNextCode = await getNextStrengthUnit();
-			insetIntoStrengthUnit(StrengthUnitNextCode);
-		}
-		function getNextStrengthUnit(){
-			return new Promise((resolve, reject) => {
-				StrengthUnits.getLastCode(function(err,NextStrengthUnit){
-					if (NextStrengthUnit) 
-						resolve( Number(NextStrengthUnit.StrengthUnit_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-		function insetIntoStrengthUnit(StrengthUnitNextCode){
-			var newStrengthUnit = new StrengthUnits();
-			newStrengthUnit.StrengthUnit_Code     	 = StrengthUnitNextCode;
-			newStrengthUnit.StrengthUnit_Name 	     = request.body.name;
-			newStrengthUnit.StrengthUnit_Description 	 = request.body.desc;
-			newStrengthUnit.StrengthUnit_IsActive	 	 = 1;
-			newStrengthUnit.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}
-				else{
-					return response.send({
+		StrengthUnits.findOne({ 'StrengthUnit_Name' :  request.body.name }, function(err, StrengthUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (StrengthUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'StrengthUnit Name already exists'
+				});
+            } else {
+        			
+    			StrengthUnits.getLastCode(function(err,StrengthUnit){
+    				if (StrengthUnit) {
+    					nextCode = Number(StrengthUnit.StrengthUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewStrengthUnit(nextCode);
+    			})   
+
+    			function insertNewStrengthUnit(nextCode){
+	                var newStrengthUnit = new StrengthUnits();
+	                newStrengthUnit.StrengthUnit_Code     	 		 = nextCode;
+		            newStrengthUnit.StrengthUnit_Name 	     		 = request.body.name;
+		            newStrengthUnit.StrengthUnit_Description 	     = request.body.desc;
+	                newStrengthUnit.StrengthUnit_IsActive	         = 0;
+	                newStrengthUnit.save();
+
+	                return response.send({
 						message: true
 					});
-				}
-			});
-		}
-		getLastStrengthUnit();
+		        }
+			}
+		})
 	});
 
 	app.post('/addWeightUnits',function (request, response){
-		async function getLastWeightUnit(){
-			var WeightUnitNextCode = await getNextWeightUnit();
-			insetIntoWeighthUnit(WeightUnitNextCode);
-		}
-		function getNextWeightUnit(){
-			return new Promise((resolve, reject) => {
-				WeightUnits.getLastCode(function(err,NextWeightUnit){
-					if (NextWeightUnit) 
-						resolve( Number(NextWeightUnit.WeightUnit_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-		function insetIntoWeighthUnit(WeightUnitNextCode){
-			var newWeightUnit = new WeightUnits();
-			newWeightUnit.WeightUnit_Code     	 = WeightUnitNextCode;
-			newWeightUnit.WeightUnit_Name 	     = request.body.name;
-			newWeightUnit.WeightUnit_Description 	 = request.body.desc;
-			newWeightUnit.WeightUnit_IsActive	 	 = 1;
-			newWeightUnit.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}
-				else{
-					return response.send({
+		WeightUnits.findOne({ 'WeightUnit_Name' :  request.body.name }, function(err, WeightUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (WeightUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Weight Unit Name already exists'
+				});
+            } else {
+        			
+    			WeightUnits.getLastCode(function(err,WeightUnit){
+    				if (WeightUnit) {
+    					nextCode = Number(WeightUnit.WeightUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewWeightUnit(nextCode);
+    			})   
+
+    			function insertNewWeightUnit(nextCode){
+	                var newWeightUnit = new WeightUnits();
+	                newWeightUnit.WeightUnit_Code     	 		 = nextCode;
+		            newWeightUnit.WeightUnit_Name 	     		 = request.body.name;
+		            newWeightUnit.WeightUnit_Description 	     = request.body.desc;
+	                newWeightUnit.WeightUnit_IsActive	         = 0;
+	                newWeightUnit.save();
+
+	                return response.send({
 						message: true
 					});
-				}
-			});
-		}
-		getLastWeightUnit();
+		        }
+			}
+		})
 	});
 
 	app.post('/addVolumeUnits',function (request, response){
-		async function getLastVolumeUnit(){
-			var VolumeUnitNextCode = await getNextVolumetUnit();
-			insetIntoVolumeUnit(VolumeUnitNextCode);
-		}
-		function getNextVolumetUnit(){
-			return new Promise((resolve, reject) => {
-				VolumeUnits.getLastCode(function(err,NextVolumeUnit){
-					if (NextVolumeUnit) 
-						resolve( Number(NextVolumeUnit.VolumeUnit_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-		function insetIntoVolumeUnit(VolumeUnitNextCode){
-			var newVolumeUnit = new VolumeUnits();
-			newVolumeUnit.VolumeUnit_Code     	 = VolumeUnitNextCode;
-			newVolumeUnit.VolumeUnit_Name 	     = request.body.name;
-			newVolumeUnit.VolumeUnit_Description 	 = request.body.desc;
-			newVolumeUnit.VolumeUnit_IsActive	 	 = 1;
-			newVolumeUnit.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}
-				else{
-					return response.send({
+		VolumeUnits.findOne({ 'VolumeUnit_Name' :  request.body.name }, function(err, VolumeUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (VolumeUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Volume Unit Name already exists'
+				});
+            } else {
+        			
+    			VolumeUnits.getLastCode(function(err,VolumeUnit){
+    				if (VolumeUnit) {
+    					nextCode = Number(VolumeUnit.VolumeUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewVolumeUnit(nextCode);
+    			})   
+
+    			function insertNewVolumeUnit(nextCode){
+	                var newVolumeUnit = new VolumeUnits();
+	                newVolumeUnit.VolumeUnit_Code     	 		 = nextCode;
+		            newVolumeUnit.VolumeUnit_Name 	     		 = request.body.name;
+		            newVolumeUnit.VolumeUnit_Description 	     = request.body.desc;
+	                newVolumeUnit.VolumeUnit_IsActive	         = 0;
+	                newVolumeUnit.save();
+
+	                return response.send({
 						message: true
 					});
-				}
-			});
-		}
-		getLastVolumeUnit();
+		        }
+			}
+		})
 	});
 
 	app.post('/addSizeUnits',function (request, response){
-		async function getLastSizeUnit(){
-			var SizeUnitNextCode = await getNextSizetUnit();
-			insetIntoSizeUnit(SizeUnitNextCode);
-		}
-		function getNextSizetUnit(){
-			return new Promise((resolve, reject) => {
-				SizeUnits.getLastCode(function(err,NextSizeUnit){
-					if (NextSizeUnit) 
-						resolve( Number(NextSizeUnit.SizeUnit_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-		function insetIntoSizeUnit(SizeUnitNextCode){
-			var newSizeUnit = new SizeUnits();
-			newSizeUnit.SizeUnit_Code     	 = SizeUnitNextCode;
-			newSizeUnit.SizeUnit_Name 	     = request.body.name;
-			newSizeUnit.SizeUnit_Description 	 = request.body.desc;
-			newSizeUnit.SizeUnit_IsActive	 	 = 1;
-			newSizeUnit.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}
-				else{
-					return response.send({
+		SizeUnits.findOne({ 'SizeUnit_Name' :  request.body.name }, function(err, SizeUnit) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (SizeUnit) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Volume Unit Name already exists'
+				});
+            } else {
+        			
+    			SizeUnits.getLastCode(function(err,SizeUnit){
+    				if (SizeUnit) {
+    					nextCode = Number(SizeUnit.SizeUnit_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewSizeUnit(nextCode);
+    			})   
+
+    			function insertNewSizeUnit(nextCode){
+	                var newSizeUnit = new SizeUnits();
+	                newSizeUnit.SizeUnit_Code     	 		 = nextCode;
+		            newSizeUnit.SizeUnit_Name 	     		 = request.body.name;
+		            newSizeUnit.SizeUnit_Description 	     = request.body.desc;
+	                newSizeUnit.SizeUnit_IsActive	         = 0;
+	                newSizeUnit.save();
+
+	                return response.send({
 						message: true
 					});
-				}
-			});
-		}
-		getLastSizeUnit();
+		        }
+			}
+		})
 	});
 
 
@@ -1530,6 +1563,298 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		})
 	});
 
+
+	// insert TN Field Struture 
+	app.post('/addFieldsTN',function (request, response){
+		TN_master_field_structur.findOne({ 'TN_Master_Clinical_Data_Field_Structure_FieldName' :  request.body.name }, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field already exists'
+				});
+            } else {
+        			
+    			TN_master_field_structur.getLastCode(function(err,field){
+    				if (field) {
+    					nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewFieldTN(nextCode);
+    			})   
+
+    			function insertNewFieldTN(nextCode){
+	                var newFieldTN = new TN_master_field_structur();
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
+		            newFieldTN.TN_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
+		            newFieldTN.TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_ISEditable				    = 1;
+	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Priority                     = request.body.priority;
+	                
+	                newFieldTN.save();
+
+
+	                var  TNLog = new TN_master_field_structur_log();
+
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
+		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
+	                TNLog.save();
+
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+
+	//  get TN Fields Struture 
+	app.get('/getFieldsTN', function(request, response) {
+		TN_master_field_structur.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+    });
+
+
+	app.post('/editFieldsTN',function (request, response){
+
+		var newvalues = { $set: {
+				TN_Master_Clinical_Data_Field_Structure_FieldName 					: request.body.name,
+				TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
+				TN_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
+				TN_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
+			} };
+
+		var myquery = { TN_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
+
+
+		TN_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field not exists'
+				});
+            } else {
+
+            	// console.log(field);
+        			
+    			TN_master_field_structur_log.getLastCode(function(err,field){
+    				if (field) {
+    					nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Log_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewFieldTNLog(nextCode);
+    			})   
+
+    			function insertNewFieldTNLog(nextCode){
+
+    				var  TNLog = new TN_master_field_structur_log();
+
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
+		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
+	              	TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
+		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
+	                
+	                TNLog.save();
+
+
+	                return response.send({
+						message: true
+					});
+
+	    			}
+                
+			}
+		})
+	});
+
+
+	app.post('/addTN',function (request, response){
+		TN.findOne({ 'TN_Name' :  request.body.name }, function(err, tn) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (tn) {
+            	return response.send({
+					// user : request.user ,
+					message: 'TN already exists'
+				});
+            } else {
+        			
+    			TN.getLastCode(function(err,tn){
+    				if (tn) {
+    					nextCode = Number(tn.TN_Code)+1;
+    				}else{
+    					nextCode = 1;
+    				}
+    				
+    				insertNewTN(nextCode);
+    			})   
+
+    			function insertNewTN(nextCode){
+	                var newTn = new TN();
+	                newTn.TN_Code     	 					 = nextCode;
+		            newTn.TN_Name 	     					 = request.body.name;
+	                newTn.TN_ATC_Code	 					 = request.body.atc_code;
+	                newTn.TN_Status	     					 = null;
+	                newTn.TN_Pharmaceutical_Categories_ID    = request.body.category_Ids
+	                newTn.save();
+
+	                return response.send({
+						message: true
+					});
+		        }
+			}
+		})
+	});
+
+	// get  basic data of TN
+	app.get('/getTN', function(request, response) {
+		TN.find({}, function(err, tn) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            response.send(tn);
+	        } 
+    	});
+    });
+
+
+	app.post('/addTNMasterClinicalRevisions',function (request, response){
+
+		TNMasterRevisions.getLastCode(function(err,field){
+			
+			if (field) {
+				nextCode = Number(field.TN_Master_Clinical_Data_Revision_Code)+1;
+			}else{
+				nextCode = 1;
+			}
+			
+			insertNewTNRevision(nextCode);
+		})  
+
+		function insertNewTNRevision(nextCode){
+
+			request.body['TN_Master_Clinical_Data_Revision_Code'] = nextCode;
+
+			newTNMasterRevision = new TNMasterRevisions(request.body);
+
+			newTNMasterRevision.save(function(err,doc){
+		        if(err){
+		        	return response.send({
+						message: err
+					});
+		        }
+		        else{
+		            return response.send({
+						message: true
+					});
+		        }
+		    });
+		}
+
+	});
+
+
+	app.post('/updatePriorityTN',function (request, response){
+
+		var newvalues = { $set: {
+				TN_Master_Clinical_Data_Field_Structure_Priority 	: request.body.priority,
+			}};
+
+		var myquery = { TN_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
+
+
+		TN_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field not exists'
+				});
+            } else {
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+	app.post('/updatePriorityAI',function (request, response){
+
+		var newvalues = { $set: {
+				AI_Master_Clinical_Data_Field_Structure_Priority 	: request.body.priority,
+								
+			} };
+
+		var myquery = { AI_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
+
+
+		AI_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Field not exists'
+				});
+            } else {
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
 
 
 	//get a hasshed password tobe saved at client Cookie
