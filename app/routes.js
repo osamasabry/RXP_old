@@ -359,7 +359,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		// console.log(parseInt(request.body.employee_code));
 		var Searchquery = Number(request.body.employee_code); 
 		// console.log(Searchquery);
-		Employee_role.find({ $and:[ {'Employee_Role_Employee_Code':Searchquery}, {'Employee_Role_Status':0} ]},function(err, emp_role) {
+		Employee_role.find({ $and:[ {'Employee_Role_Employee_Code':Searchquery}, {'Employee_Role_Status':1} ]},function(err, emp_role) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -368,7 +368,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	    	if (emp_role.length == 0) {
 				return response.send({
 					// user : request.user ,
-					message: 'No Roles Found !!'
+					message: 'No Roles Found !!',
+					length: emp_role.length
 				});
         	} else {
 				return response.send({
