@@ -10,7 +10,7 @@ var RxP_TNMasterFieldStructureLogSchema = mongoose.Schema({
     TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID        :Number,
     TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					 :Date,
     TN_Master_Clinical_Data_Field_Structure_Log_IsActive					 :Number,
-    TN_Master_Clinical_Data_Field_Structure_Log_Country_ID
+    TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                   :Number,
 });
 
 

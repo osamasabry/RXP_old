@@ -837,6 +837,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
 				AI_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
 				AI_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
+	            AI_Master_Clinical_Data_Field_Structure_Country_ID                  : request.body.country_id;
+				
 			} };
 
 		var myquery = { AI_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
@@ -872,13 +874,14 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
     				var  AILog = new AI_master_field_structur_log();
 
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = request.body.row_id;
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
 	              	AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
 	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
 		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
+	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
 	                
 	                AILog.save();
 
@@ -1647,6 +1650,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
 				TN_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
 				TN_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
+				TN_Master_Clinical_Data_Field_Structure_Country_ID  			    : request.body.country_id,
 			} };
 
 		var myquery = { TN_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
@@ -1668,28 +1672,28 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
             	// console.log(field);
         			
-    			TN_master_field_structur_log.getLastCode(function(err,field){
-    				if (field) {
-    					nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Log_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
+    			// TN_master_field_structur_log.getLastCode(function(err,field){
+    			// 	if (field) {
+    			// 		nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Log_Code)+1;
+    			// 	}else{
+    			// 		nextCode = 1;
+    			// 	}
     				
-    				insertNewFieldTNLog(nextCode);
-    			})   
+    			// 	insertNewFieldTNLog(nextCode);
+    			// })   
 
-    			function insertNewFieldTNLog(nextCode){
+    			// function insertNewFieldTNLog(nextCode){
 
     				var  TNLog = new TN_master_field_structur_log();
 
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = request.body.row_id;
 		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
 		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
 	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
 	              	TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
 	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
 		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
-	                
+	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id; 
 	                TNLog.save();
 
 
@@ -1697,13 +1701,14 @@ module.exports = function(app, passport, server, generator, sgMail) {
 						message: true
 					});
 
-	    			}
+	    		// }
                 
 			}
 		})
 	});
 
 
+	// add basic data of TN
 	app.post('/addTN',function (request, response){
 		TN.findOne({ 'TN_Name' :  request.body.name }, function(err, tn) {
     	    if (err){
