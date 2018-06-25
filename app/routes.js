@@ -356,7 +356,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 						3- go to model employee_role.js and add param in function unAssignRole(user_id) 
 						4- go to model employee_role.js and active line this.Employee_Role_UnAssignedBy_Employee_Code = user_id;
 				*/             	
-        		emp.unAssignRole();
+        		emp.unAssignRole(request.body.byuserid);
         		response.send({message: true});
         	}
                 

@@ -18,12 +18,12 @@ var rxp_EmployeeRoleSchema = mongoose.Schema({
 
 
 
-rxp_EmployeeRoleSchema.methods.unAssignRole = function() {
+rxp_EmployeeRoleSchema.methods.unAssignRole = function(by_user_id) {
 
 	// console.log(row_id);
-    this.Employee_Role_Status =0;
+    this.Employee_Role_Status = 0;
     this.Employee_Role_UnAssignedDate = new Date();
-    // this.Employee_Role_UnAssignedBy_Employee_Code = user_id;
+    this.Employee_Role_UnAssignedBy_Employee_Code = by_user_id;
 	this.save();
 };
 
