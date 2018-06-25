@@ -1547,63 +1547,62 @@ app.post('/addStrengthUnits',function (request, response){
 
 	// insert TN Field Struture 
 	app.post('/addFieldsTN',function (request, response){
-		TN_master_field_structur.findOne({ 'TN_Master_Clinical_Data_Field_Structure_FieldName' :  request.body.name }, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field already exists'
-				});
-            } else {
-        			
-    			TN_master_field_structur.getLastCode(function(err,field){
-    				if (field) {
-    					nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewFieldTN(nextCode);
-    			})   
-
-    			function insertNewFieldTN(nextCode){
-	                var newFieldTN = new TN_master_field_structur();
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
-		            newFieldTN.TN_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
-		            newFieldTN.TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_ISEditable				    = 1;
-	                newFieldTN.TN_Master_Clinical_Data_Field_Structure_Priority                     = request.body.priority;
-	                
-	                newFieldTN.save();
-
-
-	                var  TNLog = new TN_master_field_structur_log();
-
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
-		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
-		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
-	                TNLog.save();
-
-
-	                return response.send({
-						message: true
+		async function getLastTNField(){
+			var TNFieldNextCode = await getNextFieldID();
+			insetIntoTNFieldStructure(TNFieldNextCode);
+		}
+		function getNextFieldID(){
+			return new Promise((resolve, reject) => {
+				TN_master_field_structur.getLastCode(function(err,field){
+					if (field) 
+					resolve( Number(field.TN_Master_Clinical_Data_Field_Structure_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+        };
+		function insetIntoTNFieldStructure(TNFieldNextCode){
+			var newFieldTN = new TN_master_field_structur();
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_ISEditable				    = 1;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Priority                     = 100;
+			newFieldTN.save(function(error, doneadd){
+				if(doneadd){
+					var  TNLog = new TN_master_field_structur_log();
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
+					TNLog.save(function(logerror, logdoneadd){
+						if(logerror){
+							return response.send({
+								message: logerror
+						    });
+						}
+						else{
+							return response.send({
+								message: true
+						    });
+						}
 					});
-		        }
-			}
-		})
+				}
+				else if(error){
+					return response.send({
+						message: error
+				    });
+				}
+			})
+		}
+		getLastTNField();
 	});
 
 
