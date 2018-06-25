@@ -258,7 +258,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 
 	app.get('/getCountries', function(request, response) {
-		Country.find({}, function(err, country) {
+		Country.find({Country_IsActive:1}, function(err, country) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1126,10 +1126,12 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
     // insert data
     app.post('/addForm',function (request, response){
+		
 		async function getLastTNForm(){
 			var FormNextCode = await getNextForm();
 			insetIntoForm(FormNextCode);
         }
+
 		function getNextForm(){
 			return new Promise((resolve, reject) => {
 			 	Forms.getLastCode(function(err,tnForm){
@@ -1139,8 +1141,9 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					resolve(1);
 				})
 			})
-        };
-        function insetIntoForm(FormNextCode){
+    	}
+
+    	function insetIntoForm(FormNextCode){
             var newForm = new Forms();
             newForm.Form_Code                = FormNextCode;
             newForm.Form_Name                = request.body.name;
@@ -1162,42 +1165,44 @@ module.exports = function(app, passport, server, generator, sgMail) {
         getLastTNForm();
     });
 
-app.post('/addRoute',function (request, response){
-        async function getLastRoute(){
-            var RouteNextCode = await getNextRoute();
-            insetIntoRoute(RouteNextCode);
-        }
-        function getNextRoute(){
-            return new Promise((resolve, reject) => {
-                Routes.getLastCode(function(err,NextRoute){
-                    if (NextRoute) 
-                        resolve( Number(NextRoute.Route_Code)+1);
-                    else
-                        resolve(1);
-                })
-            })
-        };
-        function insetIntoRoute(routeNextCode){
-            var newRoute = new Routes();
-            newRoute.Route_Code          = routeNextCode;
-            newRoute.Route_Name          = request.body.name;
-            newRoute.Route_Description   = request.body.desc;
-            newRoute.Route_IsActive      = 1;
-            newRoute.save(function(error, doneadd){
-                if(error){
-                    return response.send({
-                        message: error
-                    });
-                }
-                else{
-                    return response.send({
-                        message: true
-                    });
-                }
-            });
-        }
+	app.post('/addRoute',function (request, response){
+	        async function getLastRoute(){
+	            var RouteNextCode = await getNextRoute();
+	            insetIntoRoute(RouteNextCode);
+	        }
+	        function getNextRoute(){
+	            return new Promise((resolve, reject) => {
+	                Routes.getLastCode(function(err,NextRoute){
+	                    if (NextRoute) 
+	                        resolve( Number(NextRoute.Route_Code)+1);
+	                    else
+	                        resolve(1);
+	                })
+	            })
+	        };
+	        function insetIntoRoute(routeNextCode){
+	            var newRoute = new Routes();
+	            newRoute.Route_Code          = routeNextCode;
+	            newRoute.Route_Name          = request.body.name;
+	            newRoute.Route_Description   = request.body.desc;
+	            newRoute.Route_IsActive      = 1;
+	            newRoute.save(function(error, doneadd){
+	                if(error){
+	                    return response.send({
+	                        message: error
+	                    });
+	                }
+	                else{
+	                    return response.send({
+	                        message: true
+	                    });
+	                }
+	            });
+	        }
         getLastRoute();
-    });
+   });
+
+
 
 app.post('/addStrengthUnits',function (request, response){
         async function getLastStrengthUnit(){
@@ -1839,6 +1844,87 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
+	app.post('/addCountry',function (request, response){
+
+		async function getLastCountry(){
+			var NextCode = await getNextCode();
+			insertCountry(NextCode);
+		}
+		function getNextCode(){
+			return new Promise((resolve, reject) => {
+				Country.getLastCode(function(err,contry){
+					if (contry) 
+						resolve( Number(contry.Country_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insertCountry(NextCode){
+			var newcontry= new Country();
+			newcontry.Country_Code     	 		 = NextCode;
+			newcontry.Country_Name 	     		 = request.body.name;
+			newcontry.Country_IsActive	         = 0;
+			newcontry.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
+						message: true
+					});
+				}
+			});
+		}
+		getLastCountry();
+	});
+
+
+	app.post('/editCountry',function (request, response){
+
+		var newvalues = { $set: {
+				Country_Name 					: request.body.name,
+				Country_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { Country_Code: request.body.row_id }; 
+
+
+		Country.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Country not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+	app.get('/getAllCountries', function(request, response) {
+		Country.find({}, function(err, country) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (country) {
+	        	
+	            response.send(country);
+	        } 
+    	});
+    });
 	//get a hasshed password tobe saved at client Cookie
 	app.get('/getHashedStrings', function(request, response) {
 		response.send(bcrypt.hashSync(request.body.sttohash, bcrypt.genSaltSync(8), null));
