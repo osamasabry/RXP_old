@@ -1548,10 +1548,10 @@ app.post('/addStrengthUnits',function (request, response){
 	// insert TN Field Struture 
 	app.post('/addFieldsTN',function (request, response){
 		async function getLastTNField(){
-			var TNFieldNextCode = await getNextFieldID();
-			insetIntoTNFieldStructure(TNFieldNextCode);
+			var TNFieldNextCodetoinsert = await getNextTNFieldID();
+			insetIntoTNFieldStructure(TNFieldNextCodetoinsert);
 		}
-		function getNextFieldID(){
+		function getNextTNFieldID(){
 			return new Promise((resolve, reject) => {
 				TN_master_field_structur.getLastCode(function(err,field){
 					if (field) 
@@ -1563,7 +1563,7 @@ app.post('/addStrengthUnits',function (request, response){
         };
 		function insetIntoTNFieldStructure(TNFieldNextCode){
 			var newFieldTN = new TN_master_field_structur();
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
+			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = TNFieldNextCode;
 			newFieldTN.TN_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
 			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
 			newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
@@ -1574,7 +1574,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newFieldTN.save(function(error, doneadd){
 				if(doneadd){
 					var  TNLog = new TN_master_field_structur_log();
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
+					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = TNFieldNextCode;
 					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
 					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
 					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
