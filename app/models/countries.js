@@ -4,7 +4,11 @@ var bcrypt   = require('bcrypt-nodejs');
 var rxpCountriesSchema = mongoose.Schema({
     
 	Country_Code     	:Number,
-    Country_Name     	: String,
+    Country_Name     	:{
+	       type: String,
+	       required: true,
+	       unique: true
+	  },
     Country_IsActive	:Number
     
 });
