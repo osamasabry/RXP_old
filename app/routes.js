@@ -235,9 +235,9 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	                newUser.save();
 					 const msg = {
 					  to: request.body.email,
-					  from: 'osamasabry14@gmail.com',
+					  from: 'dev@pharmedsolutions.com',
 					  subject: 'Account Login',
-					  text: 'and easy to do anywhere, even with Node.js',
+					  text: 'Hello mr'+request.body.name+' userName:'+request.body.email+' Password:'+password,
 					  html: '<h1>Hello mr'+request.body.name+'</h1><br><p>userName:'+request.body.email+'</p><br>Password:'+password,
 					};
 					console.log(msg);
@@ -520,11 +520,11 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	                newAccountUser.save();
 
 	           		const msg = {
-					  to: 'osamasabry14@gmail.com',
-					  from: 'osamasabry14@gmail.com',
-					  subject: 'Account Login',
-					  text: 'and easy to do anywhere, even with Node.js',
-					  html: '<h1>Hello mr'+request.body.name+'</h1><br><p>userName:'+request.body.email+'</p><br>Password:'+password,
+						to: request.body.email,
+						from: 'dev@pharmedsolutions.com',
+						subject: 'Account Login',
+						text: '<h1>Hello mr'+request.body.name+'</h1><br><p>userName:'+request.body.email+'</p><br>Password:'+password,
+						html: '<h1>Hello mr'+request.body.name+'</h1><br><p>userName:'+request.body.email+'</p><br>Password:'+password,
 					};
 					sgMail.send(msg);
 				}	
@@ -898,18 +898,27 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 	// get all Fields of AI
 	app.get('/getFieldsAI', function(request, response) {
-		AI_master_field_structur.find({}, function(err, field) {
+		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID: null}, function(err, field) {
 		    if (err){
-		    	response.send({message: 'Error'});
+				response.send({message: 'Error'});
 		    }
 	        if (field) {
 	        	
 	            response.send(field);
 	        } 
     	});
+	});
+	app.post('/getCountryFieldsAI', function(request, response) {
+		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
+		    if (err){
+				response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	response.send(field);
+	        } 
+    	});
     });
-
-
+	
 	// insert Pharmaceutical Category 
 	app.post('/addPharmaceuticalCategory',function (request, response){	
 		async function getLastPharmaceuticalCat(){
@@ -1608,7 +1617,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	//  get TN Fields Struture 
 	app.get('/getFieldsTN', function(request, response) {
-		TN_master_field_structur.find({}, function(err, field) {
+		TN_master_field_structur.find({TN_Master_Clinical_Data_Field_Structure_Country_ID: null}, function(err, field) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1618,7 +1627,16 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
     });
-
+	app.post('/getCountryFieldsTN', function(request, response) {
+		TN_master_field_structur.find({TN_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
+		    if (err){
+				response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	response.send(field);
+	        } 
+    	});
+    });
 
 	app.post('/editFieldsTN',function (request, response){
 
