@@ -1956,7 +1956,7 @@ app.post('/addStrengthUnits',function (request, response){
 			    }
 		        if (roleTypes) {
 					
-						response.send(roleTypes);
+						response.send(roleTypes.System_Setting_ConfigValue);
 				} 
 
 

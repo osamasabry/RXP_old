@@ -6,8 +6,7 @@ var rxpCountriesSchema = mongoose.Schema({
 	Country_Code     	:Number,
     Country_Name     	:{
 	       type: String,
-	       required: true,
-	       unique: true
+	       required: true
 	  },
     Country_IsActive	:Number
     
