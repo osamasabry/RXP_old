@@ -37,6 +37,8 @@ var Forms                        = require('../app/models/lut_form');
 
 var Routes                       = require('../app/models/lut_route');
 
+var Concentration                = require('../app/models/lut_concentration');
+
 var StrengthUnits				= require('../app/models/lut_strength_units');
 
 var WeightUnits				    = require('../app/models/lut_weight_units');
@@ -1071,6 +1073,18 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	            response.send(form);
 	        } 
     	});
+	});
+
+	app.get('/getConcentration', function(request, response) {
+		Concentration.find({}, function(err, form) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (form) {
+	        	
+	            response.send(form);
+	        } 
+    	});
     });
 
 	app.get('/getRoute', function(request, response) {
@@ -1250,6 +1264,43 @@ app.post('/addStrengthUnits',function (request, response){
         getLastStrengthUnit();
     });
 
+	app.post('/addConcentrationUnits',function (request, response){
+		async function getLastConcentrationUnit(){
+			var ConcentrationUnitsNextCode = await getNextConcentrationUnit();
+			insetIntoConcentrationUnit(ConcentrationUnitsNextCode);
+		}
+		function getNextConcentrationUnit(){
+			return new Promise((resolve, reject) => {
+				Concentration.getLastCode(function(err,NextConcentrationUnit){
+					if (NextConcentrationUnit) 
+						resolve( Number(NextConcentrationUnit.ConcentrationUnit_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+		function insetIntoConcentrationUnit(ConcentrationUnitsNextCode){
+			var newConcentrationUnit = new Concentration();
+			newConcentrationUnit.ConcentrationUnit_Code        = ConcentrationUnitsNextCode;
+			newConcentrationUnit.ConcentrationUnit_Name        = request.body.name;
+			newConcentrationUnit.ConcentrationUnit_Description     = request.body.desc;
+			newConcentrationUnit.ConcentrationUnit_IsActive     = 1;
+			newConcentrationUnit.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						 message: error
+					});
+				}
+				else{
+					return response.send({
+						message: true
+					});
+				}
+			});
+		}
+		getLastConcentrationUnit();
+	});
+
     app.post('/addWeightUnits',function (request, response){
         async function getLastWeightUnit(){
             var WeightUnitNextCode = await getNextWeightUnit();
@@ -1385,6 +1436,38 @@ app.post('/addStrengthUnits',function (request, response){
             	return response.send({
 					// user : request.user ,
 					message: 'Form not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editConcentrationUnit',function (request, response){
+
+		var newvalues = { $set: {
+				ConcentrationUnit_Name 					: request.body.name,
+				ConcentrationUnit_Description 			: request.body.desc, 
+				ConcentrationUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { ConcentrationUnit_Code: request.body.row_id }; 
+
+
+		Concentration.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Concentration not exists'
 				});
             } else {
 
