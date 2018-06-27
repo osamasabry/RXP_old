@@ -13,6 +13,7 @@ var rxp_EmployeeRoleSchema = mongoose.Schema({
     Employee_Role_AssignedDate 				 :Date,
     Employee_Role_Status 					 :Number,
     Employee_Role_UnAssignedBy_Employee_Code :Number,
+    Employee_Role_Sub_Role_Type              :Number,
     Employee_Role_UnAssignedDate 			 :Date
 });
 

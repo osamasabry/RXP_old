@@ -335,7 +335,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			newEmpRole.Employee_Role_AssignedBy_Employee_Code   = request.body.User_Code;
 			newEmpRole.Employee_Role_AssignedDate 			    = new Date();
 			newEmpRole.Employee_Role_Status 				    = 1;
-
+			newEmpRole.Employee_Role_Sub_Role_Type              = request.body.sub_role_type;
             newEmpRole.save();
 
         	response.send({message: true});
@@ -1930,7 +1930,29 @@ app.post('/addStrengthUnits',function (request, response){
 		response.send(bcrypt.hashSync(request.body.sttohash, bcrypt.genSaltSync(8), null));
     });
 
+	// new Route .. 
+	app.get('/getPermisionRolesType', function(request, response) {
+			System_setting.findOne({System_Setting_ConfigName:"CMS_User_RoleTypes"}, function(err, roleTypes) {
+			    if (err){
+			    	response.send({message: 'Error'});
+			    }
+		        if (roleTypes) {
+					
+						response.send(roleTypes);
+					
+					// function getPermisionName(oneId) {
+					// 	return new Promise((resolve, reject) => {
+					// 		System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
+					// 			{'System_Setting_ConfigValue': { $elemMatch: { Permission_ID: oneId} } }, function(err, permission) { 
+					// 				resolve(permission[0].System_Setting_ConfigValue[0]['PermissionName']);
+					// 		})
+					// 	})
+					// }
+				} 
 
+
+    		});
+    });
    
 };
 function auth(req, res, next) {
