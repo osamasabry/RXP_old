@@ -1957,15 +1957,6 @@ app.post('/addStrengthUnits',function (request, response){
 		        if (roleTypes) {
 					
 						response.send(roleTypes);
-					
-					// function getPermisionName(oneId) {
-					// 	return new Promise((resolve, reject) => {
-					// 		System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
-					// 			{'System_Setting_ConfigValue': { $elemMatch: { Permission_ID: oneId} } }, function(err, permission) { 
-					// 				resolve(permission[0].System_Setting_ConfigValue[0]['PermissionName']);
-					// 		})
-					// 	})
-					// }
 				} 
 
 
