@@ -13,7 +13,7 @@ var Lut_role_types   = require('../app/models/lut_role_types');
 var Roles      		 = require('../app/models/roles');
 var Departments      = require('../app/models/departments');
 var Account_user     = require('../app/models/account_user');
-var System_setting     = require('../app/models/system_setting');
+var System_setting   = require('../app/models/system_setting');
 var bcrypt			 = require('bcrypt-nodejs');
 
 
@@ -55,6 +55,7 @@ var TN     					     = require('../app/models/TN');
 
 var TNMasterRevisions          = require('../app/models/TN_master_clinical_data_revisions');
 
+var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
 
 
 
@@ -977,7 +978,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	app.post('/addAI',function (request, response){
 		async function getLastAIID(){
 			var AINextID = await getNextAIId();
-			insetIntoAI(AINextID);
+			var Employee_ID = await getEmployeeId();
+			insetIntoAI(AINextID,Employee_ID);
 		}
 		function getNextAIId(){
 			return new Promise((resolve, reject) => {
@@ -989,13 +991,25 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				})
 			})
 		};
-		function insetIntoAI(AINextID){
+
+		function getEmployeeId(){
+
+			return new Promise((resolve, reject) => {
+				Employee.getLastCode(function(err, emp){
+					if (emp) 
+						resolve( Number(emp.Employee_Code));
+					else
+						resolve(1);
+				})
+			})
+		}
+		function insetIntoAI(AINextID,Employee_ID){
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
 			newAI.AI_ATC_Code	 = request.body.atccode;
 			newAI.AI_Status 	 = null;
-			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids
+			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -1003,6 +1017,23 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					});
 				}
 				else{
+					
+					var newAiReVision = AIMasterRevisions();
+
+					newAiReVision.AI_Master_Clinical_Data_Revision_Code = AINextID;
+					newAiReVision.AI_Code = AINextID;
+					newAiReVision.save();
+
+					var newAITasks =  AITasks() ;
+
+					newAITasks.AI_Master_Clinical_Data_Task_Code       = AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_AssignDate = new Date();
+					AI_Master_Clinical_Data_Task_Task_Type_Code 	   = 1;      
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code = Employee_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate =null;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code=AINextID;
+					newAITasks.save();
+
 					return response.send({
 						message: true
 					});
@@ -1022,7 +1053,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	        	
 	            response.send(ai);
 	        } 
-    	});
+    	}).sort({AI_Code:-1}).limit(20)
     });
 	
 	// insert data of AI master Clinical Revision 
@@ -1312,6 +1343,7 @@ app.post('/addStrengthUnits',function (request, response){
                 })
             })
         };
+
         function insetIntoWeighthUnit(WeightUnitNextCode){
             var newWeightUnit = new WeightUnits();
             newWeightUnit.WeightUnit_Code        = WeightUnitNextCode;
@@ -2041,6 +2073,95 @@ app.post('/addStrengthUnits',function (request, response){
 
     		});
     });
+
+    // new route
+
+    app.post('/editAI',function (request, response){
+
+		var newvalues = { $set: {
+				AI_Name 					    : request.body.name,
+				AI_ATC_Code 					: request.body.atc_code, 
+				AI_Status 						: request.body.status,
+				AI_Pharmaceutical_Categories_ID : request.body.category_Ids
+			} };
+
+		var myquery = { AI_Code: request.body.row_id }; 
+
+
+		AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'AI not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+    app.post('/searchAIName', function(request, response) {
+		var Searchquery = request.body.searchField;
+			AI.find ({AI_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
+				if (err){
+    	    		return response.send({
+						user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (ai.length == 0) {
+					return response.send({
+						user : request.user ,
+						message: 'No AI Name Found !!'
+					});
+            	} else {
+					return response.send({
+						user : request.user ,
+						ai: ai
+					});
+				}
+			}).sort({AI_Name:-1})
+	});
+
+    app.post('/searchAIAtcCode', function(request, response) {
+		var Searchquery = request.body.searchField;
+			AI.find({AI_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
+				if (err){
+    	    		return response.send({
+						user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (ai.length == 0) {
+					return response.send({
+						user : request.user ,
+						message: 'No ATC Code Found !!'
+					});
+            	} else {
+					return response.send({
+						user : request.user ,
+						ai: ai
+					});
+				}
+			}).sort({AI_Name:-1})
+	});
+
+
+
+
+
    
 };
 function auth(req, res, next) {
