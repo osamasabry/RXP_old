@@ -995,12 +995,16 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		function getEmployeeId(){
 
 			return new Promise((resolve, reject) => {
-				Employee.getLastCode(function(err, emp){
-					if (emp) 
-						resolve( Number(emp.Employee_Code));
-					else
-						resolve(1);
-				})
+
+				
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
 			})
 		}
 		function insetIntoAI(AINextID,Employee_ID){
