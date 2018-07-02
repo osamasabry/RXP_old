@@ -1026,12 +1026,14 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 					var newAITasks =  AITasks() ;
 
-					newAITasks.AI_Master_Clinical_Data_Task_Code       = AINextID;
-					newAITasks.AI_Master_Clinical_Data_Task_AssignDate = new Date();
-					AI_Master_Clinical_Data_Task_Task_Type_Code 	   = 1;      
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code = Employee_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate =null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code=AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_Code       							  = AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name
+					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 1;
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Edit";
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Employee_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = AINextID;
 					newAITasks.save();
 
 					return response.send({

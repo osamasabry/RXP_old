@@ -9,6 +9,9 @@ var rxp_AI_MasterClinicalDataTaskSchema = mongoose.Schema({
     AI_Master_Clinical_Data_Task_Task_Type_Code 						 :Number,
     AI_Master_Clinical_Data_Task_ClosedDate  							 :Date,
     AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_ID     :Number
+    AI_Master_Clinical_Data_Task_Title                                   :String,
+    AI_Master_Clinical_Data_Task_Task_Type_Name							 :String,
+
 });
 
 
