@@ -57,8 +57,20 @@ var TNMasterRevisions          = require('../app/models/TN_master_clinical_data_
 
 var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
 
+var UsageDose                  = require('../app/models/lut_usage_dose_unit');
 
 
+var UsageDoseDuration          = require('../app/models/lut_usage_dose_duration_unit');
+
+var UsageDoseType              = require('../app/models/lut_usage_dose_types');
+
+var UsageFrequenInterval       = require('../app/models/lut_usage_frequency_interval_unit');
+
+var UsageAge       = require('../app/models/lut_usage_age');
+
+var Currency       = require('../app/models/lut_currency');
+
+var MedicalCondition       = require('../app/models/lut_medical_condition');
 
 
 
@@ -677,6 +689,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	        } 
     	});
     });
+
 	app.get('/getEmployee', function(request, response) {
 		Employee.findOne({Employee_Code:request.query.code}, function(err, accountManager) {
 		    if (err){
@@ -911,6 +924,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	        } 
     	});
 	});
+
 	app.post('/getCountryFieldsAI', function(request, response) {
 		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
 		    if (err){
@@ -1749,6 +1763,8 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
     });
+
+
 	app.post('/getCountryFieldsTN', function(request, response) {
 		TN_master_field_structur.find({TN_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
 		    if (err){
@@ -2060,6 +2076,7 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
     });
+
 	//get a hasshed password tobe saved at client Cookie
 	app.get('/getHashedStrings', function(request, response) {
 		response.send(bcrypt.hashSync(request.body.sttohash, bcrypt.genSaltSync(8), null));
@@ -2164,11 +2181,703 @@ app.post('/addStrengthUnits',function (request, response){
 			}).sort({AI_Name:-1})
 	});
 
+    // new route 
+
+    app.post('/addUsage',function (request, response){
+		
+		async function getLastUsage(){
+			var UsageNextCode = await getNextUsage();
+			insetIntoUsage(UsageNextCode);
+        }
+
+		function getNextUsage(){
+			return new Promise((resolve, reject) => {
+			 	UsageDose.getLastCode(function(err,usage){
+					if (usage) 
+						resolve( Number(usage.UsageDoseUnit_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoUsage(UsageNextCode){
+            var newUsage = new UsageDose();
+            newUsage.UsageDoseUnit_Code                = UsageNextCode;
+            newUsage.UsageDoseUnit_Name                = request.body.name;
+            newUsage.UsageDoseUnit_Description         = request.body.desc;
+            newUsage.UsageDoseUnit_IsActive            = 0;
+            newUsage.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastUsage();
+    });
 
 
+    app.post('/addUsageDuration',function (request, response){
+		
+		async function getLastUsageDuration(){
+			var UsageDurationNextCode = await getNextUsageDuration();
+			insetIntoUsageDuration(UsageDurationNextCode);
+        }
+
+		function getNextUsageDuration(){
+			return new Promise((resolve, reject) => {
+			 	UsageDoseDuration.getLastCode(function(err,usage_duration){
+					if (usage_duration) 
+						resolve( Number(usage_duration.UsageDoseDurationUnit_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoUsageDuration(UsageDurationNextCode){
+            var newUsageDuration = new UsageDoseDuration();
+            newUsageDuration.UsageDoseDurationUnit_Code                = UsageDurationNextCode;
+            newUsageDuration.UsageDoseDurationUnit_Name                = request.body.name;
+            newUsageDuration.UsageDoseDurationUnit_Description         = request.body.desc;
+            newUsageDuration.UsageDoseDurationUnit_IsActive            = 0;
+            newUsageDuration.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastUsageDuration();
+    });
+    
 
 
+    app.post('/addUsageDoseType',function (request, response){
+		
+		async function getLastUsageDoseType(){
+			var UsageDoseTypeNextCode = await getNextUsageDoseType();
+			insetIntoUsageDoseType(UsageDoseTypeNextCode);
+        }
+
+		function getNextUsageDoseType(){
+			return new Promise((resolve, reject) => {
+			 	UsageDoseType.getLastCode(function(err,usage_type){
+					if (usage_type) 
+						resolve( Number(usage_type.UsageDoseType_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoUsageDoseType(UsageDoseTypeNextCode){
+            var newUsageType = new UsageDoseType();
+            newUsageType.UsageDoseType_Code                = UsageDoseTypeNextCode;
+            newUsageType.UsageDoseType_Name                = request.body.name;
+            newUsageType.UsageDoseType_Description         = request.body.desc;
+            newUsageType.UsageDoseType_IsActive            = 0;
+            newUsageType.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastUsageDoseType();
+    });
    
+
+   	app.post('/addUsageFrequenInterval',function (request, response){
+		
+		async function getLastUsageFrequenInterval(){
+			var UsageFrequenIntervalNextCode = await getNextUsageFrequenInterval();
+			insetIntoUsageFrequenInterval(UsageFrequenIntervalNextCode);
+        }
+
+		function getNextUsageFrequenInterval(){
+			return new Promise((resolve, reject) => {
+			 	UsageFrequenInterval.getLastCode(function(err,frequen_interval){
+					if (frequen_interval) 
+						resolve( Number(frequen_interval.UsageFrequenIntervalUnit_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoUsageFrequenInterval(UsageFrequenIntervalNextCode){
+            var newFrequenInterval = new UsageFrequenInterval();
+            newFrequenInterval.UsageFrequenIntervalUnit_Code                = UsageFrequenIntervalNextCode;
+            newFrequenInterval.UsageFrequenIntervalUnit_Name                = request.body.name;
+            newFrequenInterval.UsageFrequenIntervalUnit_Description         = request.body.desc;
+            newFrequenInterval.UsageFrequenIntervalUnit_IsActive            = 0;
+            newFrequenInterval.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastUsageFrequenInterval();
+    });
+
+   	app.post('/addUsageAge',function (request, response){
+		
+		async function getLastUsageAge(){
+			var UsageAgeNextCode = await getNextUsageAge();
+			insetIntoUsageAge(UsageAgeNextCode);
+        }
+
+		function getNextUsageAge(){
+			return new Promise((resolve, reject) => {
+			 	UsageAge.getLastCode(function(err,usage_age){
+					if (usage_age) 
+						resolve( Number(usage_age.UsageAge_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoUsageAge(UsageAgeNextCode){
+            var newUsageAge = new UsageAge();
+            newUsageAge.UsageAge_Code                = UsageAgeNextCode;
+            newUsageAge.UsageAge_Name                = request.body.name;
+            newUsageAge.UsageAge_Description         = request.body.desc;
+            newUsageAge.UsageAge_IsActive            = 0;
+            newUsageAge.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastUsageAge();
+    });
+
+
+   	app.post('/addCurrency',function (request, response){
+		
+		async function getLastCurrency(){
+			var CurrencyNextCode = await getNextCurrency();
+			insetIntoCurrency(CurrencyNextCode);
+        }
+
+		function getNextCurrency(){
+			return new Promise((resolve, reject) => {
+			 	Currency.getLastCode(function(err,currency){
+					if (currency) 
+						resolve( Number(currency.Currency_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoCurrency(CurrencyNextCode){
+            var newCurrency = new Currency();
+            newCurrency.Currency_Code                = CurrencyNextCode;
+            newCurrency.Currency_Name                = request.body.name;
+            newCurrency.Currency_Description         = request.body.desc;
+            newCurrency.Currency_IsActive            = 0;
+            newCurrency.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastCurrency();
+    });
+
+
+
+   	app.post('/addMedicalCondition',function (request, response){
+		
+		async function getLastMedicalCondition(){
+			var MedicalConditionNextCode = await getNextMedicalCondition();
+			insetIntoMedicalCondition(MedicalConditionNextCode);
+        }
+
+		function getNextMedicalCondition(){
+			return new Promise((resolve, reject) => {
+			 	MedicalCondition.getLastCode(function(err,medical_condition){
+					if (medical_condition) 
+						resolve( Number(medical_condition.MedicalCondition_Code)+1);
+					else
+					resolve(1);
+				})
+			})
+    	}
+
+    	function insetIntoMedicalCondition(MedicalConditionNextCode){
+            var newMedicalCondition = new MedicalCondition();
+            newMedicalCondition.MedicalCondition_Code               	         = MedicalConditionNextCode;
+            newMedicalCondition.MedicalCondition_Name                			 = request.body.name;
+            newMedicalCondition.MedicalCondition_Description         			 = request.body.desc;
+            newMedicalCondition.MedicalCondition_IsActive            			 = 0;
+            newMedicalCondition.MedicalCondition_ICD9            			     = request.body.icd9;
+            newMedicalCondition.MedicalCondition_ICD10            			     = request.body.icd10;
+            newMedicalCondition.MedicalCondition_ICD10am            			 = request.body.icd10am;
+			newMedicalCondition.MedicalCondition_ICD11            			     = request.body.icd11;
+
+            newMedicalCondition.save(function(error, doneadd){
+                if(error){
+                    return response.send({
+                        message: error
+                    });
+                }
+                else{
+                    return response.send({
+                        message: true
+                    });
+                }
+            });
+        }
+		getLastMedicalCondition();
+    });
+
+
+   	app.post('/editUsage',function (request, response){
+
+		var newvalues = { $set: {
+				UsageDoseUnit_Name 					: request.body.name,
+				UsageDoseUnit_Description 			: request.body.desc, 
+				UsageDoseUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { UsageDoseUnit_Code: request.body.row_id }; 
+
+
+		UsageDose.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Dose not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editUsageDuration',function (request, response){
+
+		var newvalues = { $set: {
+				UsageDoseDurationUnit_Name 					: request.body.name,
+				UsageDoseDurationUnit_Description 			: request.body.desc, 
+				UsageDoseDurationUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { UsageDoseDurationUnit_Code: request.body.row_id }; 
+
+
+		UsageDoseDuration.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Dose not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editUsageDoseType',function (request, response){
+
+		var newvalues = { $set: {
+				UsageDoseType_Name 					: request.body.name,
+				UsageDoseType_Description 			: request.body.desc, 
+				UsageDoseType_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { UsageDoseType_Code: request.body.row_id }; 
+
+
+		UsageDoseType.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Dose Type not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editUsageFrequenInterval',function (request, response){
+
+		var newvalues = { $set: {
+				UsageFrequenIntervalUnit_Name 					: request.body.name,
+				UsageFrequenIntervalUnit_Description 			: request.body.desc, 
+				UsageFrequenIntervalUnit_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { UsageFrequenIntervalUnit_Code: request.body.row_id }; 
+
+
+		UsageFrequenInterval.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Frequen Interval not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editUsageAge',function (request, response){
+
+		var newvalues = { $set: {
+				UsageAge_Name 					: request.body.name,
+				UsageAge_Description 			: request.body.desc, 
+				UsageAge_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { UsageAge_Code: request.body.row_id }; 
+
+
+		UsageAge.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Age not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editCurrency',function (request, response){
+
+		var newvalues = { $set: {
+				Currency_Name 					: request.body.name,
+				Currency_Description 			: request.body.desc, 
+				Currency_IsActive 				: request.body.status,
+			} };
+
+		var myquery = { Currency_Code: request.body.row_id }; 
+
+
+		Currency.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Age not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/editMedicalCondition',function (request, response){
+		
+		var newvalues = { $set: {
+				MedicalCondition_Name 					: request.body.name,
+				MedicalCondition_Description 			: request.body.desc, 
+				MedicalCondition_IsActive 				: request.body.status,
+			    MedicalCondition_ICD9            	    : request.body.icd9,
+	            MedicalCondition_ICD10            	    : request.body.icd10,
+	            MedicalCondition_ICD10am            	: request.body.icd10am,
+			    MedicalCondition_ICD11            	    : request.body.icd11,
+			} };
+
+		var myquery = { MedicalCondition_Code: request.body.row_id }; 
+
+
+		MedicalCondition.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Usage Age not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+
+	app.get('/getAllUsage', function(request, response) {
+		UsageDose.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+
+	app.get('/getAllUsageDuration', function(request, response) {
+		UsageDoseDuration.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+
+	app.get('/getAllUsageDoseType', function(request, response) {
+		UsageDoseType.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getAllUsageFrequenInterval', function(request, response) {
+		UsageFrequenInterval.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getAllUsageAge', function(request, response) {
+		UsageAge.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getAllCurrency', function(request, response) {
+		Currency.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+
+	app.get('/getAllMedicalCondition', function(request, response) {
+		MedicalCondition.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+
+	app.get('/getUsage', function(request, response) {
+		UsageDose.find({UsageDoseUnit_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getUsageDuration', function(request, response) {
+		UsageDoseDuration.find({UsageDoseDurationUnit_Code:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+
+	app.get('/getUsageDoseType', function(request, response) {
+		UsageDoseType.find({UsageDoseType_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getUsageFrequenInterval', function(request, response) {
+		UsageFrequenInterval.find({UsageFrequenIntervalUnit_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getUsageAge', function(request, response) {
+		UsageAge.find({UsageAge_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getCurrency', function(request, response) {
+		Currency.find({Currency_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getMedicalCondition', function(request, response) {
+		MedicalCondition.find({MedicalCondition_IsActive:1}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
 };
 function auth(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
