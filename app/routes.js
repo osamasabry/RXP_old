@@ -925,6 +925,20 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	});
 	});
 
+	// get all Fields of AI without Usage
+	app.get('/getFieldsAIWithoutUsage', function(request, response) {
+		AI_master_field_structur.find({ $and: [ { AI_Master_Clinical_Data_Field_Structure_Country_ID:null },
+		 { AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID: 4 } ] }, function(err, field) {
+		    if (err){
+				response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
 	app.post('/getCountryFieldsAI', function(request, response) {
 		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
 		    if (err){
@@ -993,13 +1007,38 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		async function getLastAIID(){
 			var AINextID = await getNextAIId();
 			var Employee_ID = await getEmployeeId();
-			insetIntoAI(AINextID,Employee_ID);
+			var MasterDataRevision_ID  = await getMasterRevisionId();
+			var MasterTasks_ID   = await getMasterTasksId();
+			insetIntoAI(AINextID,Employee_ID,MasterDataRevision_ID,MasterTasks_ID);
 		}
+
 		function getNextAIId(){
 			return new Promise((resolve, reject) => {
 				AI.getLastCode(function(err, AIdata){
 					if (AIdata) 
 						resolve( Number(AIdata.AI_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function getMasterRevisionId(){
+			return new Promise((resolve, reject) => {
+				AIMasterRevisions.getLastCode(function(err, AIMaRe){
+					if (AIMaRe) 
+						resolve( Number(AIMaRe.AI_Master_Clinical_Data_Revision_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				AITasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
 					else
 						resolve(1);
 				})
@@ -1021,7 +1060,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		    	});
 			})
 		}
-		function insetIntoAI(AINextID,Employee_ID){
+		function insetIntoAI(AINextID,Employee_ID,MasterDataRevision_ID,MasterTasks_ID){
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
@@ -1036,22 +1075,25 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				}
 				else{
 					
+
+
+
 					var newAiReVision = AIMasterRevisions();
 
-					newAiReVision.AI_Master_Clinical_Data_Revision_Code = AINextID;
+					newAiReVision.AI_Master_Clinical_Data_Revision_Code = MasterDataRevision_ID;
 					newAiReVision.AI_Code = AINextID;
 					newAiReVision.save();
 
 					var newAITasks =  AITasks() ;
 
-					newAITasks.AI_Master_Clinical_Data_Task_Code       							  = AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name
 					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 1;
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Edit";
 					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = MasterDataRevision_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status = 0;
 					newAITasks.save();
 
@@ -1101,36 +1143,32 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	}).sort({AI_Code:-1}).limit(20)
     });
 	
-	// insert data of AI master Clinical Revision 
+	// edit data of AI master Clinical Revision 
 	
-	app.post('/addAIMasterClinicalRevisions',function (request, response){
+	app.post('/editAIMasterClinicalRevisions',function (request, response){
 
-		AIMasterRevisions.getLastCode(function(err,field){
-			
-			if (field) {
-				nextCode = Number(field.AI_Master_Clinical_Data_Revision_Code)+1;
-			}else{
-				nextCode = 1;
+		var myquery = { AI_Master_Clinical_Data_Revision_Code: request.body.row_id }; 
+
+		AIMasterRevisions.findOneAndUpdate( myquery,request.body, function(err, field) {
+			if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Master Clinical Revision not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
 			}
 			
-			insertNewAIRevision(nextCode);
-		})  
-
-		function insertNewAIRevision(nextCode){
-
-			request.body['AI_Master_Clinical_Data_Revision_Code'] = nextCode;
-
-			newAIMasterRevision = new AIMasterRevisions(request.body);
-
-			newAIMasterRevision.save(function(err,doc){
-		        if(err){
-		            console.log('error occured..'+err);
-		        }
-		        else{
-		            console.log(doc);
-		        }
-		    });
-		}
+		})
 
 	});
 
