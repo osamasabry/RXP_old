@@ -1074,7 +1074,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			if (err){
 		    	response.send({message: 'Error'});
 		    }
-	        if (ai) {
+	        if (tasks) {
 	        	
 	            response.send(tasks);
 	        }
