@@ -1064,17 +1064,31 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		getLastAIID();
 	});
 
-	app.get('/getUserAITasksbyUserID', function(request, response) {
+	app.post('/getUserAITasksbyUserID', function(request, response) {
+		AITasks.find({AI_Master_Clinical_Data_Task_AssignTo_Employee_Code : Number(request.body.user_id),
+			AI_Master_Clinical_Data_Task_Status: false
+
+		}, function(err, tasks) {
+			if (err){
+		    	response.send({message: 'Error', error: err});
+		    }
+	        else {
+	        	
+	            response.send(tasks);
+	        }
+		})
+	});
+	app.post('/getUserAITasksbyUserIDnew', function(request, response) {
 		var query = AITasks.find({});
 
-		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code',request.query.user_id);
-		query.where('AI_Master_Clinical_Data_Task_Status', 0);
+		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code',Number(request.body.user_id));
+		query.where('AI_Master_Clinical_Data_Task_Status', false);
 
 		query.exec(function (err, tasks) {
 			if (err){
-		    	response.send({message: 'Error'});
+		    	response.send({message: 'Error', error: err});
 		    }
-	        if (tasks) {
+	        else {
 	        	
 	            response.send(tasks);
 	        }
