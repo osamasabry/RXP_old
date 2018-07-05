@@ -1065,35 +1065,29 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	});
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
-		AITasks.find({AI_Master_Clinical_Data_Task_AssignTo_Employee_Code : Number(request.body.user_id),
-			AI_Master_Clinical_Data_Task_Status: false
-
-		}, function(err, tasks) {
+		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
+		 {'AI_Master_Clinical_Data_Task_Status':0} ]},function(err, tasks) {
 			if (err){
-		    	response.send({message: 'Error', error: err});
-		    }
-	        else {
-	        	
-	            response.send(tasks);
-	        }
+	    		return response.send({
+					message: err
+				});
+	    	}
+	    	if (tasks.length == 0) {
+				return response.send({
+					// user : request.user ,
+					message: 'No Roles Found !!',
+					length: tasks.length
+				});
+        	} else {
+				return response.send({
+					// user : request.user ,
+					tasks: tasks
+				});
+			}
 		})
 	});
-	app.post('/getUserAITasksbyUserIDnew', function(request, response) {
-		var query = AITasks.find({});
+	
 
-		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code',Number(request.body.user_id));
-		query.where('AI_Master_Clinical_Data_Task_Status', false);
-
-		query.exec(function (err, tasks) {
-			if (err){
-		    	response.send({message: 'Error', error: err});
-		    }
-	        else {
-	        	
-	            response.send(tasks);
-	        }
-		});
-	});
 	// get  basic data of AI 
 	app.get('/getAI', function(request, response) {
 		AI.find({}, function(err, ai) {
