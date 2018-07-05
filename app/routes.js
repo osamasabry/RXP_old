@@ -1052,6 +1052,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_Status = 0;
 					newAITasks.save();
 
 					return response.send({
@@ -1063,6 +1064,22 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		getLastAIID();
 	});
 
+	app.get('/getUserAITasksbyUserID', function(request, response) {
+		var query = AITasks.find({});
+
+		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code', request.body.user_id);
+		query.where('AI_Master_Clinical_Data_Task_Status', 0);
+
+		query.exec(function (err, tasks) {
+			if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (ai) {
+	        	
+	            response.send(tasks);
+	        }
+		});
+	});
 	// get  basic data of AI 
 	app.get('/getAI', function(request, response) {
 		AI.find({}, function(err, ai) {
