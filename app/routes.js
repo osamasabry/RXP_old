@@ -1067,7 +1067,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	app.get('/getUserAITasksbyUserID', function(request, response) {
 		var query = AITasks.find({});
 
-		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code', request.body.user_id);
+		query.where('AI_Master_Clinical_Data_Task_AssignTo_Employee_Code',request.query.user_id);
 		query.where('AI_Master_Clinical_Data_Task_Status', 0);
 
 		query.exec(function (err, tasks) {
