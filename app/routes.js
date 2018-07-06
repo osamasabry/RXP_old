@@ -1075,9 +1075,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					});
 				}
 				else{
-					
-
-
 
 					var newAiReVision = AIMasterRevisions();
 
@@ -2246,6 +2243,7 @@ app.post('/addStrengthUnits',function (request, response){
 			}).sort({AI_Name:-1})
 	});
 
+	   
     // new route 
 
     app.post('/addUsage',function (request, response){
@@ -2942,6 +2940,117 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
 	});
+
+
+	app.post('/AddTaskToReviewer',function (request, response){
+
+		async function AddNewTasks(){
+			var result  = await updateTaskDone();
+			var Reviewer_ID = await getEmployeeId();
+			var MasterTasks_ID   = await getMasterTasksId();
+			insetIntoAITasks(Reviewer_ID,MasterTasks_ID);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					AI_Master_Clinical_Data_Task_Status 				: 1,
+					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.row_id }; 
+
+				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				AITasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
+			})
+		}
+
+
+		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
+		
+			var newAITasks =  AITasks() ;
+
+			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name;
+			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Reviewer";
+			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = request.body.revision_id;
+			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
+			newAITasks.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+		AddNewTasks();
+	});
+
+
+	app.get('/searchAIByID', function(request, response) {
+		var Searchquery = request.body.row_id;
+			AI.findOne({AI_Code: Number(Searchquery)},function(err, ai) {
+				if (err){
+    	    		return response.send({
+						user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (ai.length == 0) {
+					return response.send({
+						user : request.user ,
+						message: 'No AI Code Found !!'
+					});
+            	} else {
+					return response.send({
+						user : request.user ,
+						ai: ai
+					});
+				}
+			})
+	}); 
 
 };
 function auth(req, res, next) {
