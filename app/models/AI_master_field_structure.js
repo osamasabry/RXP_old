@@ -8,6 +8,7 @@ var RxP_AIMasterFieldStructureSchema = mongoose.Schema({
     AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  :Number,
     AI_Master_Clinical_Data_Field_Structure_IsMandatory 				 :Number,
     AI_Master_Clinical_Data_Field_Structure_IsActive					 :Number,
+    AI_Master_Clinical_Data_Field_Structure_ISEditable                   :Number,
     AI_Master_Clinical_Data_Field_Structure_Country_ID                   :Number,
     AI_Master_Clinical_Data_Field_Structure_Priority					 :Number,
     

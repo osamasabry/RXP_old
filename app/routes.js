@@ -817,7 +817,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
 		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
+					newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 1; 
+					newFieldAi.AI_Master_Clinical_Data_Field_Structure_ISEditable       			= 1;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
 	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Priority						= request.body.priority;
 	                newFieldAi.save();
