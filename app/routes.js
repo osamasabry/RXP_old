@@ -928,7 +928,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	// get all Fields of AI without Usage
 	app.get('/getFieldsAIWithoutUsage', function(request, response) {
 		AI_master_field_structur.find({ $and: [ { AI_Master_Clinical_Data_Field_Structure_Country_ID:null },
-		 { AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID: 4 } ] }, function(err, field) {
+		 { AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID: {$ne:4} } ] }, function(err, field) {
 		    if (err){
 				response.send({message: 'Error'});
 		    }
