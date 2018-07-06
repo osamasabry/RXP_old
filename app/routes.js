@@ -1148,9 +1148,9 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	
 	app.post('/editAIMasterClinicalRevisions',function (request, response){
 
-		var myquery = { AI_Master_Clinical_Data_Revision_Code: request.body.row_id }; 
-
-		AIMasterRevisions.findOneAndUpdate( myquery,request.body, function(err, field) {
+		var myquery = { AI_Master_Clinical_Data_Revision_Code: request.body.row_id };
+		var DatatoInsert =  request.body.DatatoInsert;
+		AIMasterRevisions.findOneAndUpdate( myquery,DatatoInsert, function(err, field) {
 			if (err){
     	    	return response.send({
 					// user : request.user ,
