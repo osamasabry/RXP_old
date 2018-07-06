@@ -1095,6 +1095,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = MasterDataRevision_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Code								  = AINextID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status = 0;
 					newAITasks.save();
 
