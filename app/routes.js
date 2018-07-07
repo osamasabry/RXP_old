@@ -2077,7 +2077,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var newcontry= new Country();
 			newcontry.Country_Code     	 		 = NextCode;
 			newcontry.Country_Name 	     		 = request.body.name;
-			newcontry.Country_IsActive	         = 0;
+			newcontry.Country_IsActive	         = 1;
 			newcontry.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -2269,7 +2269,7 @@ app.post('/addStrengthUnits',function (request, response){
             newUsage.UsageDoseUnit_Code                = UsageNextCode;
             newUsage.UsageDoseUnit_Name                = request.body.name;
             newUsage.UsageDoseUnit_Description         = request.body.desc;
-            newUsage.UsageDoseUnit_IsActive            = 0;
+            newUsage.UsageDoseUnit_IsActive            = 1;
             newUsage.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2310,7 +2310,7 @@ app.post('/addStrengthUnits',function (request, response){
             newUsageDuration.UsageDoseDurationUnit_Code                = UsageDurationNextCode;
             newUsageDuration.UsageDoseDurationUnit_Name                = request.body.name;
             newUsageDuration.UsageDoseDurationUnit_Description         = request.body.desc;
-            newUsageDuration.UsageDoseDurationUnit_IsActive            = 0;
+            newUsageDuration.UsageDoseDurationUnit_IsActive            = 1;
             newUsageDuration.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2352,7 +2352,7 @@ app.post('/addStrengthUnits',function (request, response){
             newUsageType.UsageDoseType_Code                = UsageDoseTypeNextCode;
             newUsageType.UsageDoseType_Name                = request.body.name;
             newUsageType.UsageDoseType_Description         = request.body.desc;
-            newUsageType.UsageDoseType_IsActive            = 0;
+            newUsageType.UsageDoseType_IsActive            = 1;
             newUsageType.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2393,7 +2393,7 @@ app.post('/addStrengthUnits',function (request, response){
             newFrequenInterval.UsageFrequenIntervalUnit_Code                = UsageFrequenIntervalNextCode;
             newFrequenInterval.UsageFrequenIntervalUnit_Name                = request.body.name;
             newFrequenInterval.UsageFrequenIntervalUnit_Description         = request.body.desc;
-            newFrequenInterval.UsageFrequenIntervalUnit_IsActive            = 0;
+            newFrequenInterval.UsageFrequenIntervalUnit_IsActive            = 1;
             newFrequenInterval.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2433,7 +2433,7 @@ app.post('/addStrengthUnits',function (request, response){
             newUsageAge.UsageAge_Code                = UsageAgeNextCode;
             newUsageAge.UsageAge_Name                = request.body.name;
             newUsageAge.UsageAge_Description         = request.body.desc;
-            newUsageAge.UsageAge_IsActive            = 0;
+            newUsageAge.UsageAge_IsActive            = 1;
             newUsageAge.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2474,7 +2474,7 @@ app.post('/addStrengthUnits',function (request, response){
             newCurrency.Currency_Code                = CurrencyNextCode;
             newCurrency.Currency_Name                = request.body.name;
             newCurrency.Currency_Description         = request.body.desc;
-            newCurrency.Currency_IsActive            = 0;
+            newCurrency.Currency_IsActive            = 1;
             newCurrency.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -2516,7 +2516,7 @@ app.post('/addStrengthUnits',function (request, response){
             newMedicalCondition.MedicalCondition_Code               	         = MedicalConditionNextCode;
             newMedicalCondition.MedicalCondition_Name                			 = request.body.name;
             newMedicalCondition.MedicalCondition_Description         			 = request.body.desc;
-            newMedicalCondition.MedicalCondition_IsActive            			 = 0;
+            newMedicalCondition.MedicalCondition_IsActive            			 = 1;
             newMedicalCondition.MedicalCondition_ICD9            			     = request.body.icd9;
             newMedicalCondition.MedicalCondition_ICD10            			     = request.body.icd10;
             newMedicalCondition.MedicalCondition_ICD10am            			 = request.body.icd10am;
