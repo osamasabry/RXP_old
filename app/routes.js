@@ -3236,6 +3236,127 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
+	// new routes
+
+	app.get('/getMedicalCondation', function(request, response) {
+		MedicalCondition.find({}, function(err, medical_condation) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (medical_condation) {
+	        	
+	            response.send(medical_condation);
+	        } 
+    	}).sort({MedicalCondition_Code:-1}).limit(20)
+    });
+
+
+	app.post('/searchMedicalCondationByICD9', function(request, response) {
+		var Searchquery = Number(request.body.searchField);
+
+		MedicalCondition.find({MedicalCondition_ICD9:Searchquery},function(err, medical_condation) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
+
+	    	if (medical_condation.length == 0) {
+				return response.send({
+					message: 'No Medical Condition ICD9 Found !!'
+				});
+        	} else {
+				return response.send({
+					medical_condation: medical_condation
+				});
+			}
+		})
+	});
+
+
+	app.post('/searchMedicalCondationByICD10', function(request, response) {
+		var Searchquery = Number(request.body.searchField);
+		
+		MedicalCondition.find({MedicalCondition_ICD10:Searchquery},function(err, medical_condation) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
+
+	    	if (medical_condation.length == 0) {
+				return response.send({
+					message: 'No Medical Condition ICD10 Found !!'
+				});
+        	} else {
+				return response.send({
+					medical_condation: medical_condation
+				});
+			}
+		})
+	});
+
+
+	app.post('/searchMedicalCondationByICD10am', function(request, response) {
+		var Searchquery = Number(request.body.searchField);
+		
+		MedicalCondition.find({MedicalCondition_ICD10am:Searchquery},function(err, medical_condation) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
+
+	    	if (medical_condation.length == 0) {
+				return response.send({
+					message: 'No Medical Condition ICD10am Found !!'
+				});
+        	} else {
+				return response.send({
+					medical_condation: medical_condation
+				});
+			}
+		})
+	});
+	
+
+	app.post('/searchMedicalCondationByICD11', function(request, response) {
+		var Searchquery = Number(request.body.searchField);
+		
+		MedicalCondition.find({MedicalCondition_ICD11:Searchquery},function(err, medical_condation) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
+
+	    	if (medical_condation.length == 0) {
+				return response.send({
+					message: 'No Medical Condition ICD11 Found !!'
+				});
+        	} else {
+				return response.send({
+					medical_condation: medical_condation
+				});
+			}
+		})
+	});
+
+
+	app.get('/getMedicalCondationById', function(request, response) {
+		MedicalCondition.findOne({MedicalCondition_Code}, function(err, medical_condation) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (medical_condation) {
+	        	
+	            response.send(medical_condation);
+	        } 
+    	});
+	});
+
+	
+
 
 };
 function auth(req, res, next) {
