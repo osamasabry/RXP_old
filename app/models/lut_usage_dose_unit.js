@@ -11,10 +11,10 @@ var rxp_LutUsageDoseUnitSchema = mongoose.Schema({
 });
 
 
-var UsageDose = module.exports = mongoose.model('rxp_lut_usage_dose_unit', rxp_LutUsageDoseUnitSchema);
+var UsageDoseUnit = module.exports = mongoose.model('rxp_lut_usage_dose_unit', rxp_LutUsageDoseUnitSchema);
 
 
 module.exports.getLastCode = function(callback){
     
-    UsageDose.findOne({},callback).sort({UsageDoseUnit_Code:-1});
+    UsageDoseUnit.findOne({},callback).sort({UsageDoseUnit_Code:-1});
 }

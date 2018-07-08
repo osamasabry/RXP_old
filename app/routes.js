@@ -57,7 +57,7 @@ var TNMasterRevisions          = require('../app/models/TN_master_clinical_data_
 
 var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
 
-var UsageDose                  = require('../app/models/lut_usage_dose_unit');
+var UsageDoseUnit                  = require('../app/models/lut_usage_dose_unit');
 
 
 var UsageDoseDuration          = require('../app/models/lut_usage_dose_duration_unit');
@@ -2246,26 +2246,26 @@ app.post('/addStrengthUnits',function (request, response){
 	   
     // new route 
 
-    app.post('/addUsage',function (request, response){
+    app.post('/addUsageDoseUnit',function (request, response){
 		
 		async function getLastUsage(){
 			var UsageNextCode = await getNextUsage();
-			insetIntoUsage(UsageNextCode);
+			insetIntoUsageDoseUnit(UsageNextCode);
         }
 
 		function getNextUsage(){
 			return new Promise((resolve, reject) => {
-			 	UsageDose.getLastCode(function(err,usage){
+			 	UsageDoseUnit.getLastCode(function(err,usage){
 					if (usage) 
-						resolve( Number(usage.UsageDoseUnit_Code)+1);
+						resolve( Number(UsageDoseUnit.UsageDoseUnit_Code)+1);
 					else
 					resolve(1);
 				})
 			})
     	}
 
-    	function insetIntoUsage(UsageNextCode){
-            var newUsage = new UsageDose();
+    	function insetIntoUsageDoseUnit(UsageNextCode){
+            var newUsage = new UsageDoseUnit();
             newUsage.UsageDoseUnit_Code                = UsageNextCode;
             newUsage.UsageDoseUnit_Name                = request.body.name;
             newUsage.UsageDoseUnit_Description         = request.body.desc;
@@ -2539,7 +2539,7 @@ app.post('/addStrengthUnits',function (request, response){
     });
 
 
-   	app.post('/editUsage',function (request, response){
+   	app.post('/editUsageDoseUnit',function (request, response){
 
 		var newvalues = { $set: {
 				UsageDoseUnit_Name 					: request.body.name,
@@ -2550,7 +2550,7 @@ app.post('/addStrengthUnits',function (request, response){
 		var myquery = { UsageDoseUnit_Code: request.body.row_id }; 
 
 
-		UsageDose.findOneAndUpdate( myquery,newvalues, function(err, field) {
+		UsageDoseUnit.findOneAndUpdate( myquery,newvalues, function(err, field) {
     	    if (err){
     	    	return response.send({
 					// user : request.user ,
@@ -2768,8 +2768,8 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.get('/getAllUsage', function(request, response) {
-		UsageDose.find({}, function(err, field) {
+	app.get('/getAllUsageDoseUnit', function(request, response) {
+		UsageDoseUnit.find({}, function(err, field) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -2856,8 +2856,8 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.get('/getUsage', function(request, response) {
-		UsageDose.find({UsageDoseUnit_IsActive:1}, function(err, field) {
+	app.get('/getUsageDoseUnit', function(request, response) {
+		UsageDoseUnit.find({UsageDoseUnit_IsActive:1}, function(err, field) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -3248,8 +3248,28 @@ app.post('/addStrengthUnits',function (request, response){
 	            response.send(medical_condation);
 	        } 
     	}).sort({MedicalCondition_Code:-1}).limit(20)
-    });
+	});
+	
+	app.post('/getMedicalCondationByname', function(request, response) {
+		var Searchquery = request.body.searchField;
+		MedicalCondition.find ({MedicalCondition_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, medical_condation) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
 
+	    	if (medical_condation.length == 0) {
+				return response.send({
+					message: 'No Medical Condition Found !!'
+				});
+        	} else {
+				return response.send({
+					medical_condation: medical_condation
+				});
+			}
+		})
+	});
 
 	app.post('/searchMedicalCondationByICD9', function(request, response) {
 		var Searchquery = Number(request.body.searchField);
@@ -3263,7 +3283,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	    	if (medical_condation.length == 0) {
 				return response.send({
-					message: 'No Medical Condition ICD9 Found !!'
+					message: 'No Medical Condition Found !!'
 				});
         	} else {
 				return response.send({
@@ -3286,7 +3306,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	    	if (medical_condation.length == 0) {
 				return response.send({
-					message: 'No Medical Condition ICD10 Found !!'
+					message: 'No Medical Condition Found !!'
 				});
         	} else {
 				return response.send({
@@ -3309,7 +3329,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	    	if (medical_condation.length == 0) {
 				return response.send({
-					message: 'No Medical Condition ICD10am Found !!'
+					message: 'No Medical Condition Found !!'
 				});
         	} else {
 				return response.send({
@@ -3332,7 +3352,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	    	if (medical_condation.length == 0) {
 				return response.send({
-					message: 'No Medical Condition ICD11 Found !!'
+					message: 'No Medical Condition Found !!'
 				});
         	} else {
 				return response.send({
