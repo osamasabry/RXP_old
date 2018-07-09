@@ -2940,7 +2940,30 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
 	});
+	
+	app.get('/getActiveForm', function(request, response) {
+		Forms.find({Form_IsActive:1}, function(err, form) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (form) {
+	        	
+	            response.send(form);
+	        } 
+    	});
+	});
 
+	app.get('/getActiveRoute', function(request, response) {
+		Routes.find({Route_IsActive:1}, function(err, route) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (route) {
+	        	
+	            response.send(route);
+	        } 
+    	});
+    });
 
 	app.post('/AddTaskToReviewer',function (request, response){
 
@@ -3028,7 +3051,9 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 	app.get('/searchAIByID', function(request, response) {
-		var Searchquery = request.body.row_id;
+		var Searchquery = request.query.row_id;
+		console.log(request.query.row_id);
+
 			AI.findOne({AI_Code: Number(Searchquery)},function(err, ai) {
 				if (err){
     	    		return response.send({
