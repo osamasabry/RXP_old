@@ -971,6 +971,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			var newPharmaCategory = new Pharmaceutical_category();
 			newPharmaCategory.Pharmaceutical_Category_Code     	 = PharCeuCatnextCode;
 			newPharmaCategory.Pharmaceutical_Category_Name 	     = request.body.name;
+			newPharmaCategory.Pharmaceutical_Category_ATC_Code   = request.body.atc_code;
 			newPharmaCategory.Pharmaceutical_Category_IsActive	 = 1;
 			newPharmaCategory.save(function(error, doneadd){
 				if(error){
@@ -1065,7 +1066,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
-			newAI.AI_ATC_Code	 = request.body.atccode;
 			newAI.AI_Status 	 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
@@ -1281,6 +1281,10 @@ module.exports = function(app, passport, server, generator, sgMail) {
             newForm.Form_Name                = request.body.name;
             newForm.Form_Description         = request.body.desc;
             newForm.Form_IsActive            = 1;
+            newForm.Form_Cd         		 = request.body.cd;
+            newForm.Form_Cddt           	 = request.body.cddt;
+            newForm.Form_Cdpref         	 = request.body.cdpref;
+
             newForm.save(function(error, doneadd){
                 if(error){
                     return response.send({
@@ -1318,6 +1322,9 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	            newRoute.Route_Name          = request.body.name;
 	            newRoute.Route_Description   = request.body.desc;
 	            newRoute.Route_IsActive      = 1;
+				newRoute.Route_Cd            = request.body.cd;
+            	newRoute.Route_Cddt          = request.body.cddt;
+            	newRoute.Route_Cdpref        = request.body.cdpref;
 	            newRoute.save(function(error, doneadd){
 	                if(error){
 	                    return response.send({
@@ -1530,6 +1537,9 @@ app.post('/addStrengthUnits',function (request, response){
 				Form_Name 					: request.body.name,
 				Form_Description 			: request.body.desc, 
 				Form_IsActive 				: request.body.status,
+				Form_Cd            			: request.body.cd,
+            	Form_Cddt           		: request.body.cddt,
+            	Form_Cdpref         		: request.body.cdpref,
 			} };
 
 		var myquery = { Form_Code: request.body.row_id }; 
@@ -1595,6 +1605,9 @@ app.post('/addStrengthUnits',function (request, response){
 				Route_Name 					: request.body.name,
 				Route_Description 			: request.body.desc, 
 				Route_IsActive 				: request.body.status,
+				Route_Cd					: request.body.cd,
+				Route_Cddt					: request.body.cddt,
+				Route_Cdpref			    : request.body.cdpref,
 			} };
 
 		var myquery = { Route_Code: request.body.row_id }; 
@@ -2219,9 +2232,9 @@ app.post('/addStrengthUnits',function (request, response){
 			}).sort({AI_Name:-1})
 	});
 
-    app.post('/searchAIAtcCode', function(request, response) {
+    app.post('/searchPharmaceuticalAtcCode', function(request, response) {
 		var Searchquery = request.body.searchField;
-			AI.find({AI_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
+			Pharmaceutical_category.find({Pharmaceutical_Category_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, atc_code) {
 				if (err){
     	    		return response.send({
 						user : request.user ,
@@ -2229,7 +2242,7 @@ app.post('/addStrengthUnits',function (request, response){
 					});
     	    	}
 
-    	    	if (ai.length == 0) {
+    	    	if (atc_code.length == 0) {
 					return response.send({
 						user : request.user ,
 						message: 'No ATC Code Found !!'
@@ -2237,10 +2250,10 @@ app.post('/addStrengthUnits',function (request, response){
             	} else {
 					return response.send({
 						user : request.user ,
-						ai: ai
+						atc_code: atc_code
 					});
 				}
-			}).sort({AI_Name:-1})
+			}).sort({Pharmaceutical_Category_ATC_Code:-1})
 	});
 
 	   
@@ -3310,7 +3323,7 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 	app.post('/searchMedicalCondationByICD9', function(request, response) {
-		var Searchquery = Number(request.body.searchField);
+		var Searchquery = request.body.searchField;
 
 		MedicalCondition.find({MedicalCondition_ICD9:Searchquery},function(err, medical_condation) {
 			if (err){
@@ -3333,7 +3346,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 	app.post('/searchMedicalCondationByICD10', function(request, response) {
-		var Searchquery = Number(request.body.searchField);
+		var Searchquery = request.body.searchField;
 		
 		MedicalCondition.find({MedicalCondition_ICD10:Searchquery},function(err, medical_condation) {
 			if (err){
@@ -3356,7 +3369,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 	app.post('/searchMedicalCondationByICD10am', function(request, response) {
-		var Searchquery = Number(request.body.searchField);
+		var Searchquery = request.body.searchField;
 		
 		MedicalCondition.find({MedicalCondition_ICD10am:Searchquery},function(err, medical_condation) {
 			if (err){
@@ -3379,7 +3392,7 @@ app.post('/addStrengthUnits',function (request, response){
 	
 
 	app.post('/searchMedicalCondationByICD11', function(request, response) {
-		var Searchquery = Number(request.body.searchField);
+		var Searchquery = request.body.searchField;
 		
 		MedicalCondition.find({MedicalCondition_ICD11:Searchquery},function(err, medical_condation) {
 			if (err){
@@ -3414,7 +3427,38 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 	
+	//  edit data
+	app.post('/editPharmaceuticalCategory',function (request, response){
 
+		var newvalues = { $set: {
+				Pharmaceutical_Category_Name 		: request.body.name,
+				Pharmaceutical_Category_IsActive 	: request.body.status, 
+				Pharmaceutical_Category_ATC_Code 	: request.body.atc_code,
+			} };
+
+		var myquery = { Pharmaceutical_Category_Code: request.body.row_id }; 
+
+
+		Pharmaceutical_category.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					// user : request.user ,
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					// user : request.user ,
+					message: 'Pharmaceutical Category not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
 
 };
 function auth(req, res, next) {
