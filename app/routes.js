@@ -3026,14 +3026,14 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
-		
+			console.log(request.body)
 			var newAITasks =  AITasks() ;
 
 			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name;
 			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Reviewer";
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = request.body.revision_id;
@@ -3248,8 +3248,21 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 	app.get('/getMasterDataRevision', function(request, response) {
-		var Searchquery = Number(request.body.row_id);
+		var Searchquery = Number(request.query.row_id);
 		AIMasterRevisions.findOne({AI_Master_Clinical_Data_Revision_Code: Searchquery}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
+	app.get('/getMasterDataRevisionUsage', function(request, response) {
+		var Searchquery = Number(request.query.row_id);
+		AIMasterRevisions.findOne({AI_Master_Clinical_Data_Revision_Code: Searchquery}, '1', function(err, field) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
