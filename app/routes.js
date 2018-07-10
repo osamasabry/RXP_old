@@ -2930,6 +2930,18 @@ app.post('/addStrengthUnits',function (request, response){
     	});
 	});
 
+	app.get('/getAllUsageAge', function(request, response) {
+		UsageAge.find({}, function(err, field) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (field) {
+	        	
+	            response.send(field);
+	        } 
+    	});
+	});
+
 	app.get('/getCurrency', function(request, response) {
 		Currency.find({Currency_IsActive:1}, function(err, field) {
 		    if (err){
