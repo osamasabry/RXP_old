@@ -5,24 +5,23 @@ var bcrypt   = require('bcrypt-nodejs');
 
 var rxp_AIMasterRevisionsSchema = mongoose.Schema({
     
-	AIMasterRevision_Code     	  				 					:Number,
-    AIMasterRevision_Name     	 				 					:String,
-    AIMasterRevision_ATC_Code										:String,
-    AIMasterRevision_Status 						 				:Number,
-    AIMasterRevision_Pharmaceutical_Categories_ID  					:[Number],
-    AIMasterRevision_CountryBasedAI_ID			 					:Number,
-    AIMasterRevision_CountryBasedAI_AI_ID			 				:Number,
-    AIMasterRevision_CountryBasedAI_Country_ID	 					:Number,
-    AIMasterRevision_CountryBasedAI_Dosing							:[String],
-    AIMasterRevision_CountryBasedAI_UsaageLabeledIndications  		:[String],
-    AIMasterRevision_CountryBasedAI_UsaageOffLabeledIndications 	:[String],
-    AIMasterRevision_CountryBasedAI_Administration					:[String],
-    AIMasterRevision_CountryBasedAI_DietaryConsiderations			:String,
-    AIMasterRevision_CountryBasedAI_PreparationForAdministration	:String,
-    AIMasterRevision_CountryBasedAI_PregnancyConsideration			:String,
-    AIMasterRevision_CountryBasedAI_Storage							:String,
-    AIMasterRevision_CountryBasedAI_Stability						:String,
-    AIMasterRevision_AI_ID 											:Number,
+	AIMasterRevision_Code     	  					:Number,
+  	AIMasterRevision_Name     	 				 	:String,
+    AIMasterRevision_ATC_Code						:String,
+    AIMasterRevision_Status 						:Number,
+    AIMasterRevision_Pharmaceutical_Categories_ID  	:String,
+    AIMasterRevision_FDAFeed			 			:String,
+    AIMasterRevision_EUFeed			 				:String,
+    AIMasterRevision_ClinicalPracticeGuidelines	 	:String,
+    AIMasterRevision_Contraindications				:String,
+    AIMasterRevision_Warnings_Precautions  			:String,
+    AIMasterRevision_AdverseReactionsConcerns 		:String,
+    AIMasterRevision_DiseaseRelatedConcerns			:String,
+    AIMasterRevision_DoseFormSpecificIssues			:String,
+    AIMasterRevision_Others							:String,
+    AIMasterRevision_GeriatricConsideration			:String,
+    AIMasterRevision_PregnancyConsideration			:String,
+    AIMasterRevision_AI_ID 							:Number
 });
 
 

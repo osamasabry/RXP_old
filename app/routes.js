@@ -896,10 +896,10 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 		function insetIntoAI(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID){
 			var newAI = new AI();
-			newAI.AI_Code     	 = AINextID;
-			newAI.AI_Name 	     = request.body.name;
-			newAI.AI_ATC_Code    = request.body.atc_code;
-			newAI.AI_Status 	 = null;
+			newAI.AI_Code     						 = AINextID;
+			newAI.AI_Name 	    					 = request.body.name;
+			newAI.AI_ATC_Code    					 = request.body.atc_code;
+			newAI.AI_Status 	 					 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
 				if(error){
@@ -1986,18 +1986,17 @@ app.post('/addStrengthUnits',function (request, response){
     app.post('/editAIRevision',function (request, response){
 
 		var newvalues = { $set: {
-				AIMasterRevision_CountryBasedAI_ID			 					: request.body.country_basedAI_Id,
-			    AIMasterRevision_CountryBasedAI_AI_ID			 				: request.body.country_basedAI_ai_Id,
-			    AIMasterRevision_CountryBasedAI_Country_ID	 					: request.body.country_basedAI_country_Id,
-			    AIMasterRevision_CountryBasedAI_Dosing   						: request.body.country_basedAI_dosing,
-			    AIMasterRevision_CountryBasedAI_UsaageLabeledIndications  		: request.body.country_basedAI_usaage_labeled_indications,
-			    AIMasterRevision_CountryBasedAI_UsaageOffLabeledIndications 	: request.body.country_basedAI_usaage_off_labeled_indications,
-			    AIMasterRevision_CountryBasedAI_Administration					: request.body.country_basedAI_administration,
-			    AIMasterRevision_CountryBasedAI_DietaryConsiderations			: request.body.country_basedAI_dietary_considerations,
-			    AIMasterRevision_CountryBasedAI_PreparationForAdministration	: request.body.country_basedAI_preparation_for_administration,
-			    AIMasterRevision_CountryBasedAI_PregnancyConsideration			: request.body.country_basedAI_pregnancy_consideration,
-			    AIMasterRevision_CountryBasedAI_Storage							: request.body.country_basedAI_storage,
-			    AIMasterRevision_CountryBasedAI_Stability						: request.body.country_basedAI_stability,
+				AIMasterRevision_FDAFeed			 			: request.body.fda_feed,
+			    AIMasterRevision_EUFeed			 				: request.body.eu_feed,
+			    AIMasterRevision_ClinicalPracticeGuidelines	 	: request.body.clinical_Practice_guide_lines,
+			    AIMasterRevision_Contraindications   			: request.body.contraindications,
+			    AIMasterRevision_Warnings_Precautions  			: request.body.warnings_precautions,
+			    AIMasterRevision_AdverseReactionsConcerns 		: request.body.adverse_reactions_concerns,
+			    AIMasterRevision_DiseaseRelatedConcerns			: request.body.disease_related_concerns,
+			    AIMasterRevision_DoseFormSpecificIssues			: request.body.dose_form_specific_issues,
+			    AIMasterRevision_Others							: request.body.others,
+			    AIMasterRevision_GeriatricConsideration			: request.body.geriatric_consideration,
+			    AIMasterRevision_PregnancyConsideration			: request.body.pregnancy_consideration,
 			} };
 
 		var myquery = { AIMasterRevision_Code: request.body.row_id }; 
@@ -2006,13 +2005,11 @@ app.post('/addStrengthUnits',function (request, response){
 		AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
     	    if (err){
     	    	return response.send({
-					// user : request.user ,
 					message: 'Error'
 				});
     	    }
             if (!field) {
             	return response.send({
-					// user : request.user ,
 					message: 'AI not exists'
 				});
             } else {
@@ -3128,18 +3125,17 @@ app.post('/addStrengthUnits',function (request, response){
 		function insetIntoAITasks(data){
 
 			var newvalues = { $set: {
-				AI_CountryBasedAI_ID			 				: data.AI_CountryBasedAI_ID,
-			    AI_CountryBasedAI_AI_ID			 				: data.AI_CountryBasedAI_AI_ID,
-			    AI_CountryBasedAI_Country_ID	 				: data.AI_CountryBasedAI_Country_ID,
-			    AI_CountryBasedAI_Dosing   						: data.AI_CountryBasedAI_Dosing,
-			    AI_CountryBasedAI_UsaageLabeledIndications  	: data.AI_CountryBasedAI_UsaageLabeledIndications,
-			    AI_CountryBasedAI_UsaageOffLabeledIndications 	: data.AI_CountryBasedAI_UsaageOffLabeledIndications,
-			    AI_CountryBasedAI_Administration				: data.AI_CountryBasedAI_Administration,
-			    AI_CountryBasedAI_DietaryConsiderations			: data.AI_CountryBasedAI_DietaryConsiderations,
-			    AI_CountryBasedAI_PreparationForAdministration	: data.AI_CountryBasedAI_PreparationForAdministration,
-			    AI_CountryBasedAI_PregnancyConsideration		: data.AI_CountryBasedAI_PregnancyConsideration,
-			    AI_CountryBasedAI_Storage						: data.AI_CountryBasedAI_Storage,
-			    AI_CountryBasedAI_Stability						: data.AI_CountryBasedAI_Stability,
+				AI_FDAFeed			 			: data.FDAFeed,
+			    AI_EUFeed			 			: data.EUFeed,
+			    AI_ClinicalPracticeGuidelines	: data.ClinicalPracticeGuidelines,
+			    AI_Contraindications   			: data.Contraindications,
+			    AI_Warnings_Precautions  		: data.Warnings_Precautions,
+			    AI_AdverseReactionsConcerns 	: data.AdverseReactionsConcerns,
+			    AI_DiseaseRelatedConcerns		: data.DiseaseRelatedConcerns,
+			    AI_DoseFormSpecificIssues		: data.DoseFormSpecificIssues,
+			    AI_Others						: data.Others,
+			    AI_GeriatricConsideration		: data.GeriatricConsideration,
+			    AI_PregnancyConsideration		: data.PregnancyConsideration,
 			} };
 
 			var myquery = { AI_Code: request.body.ai_id }; 
