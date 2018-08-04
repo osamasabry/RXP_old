@@ -880,7 +880,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
-			newAI.AI_ATC_Code    = request.body.atc_code;
+			newAI.AI_ATC_Code	 = request.body.atccode;
 			newAI.AI_Status 	 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
