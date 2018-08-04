@@ -880,7 +880,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
-			newAI.AI_ATC_Code	 = request.body.atccode;
+			newAI.AI_ATC_Code    = request.body.atc_code;
 			newAI.AI_Status 	 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
@@ -2681,18 +2681,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.get('/getUsageAge', function(request, response) {
 		UsageAge.find({UsageAge_IsActive:1}, function(err, field) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
-	});
-
-	app.get('/getAllUsageAge', function(request, response) {
-		UsageAge.find({}, function(err, field) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
