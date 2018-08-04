@@ -25,6 +25,10 @@ var Data_types      			= require('../app/models/field_data_types');
 
 var AI      					= require('../app/models/AI');
 
+var AIRevisions     = require('../app/models/AI_master_clinical_data_revisions');
+
+
+
 var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
 
 
@@ -832,13 +836,15 @@ module.exports = function(app, passport, server, generator, sgMail) {
     });
 
 	// insert basic data of AI 
-
+	
 	app.post('/addAI',function (request, response){
 		async function getLastAIID(){
 			var AINextID = await getNextAIId();
 			var Employee_ID = await getEmployeeId();
 			var MasterTasks_ID   = await getMasterTasksId();
-			insetIntoAI(AINextID,Employee_ID,MasterTasks_ID);
+			var AIRevision_ID   = await getAIRevisionId();
+
+			insetIntoAI(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID);
 		}
 
 		function getNextAIId(){
@@ -876,7 +882,19 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			})
 		}
 
-		function insetIntoAI(AINextID,Employee_ID,MasterTasks_ID){
+		function getAIRevisionId(){
+			return new Promise((resolve, reject) => {
+				AIRevisions.getLastCode(function(err, AIMaRe){
+					if (AIMaRe) 
+						resolve( Number(AIMaRe.AIMasterRevisions_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+
+		function insetIntoAI(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID){
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
@@ -891,6 +909,16 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				}
 				else{
 
+					var newAiReVision = AIRevisions();
+
+					newAiReVision.AIMasterRevision_Code  = AIRevision_ID;
+					newAI.AIMasterRevision_Name 	     = request.body.name;
+					newAI.AIMasterRevision_ATC_Code      = request.body.atc_code;
+					newAI.AIMasterRevision_Status 	 	 = null;
+					newAiReVision.AIMasterRevision_AI_ID = AINextID;
+					newAiReVision.save();
+
+
 					var newAITasks =  AITasks() ;
 
 					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
@@ -900,7 +928,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
 					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
 
@@ -912,6 +940,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		}
 		getLastAIID();
 	});
+
+
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
 		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
@@ -1922,7 +1952,7 @@ app.post('/addStrengthUnits',function (request, response){
     });
 
     // new route
-
+ 	
     app.post('/editAI',function (request, response){
 
 		var newvalues = { $set: {
@@ -1930,24 +1960,50 @@ app.post('/addStrengthUnits',function (request, response){
 				AI_ATC_Code 									: request.body.atc_code, 
 				AI_Status 										: request.body.status,
 				AI_Pharmaceutical_Categories_ID 				: request.body.category_Ids,
-				AI_CountryBasedAI_ID			 				: request.body.country_basedAI_Id,
-			    AI_CountryBasedAI_AI_ID			 				: request.body.country_basedAI_ai_Id,
-			    AI_CountryBasedAI_Country_ID	 				: request.body.country_basedAI_country_Id,
-			    AI_CountryBasedAI_Dosing   						: request.body.country_basedAI_dosing,
-			    AI_CountryBasedAI_UsaageLabeledIndications  	: request.body.country_basedAI_usaage_labeled_indications,
-			    AI_CountryBasedAI_UsaageOffLabeledIndications 	: request.body.country_basedAI_usaage_off_labeled_indications,
-			    AI_CountryBasedAI_Administration				: request.body.country_basedAI_administration,
-			    AI_CountryBasedAI_DietaryConsiderations			: request.body.country_basedAI_dietary_considerations,
-			    AI_CountryBasedAI_PreparationForAdministration	: request.body.country_basedAI_preparation_for_administration,
-			    AI_CountryBasedAI_PregnancyConsideration		: request.body.country_basedAI_pregnancy_consideration,
-			    AI_CountryBasedAI_Storage						: request.body.country_basedAI_storage,
-			    AI_CountryBasedAI_Stability						: request.body.country_basedAI_stability,
 			} };
 
 		var myquery = { AI_Code: request.body.row_id }; 
 
-
 		AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'AI not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+    app.post('/editAIRevision',function (request, response){
+
+		var newvalues = { $set: {
+				AIMasterRevision_CountryBasedAI_ID			 					: request.body.country_basedAI_Id,
+			    AIMasterRevision_CountryBasedAI_AI_ID			 				: request.body.country_basedAI_ai_Id,
+			    AIMasterRevision_CountryBasedAI_Country_ID	 					: request.body.country_basedAI_country_Id,
+			    AIMasterRevision_CountryBasedAI_Dosing   						: request.body.country_basedAI_dosing,
+			    AIMasterRevision_CountryBasedAI_UsaageLabeledIndications  		: request.body.country_basedAI_usaage_labeled_indications,
+			    AIMasterRevision_CountryBasedAI_UsaageOffLabeledIndications 	: request.body.country_basedAI_usaage_off_labeled_indications,
+			    AIMasterRevision_CountryBasedAI_Administration					: request.body.country_basedAI_administration,
+			    AIMasterRevision_CountryBasedAI_DietaryConsiderations			: request.body.country_basedAI_dietary_considerations,
+			    AIMasterRevision_CountryBasedAI_PreparationForAdministration	: request.body.country_basedAI_preparation_for_administration,
+			    AIMasterRevision_CountryBasedAI_PregnancyConsideration			: request.body.country_basedAI_pregnancy_consideration,
+			    AIMasterRevision_CountryBasedAI_Storage							: request.body.country_basedAI_storage,
+			    AIMasterRevision_CountryBasedAI_Stability						: request.body.country_basedAI_stability,
+			} };
+
+		var myquery = { AIMasterRevision_Code: request.body.row_id }; 
+
+
+		AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
     	    if (err){
     	    	return response.send({
 					// user : request.user ,
@@ -2810,7 +2866,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id	 
 			newAITasks.save();
 
 			return response.send({
@@ -2920,7 +2976,8 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Grammer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id; 
+			
 			newAITasks.save();
 
 			return response.send({
@@ -3004,7 +3061,8 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id;	 
+			 
 			newAITasks.save();
 
 			return response.send({
@@ -3017,6 +3075,96 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
+
+	// add data to AI for user can use it when employe publish it 
+
+	app.post('/AddAIData',function (request, response){
+
+		async function AddNewAiData(){
+			var result  		= await updateTaskDone();
+			var dataAIRevision  = await getAIRevision();
+			insetIntoAI(dataAIRevision);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					AI_Master_Clinical_Data_Task_Status 				: 1,
+					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+
+				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+
+		function getAIRevision(){
+			return new Promise((resolve, reject) => {
+				AIRevisions.findOne({AIMasterRevision_Code:request.body.revision_id} ,function(err, airevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(airevision);
+				})
+			})
+		};
+
+
+		function insetIntoAITasks(data){
+
+			var newvalues = { $set: {
+				AI_CountryBasedAI_ID			 				: data.AI_CountryBasedAI_ID,
+			    AI_CountryBasedAI_AI_ID			 				: data.AI_CountryBasedAI_AI_ID,
+			    AI_CountryBasedAI_Country_ID	 				: data.AI_CountryBasedAI_Country_ID,
+			    AI_CountryBasedAI_Dosing   						: data.AI_CountryBasedAI_Dosing,
+			    AI_CountryBasedAI_UsaageLabeledIndications  	: data.AI_CountryBasedAI_UsaageLabeledIndications,
+			    AI_CountryBasedAI_UsaageOffLabeledIndications 	: data.AI_CountryBasedAI_UsaageOffLabeledIndications,
+			    AI_CountryBasedAI_Administration				: data.AI_CountryBasedAI_Administration,
+			    AI_CountryBasedAI_DietaryConsiderations			: data.AI_CountryBasedAI_DietaryConsiderations,
+			    AI_CountryBasedAI_PreparationForAdministration	: data.AI_CountryBasedAI_PreparationForAdministration,
+			    AI_CountryBasedAI_PregnancyConsideration		: data.AI_CountryBasedAI_PregnancyConsideration,
+			    AI_CountryBasedAI_Storage						: data.AI_CountryBasedAI_Storage,
+			    AI_CountryBasedAI_Stability						: data.AI_CountryBasedAI_Stability,
+			} };
+
+			var myquery = { AI_Code: request.body.ai_id }; 
+
+
+			AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
+	    	    if (err){
+	    	    	return response.send({
+						message: 'Error'
+					});
+	    	    }
+	            if (!field) {
+	            	return response.send({
+						message: 'AI not exists'
+					});
+	            } else {
+	                return response.send({
+						message: true
+					});
+				}
+			})
+		}
+
+		AddNewAiData();
+	});
 	// new routes
 
 	app.get('/getMedicalCondation', function(request, response) {
