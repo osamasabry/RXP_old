@@ -22,16 +22,11 @@ var bcrypt			 = require('bcrypt-nodejs');
 
 var Data_types      			= require('../app/models/field_data_types');
 
-var AI_master_field_structur 	= require('../app/models/AI_master_field_structure');
-
-var AI_master_field_structur_log 	= require('../app/models/AI_master_field_structure_log')
-
 
 var AI      					= require('../app/models/AI');
 
 var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
 
-var  AIMasterRevisions          = require('../app/models/AI_master_clinical_data_revisions'); 
 
 var Forms                        = require('../app/models/lut_form');
 
@@ -783,173 +778,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	});
     });
 	
-
-	// insert AI Master Fields Structure 
-
-	app.post('/addFieldsAI',function (request, response){
-		AI_master_field_structur.findOne({ 'AI_Master_Clinical_Data_Field_Structure_FieldName' :  request.body.name }, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field already exists'
-				});
-            } else {
-        			
-    			AI_master_field_structur.getLastCode(function(err,field){
-    				if (field) {
-    					nextCode = Number(field.AI_Master_Clinical_Data_Field_Structure_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewFieldAI(nextCode);
-    			})   
-
-    			function insertNewFieldAI(nextCode){
-	                var newFieldAi = new AI_master_field_structur();
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Code     			        = nextCode;
-		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
-		            newFieldAi.AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
-					newFieldAi.AI_Master_Clinical_Data_Field_Structure_IsActive                     = 1; 
-					newFieldAi.AI_Master_Clinical_Data_Field_Structure_ISEditable       			= 1;
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
-	                newFieldAi.AI_Master_Clinical_Data_Field_Structure_Priority						= request.body.priority;
-	                newFieldAi.save();
-
-
-	                var  AILog = new AI_master_field_structur_log();
-
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = nextCode;
-		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
-		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
-	                AILog.save();
-
-
-	                return response.send({
-						message: true
-					});
-		        }
-			}
-		})
-	});
-
-
-	// edit AI Master Fields Struture 
-
-	app.post('/editFieldsAI',function (request, response){
-
-		var newvalues = { $set: {
-				AI_Master_Clinical_Data_Field_Structure_FieldName 					: request.body.name,
-				AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
-				AI_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
-				AI_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
-	            AI_Master_Clinical_Data_Field_Structure_Country_ID                  : request.body.country_id
-			} };
-
-		var myquery = { AI_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
-
-
-		AI_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field not exists'
-				});
-            } else {
-
-            	// console.log(field);
-        			
-    			AI_master_field_structur_log.getLastCode(function(err,field){
-    				if (field) {
-    					nextCode = Number(field.AI_Master_Clinical_Data_Field_Structure_Log_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewFieldAILog(nextCode);
-    			})   
-
-    			function insertNewFieldAILog(nextCode){
-
-    				var  AILog = new AI_master_field_structur_log();
-
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Code     			            = request.body.row_id;
-		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
-		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	              	AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-		            AILog.AI_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
-	                AILog.AI_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
-	                
-	                AILog.save();
-
-
-	                return response.send({
-						message: true
-					});
-
-	    			}
-                
-			}
-		})
-	});
-
-	// get all Fields of AI
-	app.get('/getFieldsAI', function(request, response) {
-		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID: null}, function(err, field) {
-		    if (err){
-				response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
-	});
-
-	// get all Fields of AI without Usage
-	app.get('/getFieldsAIWithoutUsage', function(request, response) {
-		AI_master_field_structur.find({ $and: [ { AI_Master_Clinical_Data_Field_Structure_Country_ID:null },
-		 { AI_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID: {$ne:4} } ] }, function(err, field) {
-		    if (err){
-				response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
-	});
-
-	app.post('/getCountryFieldsAI', function(request, response) {
-		AI_master_field_structur.find({AI_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
-		    if (err){
-				response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	response.send(field);
-	        } 
-    	});
-    });
 	
 	// insert Pharmaceutical Category 
 	app.post('/addPharmaceuticalCategory',function (request, response){	
@@ -1009,9 +837,8 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		async function getLastAIID(){
 			var AINextID = await getNextAIId();
 			var Employee_ID = await getEmployeeId();
-			var MasterDataRevision_ID  = await getMasterRevisionId();
 			var MasterTasks_ID   = await getMasterTasksId();
-			insetIntoAI(AINextID,Employee_ID,MasterDataRevision_ID,MasterTasks_ID);
+			insetIntoAI(AINextID,Employee_ID,MasterTasks_ID);
 		}
 
 		function getNextAIId(){
@@ -1019,17 +846,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				AI.getLastCode(function(err, AIdata){
 					if (AIdata) 
 						resolve( Number(AIdata.AI_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-
-		function getMasterRevisionId(){
-			return new Promise((resolve, reject) => {
-				AIMasterRevisions.getLastCode(function(err, AIMaRe){
-					if (AIMaRe) 
-						resolve( Number(AIMaRe.AI_Master_Clinical_Data_Revision_Code)+1);
 					else
 						resolve(1);
 				})
@@ -1048,10 +864,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		};
 
 		function getEmployeeId(){
-
 			return new Promise((resolve, reject) => {
-
-				
 				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
 				    if (err){
 				    	resolve({message: 'Error'});
@@ -1062,10 +875,12 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		    	});
 			})
 		}
-		function insetIntoAI(AINextID,Employee_ID,MasterDataRevision_ID,MasterTasks_ID){
+
+		function insetIntoAI(AINextID,Employee_ID,MasterTasks_ID){
 			var newAI = new AI();
 			newAI.AI_Code     	 = AINextID;
 			newAI.AI_Name 	     = request.body.name;
+			newAI.AI_ATC_Code    = request.body.atc_code;
 			newAI.AI_Status 	 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.save(function(error, doneadd){
@@ -1076,24 +891,17 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				}
 				else{
 
-					var newAiReVision = AIMasterRevisions();
-
-					newAiReVision.AI_Master_Clinical_Data_Revision_Code = MasterDataRevision_ID;
-					newAiReVision.AI_Code = AINextID;
-					newAiReVision.save();
-
 					var newAITasks =  AITasks() ;
 
-					newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name
-					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 1;
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Edit";
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Employee_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = MasterDataRevision_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Code								  = AINextID;
-					newAITasks.AI_Master_Clinical_Data_Task_Status = 0;
+					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name
+					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = Employee_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
+					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
 
 					return response.send({
@@ -1142,34 +950,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	}).sort({AI_Code:-1}).limit(20)
     });
 	
-	// edit data of AI master Clinical Revision 
-	
-	app.post('/editAIMasterClinicalRevisions',function (request, response){
-
-		var myquery = { AI_Master_Clinical_Data_Revision_Code: request.body.row_id };
-		var DatatoInsert =  request.body.DatatoInsert;
-		AIMasterRevisions.findOneAndUpdate( myquery,DatatoInsert, function(err, field) {
-			if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Master Clinical Revision not exists'
-				});
-            } else {
-
-                return response.send({
-					message: true
-				});
-			}
-			
-		})
-
-	});
 
 	//  get data  
 	app.get('/getForm', function(request, response) {
@@ -2039,37 +1819,6 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.post('/updatePriorityAI',function (request, response){
-
-		var newvalues = { $set: {
-				AI_Master_Clinical_Data_Field_Structure_Priority 	: request.body.priority,
-								
-			} };
-
-		var myquery = { AI_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
-
-
-		AI_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field not exists'
-				});
-            } else {
-                return response.send({
-					message: true
-				});
-			}
-		})
-	});
-
-
 	app.post('/addCountry',function (request, response){
 
 		async function getLastCountry(){
@@ -2177,10 +1926,22 @@ app.post('/addStrengthUnits',function (request, response){
     app.post('/editAI',function (request, response){
 
 		var newvalues = { $set: {
-				AI_Name 					    : request.body.name,
-				AI_ATC_Code 					: request.body.atc_code, 
-				AI_Status 						: request.body.status,
-				AI_Pharmaceutical_Categories_ID : request.body.category_Ids
+				AI_Name 					    				: request.body.name,
+				AI_ATC_Code 									: request.body.atc_code, 
+				AI_Status 										: request.body.status,
+				AI_Pharmaceutical_Categories_ID 				: request.body.category_Ids,
+				AI_CountryBasedAI_ID			 				: request.body.country_basedAI_Id,
+			    AI_CountryBasedAI_AI_ID			 				: request.body.country_basedAI_ai_Id,
+			    AI_CountryBasedAI_Country_ID	 				: request.body.country_basedAI_country_Id,
+			    AI_CountryBasedAI_Dosing   						: request.body.country_basedAI_dosing,
+			    AI_CountryBasedAI_UsaageLabeledIndications  	: request.body.country_basedAI_usaage_labeled_indications,
+			    AI_CountryBasedAI_UsaageOffLabeledIndications 	: request.body.country_basedAI_usaage_off_labeled_indications,
+			    AI_CountryBasedAI_Administration				: request.body.country_basedAI_administration,
+			    AI_CountryBasedAI_DietaryConsiderations			: request.body.country_basedAI_dietary_considerations,
+			    AI_CountryBasedAI_PreparationForAdministration	: request.body.country_basedAI_preparation_for_administration,
+			    AI_CountryBasedAI_PregnancyConsideration		: request.body.country_basedAI_pregnancy_consideration,
+			    AI_CountryBasedAI_Storage						: request.body.country_basedAI_storage,
+			    AI_CountryBasedAI_Stability						: request.body.country_basedAI_stability,
 			} };
 
 		var myquery = { AI_Code: request.body.row_id }; 
@@ -3039,7 +2800,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
-			console.log(request.body)
 			var newAITasks =  AITasks() ;
 
 			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
@@ -3049,7 +2809,6 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = request.body.revision_id;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
 			newAITasks.save();
@@ -3160,7 +2919,6 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Grammer Reviewer";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Grammer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = request.body.revision_id;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
 			newAITasks.save();
@@ -3245,7 +3003,6 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Publisher";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Clinical_Data_Revision_Code = request.body.revision_id;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Code 							  = request.body.ai_id	 
 			newAITasks.save();
@@ -3257,33 +3014,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 		AddNewTasks();
-	});
-
-
-	app.get('/getMasterDataRevision', function(request, response) {
-		var Searchquery = Number(request.query.row_id);
-		AIMasterRevisions.findOne({AI_Master_Clinical_Data_Revision_Code: Searchquery}, function(err, field) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
-	});
-
-	app.get('/getMasterDataRevisionUsage', function(request, response) {
-		var Searchquery = Number(request.query.row_id);
-		AIMasterRevisions.findOne({AI_Master_Clinical_Data_Revision_Code: Searchquery}, '1', function(err, field) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
 	});
 
 
