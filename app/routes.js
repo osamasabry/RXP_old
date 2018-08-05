@@ -911,11 +911,11 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 					var newAiReVision = AIRevisions();
 
-					newAiReVision.AIMasterRevision_Code  = AIRevision_ID;
-					newAI.AIMasterRevision_Name 	     = request.body.name;
-					newAI.AIMasterRevision_ATC_Code      = request.body.atc_code;
-					newAI.AIMasterRevision_Status 	 	 = null;
-					newAiReVision.AIMasterRevision_AI_ID = AINextID;
+					newAiReVision.AIMasterRevision_Code  		 = AIRevision_ID;
+					newAiReVision.AIMasterRevision_Name 	     = request.body.name;
+					newAiReVision.AIMasterRevision_ATC_Code      = request.body.atc_code;
+					newAiReVision.AIMasterRevision_Status 	 	 = null;
+					newAiReVision.AIMasterRevision_AI_ID 		 = AINextID;
 					newAiReVision.save();
 
 

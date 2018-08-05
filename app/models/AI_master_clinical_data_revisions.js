@@ -9,7 +9,7 @@ var rxp_AIMasterRevisionsSchema = mongoose.Schema({
   	AIMasterRevision_Name     	 				 	:String,
     AIMasterRevision_ATC_Code						:String,
     AIMasterRevision_Status 						:Number,
-    AIMasterRevision_Pharmaceutical_Categories_ID  	:String,
+    AIMasterRevision_Pharmaceutical_Categories_ID  	:[Number],
     AIMasterRevision_FDAFeed			 			:String,
     AIMasterRevision_EUFeed			 				:String,
     AIMasterRevision_ClinicalPracticeGuidelines	 	:String,
