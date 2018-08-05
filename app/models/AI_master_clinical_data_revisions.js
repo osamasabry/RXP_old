@@ -29,5 +29,5 @@ var AIMasterRevisions  = module.exports = mongoose.model('rxp_AI_master_clinical
 
 module.exports.getLastCode = function(callback){
     
-    AIMasterRevisions.findOne({},callback).sort({AIMasterRevisions_Code:-1});
+    AIMasterRevisions.findOne({},callback).sort({AIMasterRevision_Code:-1});
 }

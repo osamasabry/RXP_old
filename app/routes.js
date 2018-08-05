@@ -886,7 +886,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			return new Promise((resolve, reject) => {
 				AIRevisions.getLastCode(function(err, AIMaRe){
 					if (AIMaRe) 
-						resolve( Number(AIMaRe.AIMasterRevisions_Code)+1);
+						resolve( Number(AIMaRe.AIMasterRevision_Code)+1);
 					else
 						resolve(1);
 				})
@@ -914,6 +914,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					newAiReVision.AIMasterRevision_Code  		 = AIRevision_ID;
 					newAiReVision.AIMasterRevision_Name 	     = request.body.name;
 					newAiReVision.AIMasterRevision_ATC_Code      = request.body.atc_code;
+					newAiReVision.AIMasterRevision_Pharmaceutical_Categories_ID = request.body.category_Ids;
 					newAiReVision.AIMasterRevision_Status 	 	 = null;
 					newAiReVision.AIMasterRevision_AI_ID 		 = AINextID;
 					newAiReVision.save();
@@ -929,6 +930,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
 
