@@ -23,10 +23,11 @@ var bcrypt			 = require('bcrypt-nodejs');
 var Data_types      			= require('../app/models/field_data_types');
 
 
-var AI      					= require('../app/models/AI');
+var AI      					 = require('../app/models/AI');
 
-var AIRevisions     = require('../app/models/AI_master_clinical_data_revisions');
+var AIRevisions    				 = require('../app/models/AI_master_clinical_data_revisions');
 
+var AIHistory      				 = require('../app/models/AI_history');
 
 
 var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
@@ -2048,6 +2049,33 @@ app.post('/addStrengthUnits',function (request, response){
 			}).sort({AI_Name:-1})
 	});
 
+
+    app.post('/searchAIATCCode', function(request, response) {
+		var Searchquery = request.body.searchField;
+			AI.find ({AI_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
+				if (err){
+    	    		return response.send({
+						user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (ai.length == 0) {
+					return response.send({
+						user : request.user ,
+						message: 'No AI ATC Code Found !!'
+					});
+            	} else {
+					return response.send({
+						user : request.user ,
+						ai: ai
+					});
+				}
+			})
+	});
+
+
+
     app.post('/searchPharmaceuticalAtcCode', function(request, response) {
 		var Searchquery = request.body.searchField;
 			Pharmaceutical_category.find({Pharmaceutical_Category_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, atc_code) {
@@ -3082,7 +3110,9 @@ app.post('/addStrengthUnits',function (request, response){
 		async function AddNewAiData(){
 			var result  		= await updateTaskDone();
 			var dataAIRevision  = await getAIRevision();
-			insetIntoAI(dataAIRevision);
+			var AIHistoryID     =await getNextAIHistoryID();
+			var insertAi        = await insetIntoAI(dataAIRevision);
+			var insertAiHistory = await insetIntoAIHistory(dataAIRevision,AIHistoryID);
 		}
 
 		function updateTaskDone(){
@@ -3124,24 +3154,23 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function insetIntoAITasks(data){
+		function insetIntoAI(data){
 
 			var newvalues = { $set: {
-				AI_FDAFeed			 			: data.FDAFeed,
-			    AI_EUFeed			 			: data.EUFeed,
-			    AI_ClinicalPracticeGuidelines	: data.ClinicalPracticeGuidelines,
-			    AI_Contraindications   			: data.Contraindications,
-			    AI_Warnings_Precautions  		: data.Warnings_Precautions,
-			    AI_AdverseReactionsConcerns 	: data.AdverseReactionsConcerns,
-			    AI_DiseaseRelatedConcerns		: data.DiseaseRelatedConcerns,
-			    AI_DoseFormSpecificIssues		: data.DoseFormSpecificIssues,
-			    AI_Others						: data.Others,
-			    AI_GeriatricConsideration		: data.GeriatricConsideration,
-			    AI_PregnancyConsideration		: data.PregnancyConsideration,
+				AI_FDAFeed			 			: data.AIMasterRevision_FDAFeed,
+			    AI_EUFeed			 			: data.AIMasterRevision_EUFeed,
+			    AI_ClinicalPracticeGuidelines	: data.AIMasterRevision_ClinicalPracticeGuidelines,
+			    AI_Contraindications   			: data.AIMasterRevision_Contraindications,
+			    AI_Warnings_Precautions  		: data.AIMasterRevision_Warnings_Precautions,
+			    AI_AdverseReactionsConcerns 	: data.AIMasterRevision_AdverseReactionsConcerns,
+			    AI_DiseaseRelatedConcerns		: data.AIMasterRevision_DiseaseRelatedConcerns,
+			    AI_DoseFormSpecificIssues		: data.AIMasterRevision_DoseFormSpecificIssues,
+			    AI_Others						: data.AIMasterRevision_Others,
+			    AI_GeriatricConsideration		: data.AIMasterRevision_GeriatricConsideration,
+			    AI_PregnancyConsideration		: data.AIMasterRevision_PregnancyConsideration,
 			} };
 
 			var myquery = { AI_Code: request.body.ai_id }; 
-
 
 			AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
 	    	    if (err){
@@ -3159,6 +3188,51 @@ app.post('/addStrengthUnits',function (request, response){
 					});
 				}
 			})
+		}
+
+		function getNextAIHistoryID(){
+			return new Promise((resolve, reject) => {
+				AIHistory.getLastCode(function(err, AIdata){
+					if (AIdata) 
+						resolve( Number(AIdata.AI_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insetIntoAIHistory(data,AIHistoryID){
+			var newAIHistory = new AIHistory();
+			newAIHistory.AIHistory_Code     						= AIHistoryID;
+			newAIHistory.AIHistory_Name 	    					= data.AIMasterRevision_Name;
+			newAIHistory.AIHistory_ATC_Code    						= data.AIMasterRevision_ATC_Code;
+			newAIHistory.AIHistory_Status 	 					 	= data.AIMasterRevision_Status;
+			newAIHistory.AIHistory_Pharmaceutical_Categories_ID     = data.AIMasterRevision_Pharmaceutical_Categories_ID;
+			newAIHistory.AIHistory_FDAFeed			 				= data.AIMasterRevision_FDAFeed;
+		    newAIHistory.AIHistory_EUFeed			 				= data.AIMasterRevision_EUFeed;
+		    newAIHistory.AIHistory_ClinicalPracticeGuidelines		= data.AIMasterRevision_ClinicalPracticeGuidelines;
+		    newAIHistory.AIHistory_Contraindications   				= data.AIMasterRevision_Contraindications;
+		    newAIHistory.AIHistory_Warnings_Precautions  			= data.AIMasterRevision_Warnings_Precautions;
+		    newAIHistory.AIHistory_AdverseReactionsConcerns 		= data.AIMasterRevision_AdverseReactionsConcerns;
+		    newAIHistory.AIHistory_DiseaseRelatedConcerns			= data.AIMasterRevision_DiseaseRelatedConcerns;
+		    newAIHistory.AIHistory_DoseFormSpecificIssues			= data.AIMasterRevision_DoseFormSpecificIssues;
+		    newAIHistory.AIHistory_Others							= data.AIMasterRevision_Others;
+		    newAIHistory.AIHistory_GeriatricConsideration			= data.AIMasterRevision_GeriatricConsideration;
+		    newAIHistory.AIHistory_PregnancyConsideration			= data.AIMasterRevision_PregnancyConsideration;
+
+		   newAIHistory.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else {
+	                return response.send({
+						message: true
+					});
+				}
+
+			})
+			
 		}
 
 		AddNewAiData();
