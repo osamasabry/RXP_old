@@ -19,6 +19,7 @@ var rxp_AIHistorySchema = mongoose.Schema({
     AIHistory_Others						:String,
     AIHistory_GeriatricConsideration		:String,
     AIHistory_PregnancyConsideration		:String,
+    AIHistory_revision                      :Number,
 
 });
 
