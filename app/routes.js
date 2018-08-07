@@ -2699,7 +2699,6 @@ app.post('/addStrengthUnits',function (request, response){
     	});
 	});
 
-
 	app.get('/getAllMedicalCondition', function(request, response) {
 		MedicalCondition.find({}, function(err, field) {
 		    if (err){
@@ -3108,11 +3107,12 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/AddAIData',function (request, response){
 
 		async function AddNewAiData(){
-			var result  		= await updateTaskDone();
-			var dataAIRevision  = await getAIRevision();
-			var AIHistoryID     =await getNextAIHistoryID();
-			var insertAi        = await insetIntoAI(dataAIRevision);
-			var insertAiHistory = await insetIntoAIHistory(dataAIRevision,AIHistoryID);
+			var result  		 = await updateTaskDone();
+			var dataAIRevision   = await getAIRevision(request.body.revision_id);
+			var AIHistoryID      =await getNextAIHistoryID();
+			var insertAi         = await insetIntoAI(dataAIRevision);
+			var insertAiHistory  = await insetIntoAIHistory(dataAIRevision,AIHistoryID);
+			var removeAIRevision = await removeOldAiRevision(request.body.revision_id);
 		}
 
 		function updateTaskDone(){
@@ -3142,9 +3142,9 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function getAIRevision(){
+		function getAIRevision(revision_id){
 			return new Promise((resolve, reject) => {
-				AIRevisions.findOne({AIMasterRevision_Code:request.body.revision_id} ,function(err, airevision) {
+				AIRevisions.findOne({AIMasterRevision_Code:revision_id} ,function(err, airevision) {
 					if (err) 
 						resolve( err);
 					else
@@ -3231,9 +3231,19 @@ app.post('/addStrengthUnits',function (request, response){
 					});
 				}
 
-			})
-			
+			})	
 		}
+
+		function removeOldAiRevision(revision_id){
+			return new Promise((resolve, reject) => {
+				AIRevisions.remove({AIMasterRevision_Code:revision_id} ,function(err, airevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(true);
+				})
+			})
+		};
 
 		AddNewAiData();
 	});
