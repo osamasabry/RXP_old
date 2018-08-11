@@ -1,28 +1,51 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
-var uniqueValidator = require('mongoose-unique-validator');
 
 var rxp_TNRevisionTableSchema = mongoose.Schema({
     
-	TNRevisio_Code     	  				 :Number,
-    TNRevisio_Name     	 				 :{type:String, unique: true,uniqueCaseInsensitive: true },
-    TNRevisio_ActiveIngredients 		 :{type:[Number], unique: true},
-    TNRevisio_Status 					 :{type:Number},
-    TNRevisio_Form_ID  					 :{type:Number, unique: true},
-    TNRevisio_Route_ID					 :{type:Number, unique: true},
-    TNRevisio_Strength_Unit_ID 			 :{type:Number, unique: true},
-    TNRevisio_Strength_Value			 :{type:String, unique: true,uniqueCaseInsensitive: true },
-    TNRevisio_Weight_Unit_ID			 :{type:Number, unique: true},
-    TNRevisio_Weight_Value				 :{type:String, unique: true,uniqueCaseInsensitive: true },
-    TNRevisio_Volume_Unit_ID			 :{type:Number, unique: true},
-    TNRevisio_Volume_Value 				 :{type:String, unique: true,uniqueCaseInsensitive: true },
-    TNRevisio_Concentration_Unit_ID		 :{type:Number, unique: true},
-    TNRevisio_Concentration_Value		 :{type:String, unique: true,uniqueCaseInsensitive: true },
-    TNRevisio_Country_ID				 :{type:[Number], unique:true},
+    TNRevision_Code                           :Number,
+    TNRevision_Name                           :String,
+    TNRevision_ActiveIngredients              :[Number],
+    TNRevision_Status                         :Number,
+    TNRevision_Form_ID                        :Number,
+    TNRevision_Route_ID                       :Number,
+    TNRevision_Strength_Unit_ID               :Number,
+    TNRevision_Strength_Value                 :String,
+    TNRevision_Weight_Unit_ID                 :Number,
+    TNRevision_Weight_Value                   :String,
+    TNRevision_Volume_Unit_ID                 :Number,
+    TNRevision_Volume_Value                   :String,
+    TNRevision_Concentration_Unit_ID          :Number,
+    TNRevision_Concentration_Value            :String,
+    TNRevision_Country_ID                     :[Number],
+
+    TNRevision_AssiendToEditor_Employee_ID    :Number,
+    TNRevision_EditStatus                     :Number,
+    TNRevision_EditDate_Start                 :Date,
+    TNRevision_EditedBy_Employee_ID           :Number,
+    TNRevision_EditDate_Close                 :Date,
+    
+    TNRevision_AssiendToReviewer_Employee_ID  :Number,
+    TNRevision_ReviewStatus                   :Number,
+    TNRevision_ReviewDate_Start               :Date,
+    TNRevision_ReviewedBy_Employee_ID         :Number,
+    TNRevision_ReviewDate_Close               :Date,
+    
+    TNRevision_AssiendToGrammer_Employee_ID   :Number,
+    TNRevision_GrammerStatus                  :Number,
+    TNRevision_GrammerReview_Date_Start       :Date,
+    TNRevision_GrammerReviewBy_Employee_ID    :Number,
+    TNRevision_GrammerReview_Date_Close       :Date,
+    
+    TNRevision_AssiendToPublisher_Employee_ID :Number,
+    TNRevision_PublishStatus                  :Number,
+    TNRevision_PublishDate_Start              :Date,
+    TNRevision_Publishedby_Employee_ID        :Number,
+    TNRevision_PublishDate_Close              :Date,
+    TNRevision_RevisionCode                   :Number,
+
 });
 
-
-rxp_TNRevisionTableSchema.plugin(uniqueValidator);
 
 
 var TNRevison_table = module.exports = mongoose.model('rxp_tn_revision', rxp_TNRevisionTableSchema);
@@ -30,5 +53,5 @@ var TNRevison_table = module.exports = mongoose.model('rxp_tn_revision', rxp_TNR
 
 module.exports.getLastCode = function(callback){
     
-    TNRevison_table.findOne({},callback).sort({TNRevisio_Code:-1});
+    TNRevison_table.findOne({},callback).sort({TNRevision_Code:-1});
 }

@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
-// var uniqueValidator = require('mongoose-unique-validator');
 
 var rxp_TNTableSchema = mongoose.Schema({
     
@@ -19,13 +18,31 @@ var rxp_TNTableSchema = mongoose.Schema({
     TN_Concentration_Unit_ID		 :Number,
     TN_Concentration_Value			 :String,
     TN_Country_ID					 :[Number],
+
+    TN_AssiendToEditor_Employee_ID    :Number,
+    TN_EditStatus                     :Number,
+    TN_EditDate_Start                 :Date,
+    TN_EditedBy_Employee_ID           :Number,
+    TN_EditDate_Close                 :Date,
+    
+    TN_AssiendToReviewer_Employee_ID  :Number,
+    TN_ReviewStatus                   :Number,
+    TN_ReviewDate_Start               :Date,
+    TN_ReviewedBy_Employee_ID         :Number,
+    TN_ReviewDate_Close               :Date,
+    
+    TN_AssiendToGrammer_Employee_ID   :Number,
+    TN_GrammerStatus                  :Number,
+    TN_GrammerReview_Date_Start       :Date,
+    TN_GrammerReviewBy_Employee_ID    :Number,
+    TN_GrammerReview_Date_Close       :Date,
+    
+    TN_AssiendToPublisher_Employee_ID :Number,
+    TN_PublishStatus                  :Number,
+    TN_PublishDate_Start              :Date,
+    TN_Publishedby_Employee_ID        :Number,
+    TN_PublishDate_Close              :Date,
 });
-
-// rxp_TNTableSchema.set('autoIndex', false);
-
-// rxp_TNTableSchema.index({TN_Name: 1, TN_Strength_Value: 2}, {unique: true});
-
-// rxp_TNTableSchema.plugin(uniqueValidator);
 
 
 var TN_table = module.exports = mongoose.model('rxp_tn', rxp_TNTableSchema);

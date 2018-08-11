@@ -56,6 +56,7 @@ var TNRevisions          = require('../app/models/TN_master_clinical_data_revisi
 
 var TNTasks                    = require('../app/models/TN_master_clinical_data_tasks');
 
+var TNHistory      				 = require('../app/models/TN_history');
 
 var UsageDoseUnit                  = require('../app/models/lut_usage_dose_unit');
 
@@ -1601,7 +1602,7 @@ app.post('/addStrengthUnits',function (request, response){
         	return new Promise((resolve, reject) => {		
 				TNRevisions.getLastCode(function(err,tn){
 					if (tn) {
-						resolve(Number(tn.TNRevisio_Code)+1);
+						resolve(Number(tn.TNRevision_Code)+1);
 					}else{
 						resolve(1);
 					}
@@ -1611,21 +1612,26 @@ app.post('/addStrengthUnits',function (request, response){
 
 		function insertNewTNRevision(TNRevisionNextCode){
             var newTnRevision = new TNRevisions();
-            newTnRevision.TNRevisio_Code     	 			= TNRevisionNextCode;
-            newTnRevision.TNRevisio_Name 	     			= request.body.name;
-            newTnRevision.TNRevisio_ActiveIngredients	 	= request.body.ai_ids;
-            newTnRevision.TNRevisio_Status	     			= 1;
-            newTnRevision.TNRevisio_Form_ID   				= request.body.form_id
-            newTnRevision.TNRevisio_Route_ID			    = request.body.route_id;
-            newTnRevision.TNRevisio_Strength_Unit_ID		= request.body.strength_unit_id;
-            newTnRevision.TNRevisio_Strength_Value			= request.body.strength_value;
-            newTnRevision.TNRevisio_Weight_Unit_ID			= request.body.weight_unit_id;
-            newTnRevision.TNRevisio_Weight_Value			= request.body.weight_value;
-            newTnRevision.TNRevisio_Volume_Unit_ID			= request.body.volume_unit_id;
-            newTnRevision.TNRevisio_Volume_Value		    = request.body.volume_value;
-            newTnRevision.TNRevisio_Concentration_Unit_ID	= request.body.concentration_unit_id;
-            newTnRevision.TNRevisio_Concentration_Value	    = request.body.concentration_value;
-            newTnRevision.TNRevisio_Country_ID				= request.body.country_ids;
+            newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
+            newTnRevision.TNRevision_Name 	     						= request.body.TNRevision_Name;
+            newTnRevision.TNRevision_ActiveIngredients	 				= request.body.TNRevision_ActiveIngredients;
+            newTnRevision.TNRevision_Status	     						= 1;
+            newTnRevision.TNRevision_Form_ID   							= request.body.TNRevision_Form_ID
+            newTnRevision.TNRevision_Route_ID			    			= request.body.TNRevision_Route_ID;
+            newTnRevision.TNRevision_Strength_Unit_ID					= request.body.TNRevision_Strength_Unit_ID;
+            newTnRevision.TNRevision_Strength_Value						= request.body.TNRevision_Strength_Value;
+            newTnRevision.TNRevision_Weight_Unit_ID						= request.body.TNRevision_Weight_Unit_ID;
+            newTnRevision.TNRevision_Weight_Value						= request.body.TNRevision_Weight_Value;
+            newTnRevision.TNRevision_Volume_Unit_ID						= request.body.TNRevision_Volume_Unit_ID;
+            newTnRevision.TNRevision_Volume_Value		    			= request.body.TNRevision_Volume_Value;
+            newTnRevision.TNRevision_Concentration_Unit_ID				= request.body.TNRevision_Concentration_Unit_ID;
+            newTnRevision.TNRevision_Concentration_Value	    		= request.body.TNRevision_Concentration_Value;
+            newTnRevision.TNRevision_Country_ID							= request.body.TNRevision_Country_ID;
+           
+            newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID  = request.body.TNMasterRevision_AssiendToEditor_Employee_ID;
+            newTnRevision.TNMasterRevision_EditStatus					= 0;
+            newTnRevision.TNMasterRevision_EditDate_Start				= new Date();
+           	
             newTnRevision.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -1643,79 +1649,14 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	// add  of TN 
-	app.post('/addTN',function (request, response){
-		async function AddNewTNData(){
-			var TNNextCode  	 = await getNextTNCode();
-			var insertIntoTN   = await insertNewTN(TNNextCode);
-		}
-
-        function getNextTNCode(){	
-        	return new Promise((resolve, reject) => {		
-				TN.getLastCode(function(err,tn){
-					if (tn) {
-						resolve(Number(tn.TN_Code)+1);
-					}else{
-						resolve(1);
-					}
-				})
-			})   
-		}			
-
-		function insertNewTN(TNNextCode){
-            var newTn = new TN();
-            newTn.TN_Code     	 			    = TNNextCode;
-            newTn.TN_Name 	     				= request.body.name;
-            newTn.TN_ActiveIngredients	 	    = request.body.ai_ids;
-            newTn.TN_Status	     			    = 1;
-            newTn.TN_Form_ID   					= request.body.form_id
-            newTn.TN_Route_ID					= request.body.route_id;
-            newTn.TN_Strength_Unit_ID		    = request.body.strength_unit_id;
-            newTn.TN_Strength_Value			    = request.body.strength_value;
-            newTn.TN_Weight_Unit_ID			    = request.body.weight_unit_id;
-            newTn.TN_Weight_Value			    = request.body.weight_value;
-            newTn.TN_Volume_Unit_ID			    = request.body.volume_unit_id;
-            newTn.TN_Volume_Value			    = request.body.volume_value;
-            newTn.TN_Concentration_Unit_ID	    = request.body.concentration_unit_id;
-            newTn.TN_Concentration_Value	    = request.body.concentration_value;
-            newTn.TN_Country_ID					= request.body.country_ids;
-            newTn.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}else{
-		            return response.send({
-						message: true
-					});
-       			}
-       		})
-        } 
-
-        AddNewTNData();
-	});
-
-
-
 	app.post('/AddTaskTNToReviewer',function (request, response){
 
 		async function AddNewTasks(){
 			var Reviewer_ID = await getEmployeeId();
+			var resultTNRevision = await updateTNRevision(Reviewer_ID);
 			var MasterTasks_ID   = await getMasterTasksId();
 			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID);
 		}
-
-
-		function getMasterTasksId(){
-			return new Promise((resolve, reject) => {
-				TNTasks.getLastCode(function(err, TNMaTs){
-					if (TNMaTs) 
-						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
 
 		function getEmployeeId(){
 			return new Promise((resolve, reject) => {
@@ -1730,19 +1671,62 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		}
 
+		function updateTNRevision(Reviewer_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						TNMasterRevision_EditStatus 					: 1,
+						TNMasterRevision_EditedBy_Employee_ID   		:request.body.user_id,
+						TNMasterRevision_EditDate_Close 				:new Date(),
+
+						TNMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID,
+						TNMasterRevision_ReviewStatus					:0,
+						TNMasterRevision_ReviewDate_Start				:new Date(),
+				} };
+
+				var myquery = { TNMasterRevision_Code: request.body.TNMasterRevision_Code }; 
+
+				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				TNTasks.getLastCode(function(err, TNMaTs){
+					if (TNMaTs) 
+						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
 
 		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID){
 			var newTNTasks =  TNTasks() ;
 
 			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.name;
+			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Master_Clinical_Data_Task_Title;
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.tn_revision_id	 
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code	 
 			newTNTasks.save();
 
 			return response.send({
@@ -1754,10 +1738,300 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewTasks();
 	});
 
+	app.post('/AddTaskTNToPublisher',function (request, response){
 
+		async function AddNewTasks(){
+			var Publisher_ID = await getEmployeeId();
+			var resultTNRevision = await updateTNRevision(Publisher_ID);
+			var MasterTasks_ID   = await getMasterTasksId();
+			insetIntoTNTasks(Publisher_ID,MasterTasks_ID);
+		}
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:4 }, { Employee_Role_Type_Code: 1 },{ Employee_Role_Sub_Role_Type:2 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
+			})
+		}
+
+		function updateTNRevision(Publisher_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						TNMasterRevision_ReviewStatus 					: 1,
+						TNMasterRevision_ReviewedBy_Employee_ID   		:request.body.TNMasterRevision_ReviewedBy_Employee_ID,
+						TNMasterRevision_ReviewDate_Close 				:new Date(),
+
+						TNMasterRevision_AssiendToPublisher_Employee_ID :Publisher_ID,
+						TNMasterRevision_PublishStatus					:0,
+						TNMasterRevision_PublishDate_Start				:new Date(),
+				} };
+
+				var myquery = { TNMasterRevision_Code: request.body.TNMasterRevision_Code }; 
+
+				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				TNTasks.getLastCode(function(err, TNMaTs){
+					if (TNMaTs) 
+						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+
+		function insetIntoTNTasks(Publisher_ID,MasterTasks_ID){
+			var newTNTasks =  TNTasks() ;
+
+			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
+			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Master_Clinical_Data_Task_Title;
+			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
+			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
+			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
+			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
+			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
+			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code;	 
+			newTNTasks.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+		AddNewTasks();
+	});
+
+	app.post('/AddTNData',function (request, response){
+
+		async function AddNewTNData(){
+			var resultTask  		= await updateTaskDone();
+			var resultTNRevision    = await updateTNRevision();
+			var dataTNRevision   	= await getTNRevision(request.body.revision_id);
+			var TNID 				= await getNextTNID();
+			var insertTN         	= await insetIntoTN(dataTNRevision,TNID);
+			var TNHistoryID      	= await getNextTNHistoryID();
+			var insertTNHistory  	= await insetIntoTNHistory(dataTNRevision,TNHistoryID);
+			var removeTNRevision 	= await removeOldTNRevision(request.body.revision_id);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					TN_Master_Clinical_Data_Task_Status 				: 1,
+					TN_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { TN_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+
+				TNTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function updateTNRevision(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						TNMasterRevision_PublishStatus 				: 1,
+						TNMasterRevision_Publishedby_Employee_ID   	:request.body.user_id,
+						TNMasterRevision_PublishDate_Close 			:new Date(),
+						TNMasterRevision_RevisionCode				:1,
+				} };
+
+				var myquery = { TNMasterRevision_Code: request.body.tn_revision_id }; 
+
+				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getTNRevision(revision_id){
+			return new Promise((resolve, reject) => {
+				TNRevisions.findOne({TNMasterRevision_Code:revision_id} ,function(err, TNrevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(TNrevision);
+				})
+			})
+		};
+
+		function getNextTNID(){
+			return new Promise((resolve, reject) => {
+				TN.getLastCode(function(err, TN){
+					if (TN) 
+						resolve( Number(AIdata.TN_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insetIntoTN(data,TNID){
+
+			var newTn  = new TN();
+            newTn.TN_Code     	 					= TNID;
+            newTn.TN_Name 	     					= data.TNRevision_Name;
+            newTn.TN_ActiveIngredients	 			= data.TNRevision_ActiveIngredients;
+            newTn.TN_Status	     					= 1;
+            newTn.TN_Form_ID   						= data.TNRevision_Form_ID
+            newTn.TN_Route_ID			    		= data.TNRevision_Route_ID;
+            newTn.TN_Strength_Unit_ID				= data.TNRevision_Strength_Unit_ID;
+            newTn.TN_Strength_Value					= data.TNRevision_Strength_Value;
+            newTn.TN_Weight_Unit_ID					= data.TNRevision_Weight_Unit_ID;
+            newTn.TN_Weight_Value					= data.TNRevision_Weight_Value;
+            newTn.TN_Volume_Unit_ID					= data.TNRevision_Volume_Unit_ID;
+            newTn.TN_Volume_Value		    		= data.TNRevision_Volume_Value;
+            newTn.TN_Concentration_Unit_ID			= data.TNRevision_Concentration_Unit_ID;
+            newTn.TN_Concentration_Value	    	= data.TNRevision_Concentration_Value;
+            newTn.TN_Country_ID						= data.TNRevision_Country_ID;
+            newTn.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else{
+		            return response.send({
+						message: true
+					});
+       			}
+       		})
+		}
+
+		function getNextTNHistoryID(){
+			return new Promise((resolve, reject) => {
+				TNHistory.getLastCode(function(err, TNdata){
+					if (TNdata) 
+						resolve( Number(TNdata.TNHistory_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insetIntoTNHistory(data,TNHistoryID){
+			var newTNHistory = new TNHistory();
+			newTNHistory.AIHistory_Code     						= TNHistoryID;
+			newTNHistory.TNHistory_Name 	    					= data.TNRevision_Name;
+			newTNHistory.TNHistory_ActiveIngredients    			= data.TNRevision_ActiveIngredients;
+			newTNHistory.TNHistory_Status 	 					 	= data.TNRevision_Status;
+			newTNHistory.TNHistory_Form_ID    					 	= data.TNRevision_Form_ID;
+			newTNHistory.TNHistory_Route_ID			 				= data.TNRevision_Route_ID;
+		    newTNHistory.TNHistory_Strength_Unit_ID			 		= data.TNRevision_Strength_Unit_ID;
+		    newTNHistory.TNHistory_Strength_Value					= data.TNRevision_Strength_Value;
+		    newTNHistory.TNHistory_Weight_Unit_ID   				= data.TNRevision_Weight_Unit_ID;
+		    newTNHistory.TNHistory_Weight_Value  					= data.TNRevision_Weight_Value;
+		    newTNHistory.TNHistory_Volume_Unit_ID 					= data.TNRevision_Volume_Unit_ID;
+		    newTNHistory.TNHistory_Volume_Value						= data.TNRevision_Volume_Value;
+		    newTNHistory.TNHistory_Concentration_Unit_ID			= data.TNRevision_Concentration_Unit_ID;
+		    newTNHistory.TNHistory_Concentration_Value				= data.TNRevision_Concentration_Value;
+		    newTNHistory.TNHistory_Country_ID						= data.TNRevision_Country_ID;
+		    
+		    newTNHistory.TNHistory_AssiendToEditor_Employee_ID		= data.TNRevision_AssiendToEditor_Employee_ID;
+		    newTNHistory.TNHistory_EditStatus						= data.TNRevision_EditStatus;
+		    newTNHistory.TNHistory_EditDate_Start					= data.TNRevision_EditDate_Start;
+		    newTNHistory.TNHistory_EditedBy_Employee_ID				= data.TNRevision_EditedBy_Employee_ID;
+		    newTNHistory.TNHistory_EditDate_Close					= data.TNRevision_EditDate_Close;
+		    
+		    newTNHistory.TNHistory_AssiendToReviewer_Employee_ID	= data.TNRevision_AssiendToReviewer_Employee_ID;
+		    newTNHistory.TNHistory_ReviewStatus						= data.TNRevision_ReviewStatus;
+		    newTNHistory.TNHistory_ReviewDate_Start					= data.TNRevision_ReviewDate_Start;
+		    newTNHistory.TNHistory_ReviewedBy_Employee_ID			= data.TNRevision_ReviewedBy_Employee_ID;
+		    newTNHistory.TNHistory_ReviewDate_Close					= data.TNRevision_ReviewDate_Close;
+		   
+		    newTNHistory.TNHistory_AssiendToGrammer_Employee_ID		= data.TNRevision_AssiendToGrammer_Employee_ID;
+		    newTNHistory.TNHistory_GrammerStatus					= data.TNRevision_GrammerStatus;
+		    newTNHistory.TNHistory_GrammerReview_Date_Start			= data.TNRevision_GrammerReview_Date_Start;
+		    newTNHistory.TNHistory_GrammerReviewBy_Employee_ID		= data.TNRevision_GrammerReviewBy_Employee_ID;
+		    newTNHistory.TNHistory_GrammerReview_Date_Close			= data.TNRevision_GrammerReview_Date_Close;
+		    
+		    newTNHistory.TNHistory_AssiendToPublisher_Employee_ID	= data.TNRevision_AssiendToPublisher_Employee_ID;
+		    newTNHistory.TNHistory_PublishStatus					= data.TNRevision_PublishStatus;
+		    newTNHistory.TNHistory_PublishDate_Start				= data.TNRevision_PublishDate_Start;
+		    newTNHistory.TNHistory_Publishedby_Employee_ID			= data.TNRevision_Publishedby_Employee_ID;
+		    newTNHistory.TNHistory_PublishDate_Close				= data.TNRevision_PublishDate_Close;
+
+    		newTNHistory.TNHistory_RevisionCode                     = data.TNRevision_RevisionCode;
+
+		   	newTNHistory.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else {
+	                return response.send({
+						message: true
+					});
+				}
+
+			})	
+		}
+
+		function removeOldTNRevision(revision_id){
+			return new Promise((resolve, reject) => {
+				TNRevisions.remove({TNRevision_Code:revision_id} ,function(err, tnrevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(true);
+				})
+			})
+		};
+
+		AddNewTNData();
+	})
 	// get  basic data of TN
-	app.get('/getTN', function(request, response) {
-		TN.find({}, function(err, tn) {
+	app.get('/getTNRevisions', function(request, response) {
+		TNRevisions.find({TNRevision_Code:request.body.revision_id}, function(err, tn) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1767,45 +2041,6 @@ app.post('/addStrengthUnits',function (request, response){
 	        } 
     	});
     });
-
-
-	app.post('/addTNMasterClinicalRevisions',function (request, response){
-
-		TNMasterRevisions.getLastCode(function(err,field){
-			
-			if (field) {
-				nextCode = Number(field.TN_Master_Clinical_Data_Revision_Code)+1;
-			}else{
-				nextCode = 1;
-			}
-			
-			insertNewTNRevision(nextCode);
-		})  
-
-		function insertNewTNRevision(nextCode){
-
-			request.body['TN_Master_Clinical_Data_Revision_Code'] = nextCode;
-
-			newTNMasterRevision = new TNMasterRevisions(request.body);
-
-			newTNMasterRevision.save(function(err,doc){
-		        if(err){
-		        	return response.send({
-						message: err
-					});
-		        }
-		        else{
-		            return response.send({
-						message: true
-					});
-		        }
-		    });
-		}
-
-	});
-
-
-
 
 
 	app.post('/addCountry',function (request, response){
@@ -3304,7 +3539,7 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 				AIHistory.getLastCode(function(err, AIdata){
 					if (AIdata) 
-						resolve( Number(AIdata.AI_Code)+1);
+						resolve( Number(AIdata.AIHistory_Code)+1);
 					else
 						resolve(1);
 				})
@@ -3354,7 +3589,7 @@ app.post('/addStrengthUnits',function (request, response){
 		    newAIHistory.AIHistory_Publishedby_Employee_ID			= data.AIMasterRevision_Publishedby_Employee_ID;
 		    newAIHistory.AIHistory_PublishDate_Close				= data.AIMasterRevision_PublishDate_Close;
 
-    		AIHistory_revision                      				= data.AIMasterRevision_RevisionCode;
+    		newAIHistory.AIHistory_revision                      	= data.AIMasterRevision_RevisionCode;
 
 
 
