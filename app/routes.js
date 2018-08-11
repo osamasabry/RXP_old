@@ -983,7 +983,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
     });
 	
 	app.get('/getAIRevision', function(request, response) {
-		AIRevisions.find({AIMasterRevision_AI_ID:request.body.ai_id}, function(err, airevision) {
+		AIRevisions.find({AIMasterRevision_AI_ID:request.query.ai_id}, function(err, airevision) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1945,17 +1945,17 @@ app.post('/addStrengthUnits',function (request, response){
     app.post('/editAIRevision',function (request, response){
 
 		var newvalues = { $set: {
-				AIMasterRevision_FDAFeed			 			: request.body.fda_feed,
-			    AIMasterRevision_EUFeed			 				: request.body.eu_feed,
-			    AIMasterRevision_ClinicalPracticeGuidelines	 	: request.body.clinical_Practice_guide_lines,
-			    AIMasterRevision_Contraindications   			: request.body.contraindications,
-			    AIMasterRevision_Warnings_Precautions  			: request.body.warnings_precautions,
-			    AIMasterRevision_AdverseReactionsConcerns 		: request.body.adverse_reactions_concerns,
-			    AIMasterRevision_DiseaseRelatedConcerns			: request.body.disease_related_concerns,
-			    AIMasterRevision_DoseFormSpecificIssues			: request.body.dose_form_specific_issues,
-			    AIMasterRevision_Others							: request.body.others,
-			    AIMasterRevision_GeriatricConsideration			: request.body.geriatric_consideration,
-			    AIMasterRevision_PregnancyConsideration			: request.body.pregnancy_consideration,
+				AIMasterRevision_FDAFeed			 			: request.body.AIMasterRevision_FDAFeed,
+			    AIMasterRevision_EUFeed			 				: request.body.AIMasterRevision_EUFeed,
+			    AIMasterRevision_ClinicalPracticeGuidelines	 	: request.body.AIMasterRevision_ClinicalPracticeGuidelines,
+			    AIMasterRevision_Contraindications   			: request.body.AIMasterRevision_Contraindications,
+			    AIMasterRevision_Warnings_Precautions  			: request.body.AIMasterRevision_Warnings_Precautions,
+			    AIMasterRevision_AdverseReactionsConcerns 		: request.body.AIMasterRevision_AdverseReactionsConcerns,
+			    AIMasterRevision_DiseaseRelatedConcerns			: request.body.AIMasterRevision_DiseaseRelatedConcerns,
+			    AIMasterRevision_DoseFormSpecificIssues			: request.body.AIMasterRevision_DoseFormSpecificIssues,
+			    AIMasterRevision_Others							: request.body.AIMasterRevision_Others,
+			    AIMasterRevision_GeriatricConsideration			: request.body.AIMasterRevision_GeriatricConsideration,
+			    AIMasterRevision_PregnancyConsideration			: request.body.AIMasterRevision_PregnancyConsideration,
 			} };
 
 		var myquery = { AIMasterRevision_Code: request.body.row_id }; 
