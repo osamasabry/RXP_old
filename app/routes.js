@@ -2858,11 +2858,11 @@ app.post('/addStrengthUnits',function (request, response){
 				var newvalues = { $set: {
 						AIMasterRevision_EditStatus 					: 1,
 						AIMasterRevision_EditedBy_Employee_ID   		:request.body.user_id,
-						AIMasterRevision_EditDate_Close 				:new Date();
+						AIMasterRevision_EditDate_Close 				:new Date(),
 
-						AIMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID;
-						AIMasterRevision_ReviewStatus					:0;
-						AIMasterRevision_ReviewDate_Start				:new Date();
+						AIMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID,
+						AIMasterRevision_ReviewStatus					:0,
+						AIMasterRevision_ReviewDate_Start				:new Date(),
 				} };
 
 				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
@@ -3011,11 +3011,11 @@ app.post('/addStrengthUnits',function (request, response){
 				var newvalues = { $set: {
 						AIMasterRevision_ReviewStatus 					: 1,
 						AIMasterRevision_ReviewedBy_Employee_ID   		:request.body.user_id,
-						AIMasterRevision_ReviewDate_Close 				:new Date();
+						AIMasterRevision_ReviewDate_Close 				:new Date(),
 
-						AIMasterRevision_AssiendToGrammer_Employee_ID   :Grammer_ID;
-						AIMasterRevision_GrammerStatus				    :0;
-						AIMasterRevision_GrammerReview_Date_Start	    :new Date();
+						AIMasterRevision_AssiendToGrammer_Employee_ID   :Grammer_ID,
+						AIMasterRevision_GrammerStatus				    :0,
+						AIMasterRevision_GrammerReview_Date_Start	    :new Date(),
 				} };
 
 				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
@@ -3119,11 +3119,11 @@ app.post('/addStrengthUnits',function (request, response){
 				var newvalues = { $set: {
 						AIMasterRevision_GrammerStatus 					: 1,
 						AIMasterRevision_GrammerReviewBy_Employee_ID   	:request.body.user_id,
-						AIMasterRevision_GrammerReview_Date_Close 		:new Date();
+						AIMasterRevision_GrammerReview_Date_Close 		:new Date(),
 
-						AIMasterRevision_AssiendToPublisher_Employee_ID :Publisher_ID;
-						AIMasterRevision_PublishStatus				    :0;
-						AIMasterRevision_PublishDate_Start	    		:new Date();
+						AIMasterRevision_AssiendToPublisher_Employee_ID :Publisher_ID,
+						AIMasterRevision_PublishStatus				    :0,
+						AIMasterRevision_PublishDate_Start	    		:new Date()
 				} };
 
 				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
