@@ -21,7 +21,33 @@ var rxp_AIMasterRevisionsSchema = mongoose.Schema({
     AIMasterRevision_Others							:String,
     AIMasterRevision_GeriatricConsideration			:String,
     AIMasterRevision_PregnancyConsideration			:String,
-    AIMasterRevision_AI_ID 							:Number
+    AIMasterRevision_AI_ID 							:Number,
+
+    AIMasterRevision_AssiendToEditor_Employee_ID    :Number,
+    AIMasterRevision_EditStatus                     :Number,
+    AIMasterRevision_EditDate_Start                 :Date,
+    AIMasterRevision_EditedBy_Employee_ID           :Number,
+    AIMasterRevision_EditDate_Close                 :Date,
+    
+    AIMasterRevision_AssiendToReviewer_Employee_ID  :Number,
+    AIMasterRevision_ReviewStatus                   :Number,
+    AIMasterRevision_ReviewDate_Start               :Date,
+    AIMasterRevision_ReviewedBy_Employee_ID         :Number,
+    AIMasterRevision_ReviewDate_Close               :Date,
+    
+    AIMasterRevision_AssiendToGrammer_Employee_ID   :Number,
+    AIMasterRevision_GrammerStatus                  :Number,
+    AIMasterRevision_GrammerReview_Date_Start       :Date,
+    AIMasterRevision_GrammerReviewBy_Employee_ID    :Number,
+    AIMasterRevision_GrammerReview_Date_Close       :Date,
+    
+    AIMasterRevision_AssiendToPublisher_Employee_ID :Number,
+    AIMasterRevision_PublishStatus                  :Number,
+    AIMasterRevision_PublishDate_Start              :Date,
+    AIMasterRevision_Publishedby_Employee_ID        :Number,
+    AIMasterRevision_PublishDate_Close              :Date,
+    
+    AIMasterRevision_RevisionCode                   :Number,
 });
 
 

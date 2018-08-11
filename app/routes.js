@@ -29,6 +29,8 @@ var AIRevisions    				 = require('../app/models/AI_master_clinical_data_revisio
 
 var AIHistory      				 = require('../app/models/AI_history');
 
+var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
+
 
 var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
 
@@ -47,15 +49,13 @@ var VolumeUnits				    = require('../app/models/lut_volume_units');
 
 var SizeUnits				    = require('../app/models/lut_size_units');
 
-var TN_master_field_structur 	= require('../app/models/TN_master_field_structure');
-
-var TN_master_field_structur_log 	= require('../app/models/TN_master_field_structure_log');
 
 var TN     					     = require('../app/models/TN');
 
-var TNMasterRevisions          = require('../app/models/TN_master_clinical_data_revisions');
+var TNRevisions          = require('../app/models/TN_master_clinical_data_revisions');
 
-var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
+var TNTasks                    = require('../app/models/TN_master_clinical_data_tasks');
+
 
 var UsageDoseUnit                  = require('../app/models/lut_usage_dose_unit');
 
@@ -859,6 +859,19 @@ module.exports = function(app, passport, server, generator, sgMail) {
 			})
 		};
 
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 1 }, { Employee_Role_Sub_Role_Type: 1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
+			})
+		}
+
 		function getMasterTasksId(){
 			return new Promise((resolve, reject) => {
 				AITasks.getLastCode(function(err, AIMaTs){
@@ -869,19 +882,6 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				})
 			})
 		};
-
-		function getEmployeeId(){
-			return new Promise((resolve, reject) => {
-				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
-				    if (err){
-				    	resolve({message: 'Error'});
-				    }
-			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
-			        } 
-		    	});
-			})
-		}
 
 		function getAIRevisionId(){
 			return new Promise((resolve, reject) => {
@@ -912,12 +912,11 @@ module.exports = function(app, passport, server, generator, sgMail) {
 
 					var newAiReVision = AIRevisions();
 
-					newAiReVision.AIMasterRevision_Code  		 = AIRevision_ID;
-					newAiReVision.AIMasterRevision_Name 	     = request.body.name;
-					newAiReVision.AIMasterRevision_ATC_Code      = request.body.atc_code;
-					newAiReVision.AIMasterRevision_Pharmaceutical_Categories_ID = request.body.category_Ids;
-					newAiReVision.AIMasterRevision_Status 	 	 = null;
-					newAiReVision.AIMasterRevision_AI_ID 		 = AINextID;
+					newAiReVision.AIMasterRevision_Code  		 			   = AIRevision_ID;
+					newAiReVision.AIMasterRevision_AI_ID 		 			   = AINextID;
+					newAiReVision.AIMasterRevision_AssiendToEditor_Employee_ID = Employee_ID;
+					newAiReVision.AIMasterRevision_EditStatus 				   = 0;
+					newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();	
 					newAiReVision.save();
 
 
@@ -983,6 +982,17 @@ module.exports = function(app, passport, server, generator, sgMail) {
     	}).sort({AI_Code:-1}).limit(20)
     });
 	
+	app.get('/getAIRevision', function(request, response) {
+		AIRevisions.find({AIMasterRevision_AI_ID:request.body.ai_id}, function(err, airevision) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (airevision) {
+	        	
+	            response.send(airevision);
+	        } 
+    	})
+    });
 
 	//  get data  
 	app.get('/getForm', function(request, response) {
@@ -1578,199 +1588,172 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	// insert TN Field Struture 
-	app.post('/addFieldsTN',function (request, response){
-		async function getLastTNField(){
-			var TNFieldNextCodetoinsert = await getNextTNFieldID();
-			insetIntoTNFieldStructure(TNFieldNextCodetoinsert);
+
+
+	// add  of TN revision
+	app.post('/addTNRevision',function (request, response){
+		async function AddNewTNRevisionData(){
+			var TNRevisionNextCode  	 = await getNextTNRevisionCode();
+			var insertIntoTNRevison   = await insertNewTNRevision(TNRevisionNextCode);
 		}
-		function getNextTNFieldID(){
-			return new Promise((resolve, reject) => {
-				TN_master_field_structur.getLastCode(function(err,field){
-					if (field) 
-					resolve( Number(field.TN_Master_Clinical_Data_Field_Structure_Code)+1);
-					else
-					resolve(1);
+
+        function getNextTNRevisionCode(){	
+        	return new Promise((resolve, reject) => {		
+				TNRevisions.getLastCode(function(err,tn){
+					if (tn) {
+						resolve(Number(tn.TNRevisio_Code)+1);
+					}else{
+						resolve(1);
+					}
 				})
-			})
-        };
-		function insetIntoTNFieldStructure(TNFieldNextCode){
-			var newFieldTN = new TN_master_field_structur();
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Code     			        = TNFieldNextCode;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_FieldName 	  			    = request.body.name;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID  = request.body.datatype;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsMandatory					= request.body.require;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_IsActive                     = 1;        
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Country_ID                   = request.body.country_id;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_ISEditable				    = 1;
-			newFieldTN.TN_Master_Clinical_Data_Field_Structure_Priority                     = 100;
-			newFieldTN.save(function(error, doneadd){
-				if(doneadd){
-					var  TNLog = new TN_master_field_structur_log();
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = TNFieldNextCode;
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = 1; 
-					TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id;       
-					TNLog.save(function(logerror, logdoneadd){
-						if(logerror){
-							return response.send({
-								message: logerror
-						    });
-						}
-						else{
-							return response.send({
-								message: true
-						    });
-						}
-					});
-				}
-				else if(error){
+			})   
+		}			
+
+		function insertNewTNRevision(TNRevisionNextCode){
+            var newTnRevision = new TNRevisions();
+            newTnRevision.TNRevisio_Code     	 			= TNRevisionNextCode;
+            newTnRevision.TNRevisio_Name 	     			= request.body.name;
+            newTnRevision.TNRevisio_ActiveIngredients	 	= request.body.ai_ids;
+            newTnRevision.TNRevisio_Status	     			= 1;
+            newTnRevision.TNRevisio_Form_ID   				= request.body.form_id
+            newTnRevision.TNRevisio_Route_ID			    = request.body.route_id;
+            newTnRevision.TNRevisio_Strength_Unit_ID		= request.body.strength_unit_id;
+            newTnRevision.TNRevisio_Strength_Value			= request.body.strength_value;
+            newTnRevision.TNRevisio_Weight_Unit_ID			= request.body.weight_unit_id;
+            newTnRevision.TNRevisio_Weight_Value			= request.body.weight_value;
+            newTnRevision.TNRevisio_Volume_Unit_ID			= request.body.volume_unit_id;
+            newTnRevision.TNRevisio_Volume_Value		    = request.body.volume_value;
+            newTnRevision.TNRevisio_Concentration_Unit_ID	= request.body.concentration_unit_id;
+            newTnRevision.TNRevisio_Concentration_Value	    = request.body.concentration_value;
+            newTnRevision.TNRevisio_Country_ID				= request.body.country_ids;
+            newTnRevision.save(function(error, doneadd){
+				if(error){
 					return response.send({
 						message: error
-				    });
-				}
+					});
+				}else{
+		            return response.send({
+						message: true
+					});
+       			}
+       		})
+        } 
+
+        AddNewTNRevisionData();
+	});
+
+
+	// add  of TN 
+	app.post('/addTN',function (request, response){
+		async function AddNewTNData(){
+			var TNNextCode  	 = await getNextTNCode();
+			var insertIntoTN   = await insertNewTN(TNNextCode);
+		}
+
+        function getNextTNCode(){	
+        	return new Promise((resolve, reject) => {		
+				TN.getLastCode(function(err,tn){
+					if (tn) {
+						resolve(Number(tn.TN_Code)+1);
+					}else{
+						resolve(1);
+					}
+				})
+			})   
+		}			
+
+		function insertNewTN(TNNextCode){
+            var newTn = new TN();
+            newTn.TN_Code     	 			    = TNNextCode;
+            newTn.TN_Name 	     				= request.body.name;
+            newTn.TN_ActiveIngredients	 	    = request.body.ai_ids;
+            newTn.TN_Status	     			    = 1;
+            newTn.TN_Form_ID   					= request.body.form_id
+            newTn.TN_Route_ID					= request.body.route_id;
+            newTn.TN_Strength_Unit_ID		    = request.body.strength_unit_id;
+            newTn.TN_Strength_Value			    = request.body.strength_value;
+            newTn.TN_Weight_Unit_ID			    = request.body.weight_unit_id;
+            newTn.TN_Weight_Value			    = request.body.weight_value;
+            newTn.TN_Volume_Unit_ID			    = request.body.volume_unit_id;
+            newTn.TN_Volume_Value			    = request.body.volume_value;
+            newTn.TN_Concentration_Unit_ID	    = request.body.concentration_unit_id;
+            newTn.TN_Concentration_Value	    = request.body.concentration_value;
+            newTn.TN_Country_ID					= request.body.country_ids;
+            newTn.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else{
+		            return response.send({
+						message: true
+					});
+       			}
+       		})
+        } 
+
+        AddNewTNData();
+	});
+
+
+
+	app.post('/AddTaskTNToReviewer',function (request, response){
+
+		async function AddNewTasks(){
+			var Reviewer_ID = await getEmployeeId();
+			var MasterTasks_ID   = await getMasterTasksId();
+			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID);
+		}
+
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				TNTasks.getLastCode(function(err, TNMaTs){
+					if (TNMaTs) 
+						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 },{ Employee_Role_Sub_Role_Type:2 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
 			})
 		}
-		getLastTNField();
+
+
+		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID){
+			var newTNTasks =  TNTasks() ;
+
+			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
+			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.name;
+			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
+			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
+			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
+			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
+			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
+			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.tn_revision_id	 
+			newTNTasks.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+		AddNewTasks();
 	});
 
-
-	//  get TN Fields Struture 
-	app.get('/getFieldsTN', function(request, response) {
-		TN_master_field_structur.find({TN_Master_Clinical_Data_Field_Structure_Country_ID: null}, function(err, field) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	
-	            response.send(field);
-	        } 
-    	});
-    });
-
-
-	app.post('/getCountryFieldsTN', function(request, response) {
-		TN_master_field_structur.find({TN_Master_Clinical_Data_Field_Structure_Country_ID : request.body.countryid }, function(err, field) {
-		    if (err){
-				response.send({message: 'Error'});
-		    }
-	        if (field) {
-	        	response.send(field);
-	        } 
-    	});
-    });
-
-	app.post('/editFieldsTN',function (request, response){
-
-		var newvalues = { $set: {
-				TN_Master_Clinical_Data_Field_Structure_FieldName 					: request.body.name,
-				TN_Master_Clinical_Data_Field_Structure_Field_Structure_DataType_ID : request.body.datatype, 
-				TN_Master_Clinical_Data_Field_Structure_IsMandatory 				: request.body.require,
-				TN_Master_Clinical_Data_Field_Structure_IsActive 					: request.body.status,
-				TN_Master_Clinical_Data_Field_Structure_Country_ID  			    : request.body.country_id,
-			} };
-
-		var myquery = { TN_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
-
-
-		TN_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field not exists'
-				});
-            } else {
-
-            	// console.log(field);
-        			
-    			// TN_master_field_structur_log.getLastCode(function(err,field){
-    			// 	if (field) {
-    			// 		nextCode = Number(field.TN_Master_Clinical_Data_Field_Structure_Log_Code)+1;
-    			// 	}else{
-    			// 		nextCode = 1;
-    			// 	}
-    				
-    			// 	insertNewFieldTNLog(nextCode);
-    			// })   
-
-    			// function insertNewFieldTNLog(nextCode){
-
-    				var  TNLog = new TN_master_field_structur_log();
-
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Code     			            = request.body.row_id;
-		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_FieldName 	  			    = request.body.name;
-		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Field_Structure_DataType_ID   = request.body.datatype;
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsMandatory					= request.body.require;
-	              	TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedBy_Employee_ID		    = request.body.user_id;
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_CreatedDate					= new Date();
-		            TNLog.TN_Master_Clinical_Data_Field_Structure_Log_IsActive                      = request.body.status; 
-	                TNLog.TN_Master_Clinical_Data_Field_Structure_Log_Country_ID                    = request.body.country_id; 
-	                TNLog.save();
-
-
-	                return response.send({
-						message: true
-					});
-
-	    		// }
-                
-			}
-		})
-	});
-
-
-	// add basic data of TN
-	app.post('/addTN',function (request, response){
-		TN.findOne({ 'TN_Name' :  request.body.name }, function(err, tn) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (tn) {
-            	return response.send({
-					// user : request.user ,
-					message: 'TN already exists'
-				});
-            } else {
-        			
-    			TN.getLastCode(function(err,tn){
-    				if (tn) {
-    					nextCode = Number(tn.TN_Code)+1;
-    				}else{
-    					nextCode = 1;
-    				}
-    				
-    				insertNewTN(nextCode);
-    			})   
-
-    			function insertNewTN(nextCode){
-	                var newTn = new TN();
-	                newTn.TN_Code     	 					 = nextCode;
-		            newTn.TN_Name 	     					 = request.body.name;
-	                newTn.TN_ATC_Code	 					 = request.body.atc_code;
-	                newTn.TN_Status	     					 = null;
-	                newTn.TN_Pharmaceutical_Categories_ID    = request.body.category_Ids
-	                newTn.save();
-
-	                return response.send({
-						message: true
-					});
-		        }
-			}
-		})
-	});
 
 	// get  basic data of TN
 	app.get('/getTN', function(request, response) {
@@ -1822,34 +1805,7 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.post('/updatePriorityTN',function (request, response){
 
-		var newvalues = { $set: {
-				TN_Master_Clinical_Data_Field_Structure_Priority 	: request.body.priority,
-			}};
-
-		var myquery = { TN_Master_Clinical_Data_Field_Structure_Code: request.body.row_id }; 
-
-
-		TN_master_field_structur.findOneAndUpdate( myquery,newvalues, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					// user : request.user ,
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					// user : request.user ,
-					message: 'Field not exists'
-				});
-            } else {
-                return response.send({
-					message: true
-				});
-			}
-		})
-	});
 
 
 	app.post('/addCountry',function (request, response){
@@ -2821,12 +2777,14 @@ app.post('/addStrengthUnits',function (request, response){
     	});
     });
 
-	app.post('/AddTaskToReviewer',function (request, response){
+	app.post('/AddTaskAIToReviewer',function (request, response){
 
 		async function AddNewTasks(){
-			var result  = await updateTaskDone();
-			var Reviewer_ID = await getEmployeeId();
-			var MasterTasks_ID   = await getMasterTasksId();
+			var resultTask  		= await updateTaskDone();
+			var resultAI  			= await updateAI();
+			var Reviewer_ID 		= await getEmployeeId();
+			var resultAIRevision  	= await updateAIRevision(Reviewer_ID);
+			var MasterTasks_ID   	= await getMasterTasksId();
 			insetIntoAITasks(Reviewer_ID,MasterTasks_ID);
 		}
 
@@ -2838,9 +2796,78 @@ app.post('/addStrengthUnits',function (request, response){
 					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.row_id }; 
+				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
 
 				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function updateAI(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						AI_Status 	: 0,
+				} };
+
+				var myquery = { AI_Code: request.body.ai_id }; 
+
+				AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 }, { Employee_Role_Sub_Role_Type: 1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
+			})
+		}
+
+		function updateAIRevision(Reviewer_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						AIMasterRevision_EditStatus 					: 1,
+						AIMasterRevision_EditedBy_Employee_ID   		:request.body.user_id,
+						AIMasterRevision_EditDate_Close 				:new Date();
+
+						AIMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID;
+						AIMasterRevision_ReviewStatus					:0;
+						AIMasterRevision_ReviewDate_Start				:new Date();
+				} };
+
+				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
+
+				AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
@@ -2867,32 +2894,19 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getEmployeeId(){
-			return new Promise((resolve, reject) => {
-				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
-				    if (err){
-				    	resolve({message: 'Error'});
-				    }
-			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
-			        } 
-		    	});
-			})
-		}
-
-
 		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
 			var newAITasks =  AITasks() ;
-
-			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id	 
+			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
+			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 				    = new Date();
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Review";
+			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code      = Reviewer_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 				    = null;
+			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id;	 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
+			
 			newAITasks.save();
 
 			return response.send({
@@ -2930,12 +2944,13 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 	}); 
 
-	app.post('/AddTaskToGrammer',function (request, response){
+	app.post('/AddTaskAIToGrammer',function (request, response){
 
 		async function AddNewTasks(){
-			var result  = await updateTaskDone();
-			var Grammer_ID = await getEmployeeId();
-			var MasterTasks_ID   = await getMasterTasksId();
+			var resultTask  	  = await updateTaskDone();
+			var Grammer_ID  	  = await getEmployeeId();
+			var resultAIRevision  = await updateAIRevision(Grammer_ID);
+			var MasterTasks_ID    = await getMasterTasksId();
 			insetIntoAITasks(Grammer_ID,MasterTasks_ID);
 		}
 
@@ -2978,7 +2993,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 		function getEmployeeId(){
 			return new Promise((resolve, reject) => {
-				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:3 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:3 }, { Employee_Role_Type_Code: 1 }, { Employee_Role_Sub_Role_Type: 1 } ] }, function(err, emp_role) {
 				    if (err){
 				    	resolve({message: 'Error'});
 				    }
@@ -2987,22 +3002,55 @@ app.post('/addStrengthUnits',function (request, response){
 			        } 
 		    	});
 			})
-		}
+		};
+
+
+		function updateAIRevision(Grammer_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						AIMasterRevision_ReviewStatus 					: 1,
+						AIMasterRevision_ReviewedBy_Employee_ID   		:request.body.user_id,
+						AIMasterRevision_ReviewDate_Close 				:new Date();
+
+						AIMasterRevision_AssiendToGrammer_Employee_ID   :Grammer_ID;
+						AIMasterRevision_GrammerStatus				    :0;
+						AIMasterRevision_GrammerReview_Date_Start	    :new Date();
+				} };
+
+				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
+
+				AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
 
 
 		function insetIntoAITasks(Grammer_ID,MasterTasks_ID){
 		
 			var newAITasks =  AITasks() ;
 
-			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Grammer Reviewer";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Grammer_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id; 
+			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
+			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 				    = new Date();
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Grammer Reviewer";
+			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   	= Grammer_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 				    = null;
+			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id; 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
 			
 			newAITasks.save();
 
@@ -3015,12 +3063,14 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewTasks();
 	});
 
-	app.post('/AddTaskToPublisher',function (request, response){
+	app.post('/AddTaskAIToPublisher',function (request, response){
 
 		async function AddNewTasks(){
-			var result  = await updateTaskDone();
-			var Publisher_ID = await getEmployeeId();
-			var MasterTasks_ID   = await getMasterTasksId();
+			var resultTask        = await updateTaskDone();
+			var Publisher_ID 	  = await getEmployeeId();
+			var resultAIRevision  = await updateAIRevision(Publisher_ID);
+
+			var MasterTasks_ID    = await getMasterTasksId();
 			insetIntoAITasks(Publisher_ID,MasterTasks_ID);
 		}
 
@@ -3050,6 +3100,50 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:4 }, { Employee_Role_Type_Code: 1 }, { Employee_Role_Sub_Role_Type: 1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Code);
+			        } 
+		    	});
+			})
+		}
+
+		function updateAIRevision(Publisher_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						AIMasterRevision_GrammerStatus 					: 1,
+						AIMasterRevision_GrammerReviewBy_Employee_ID   	:request.body.user_id,
+						AIMasterRevision_GrammerReview_Date_Close 		:new Date();
+
+						AIMasterRevision_AssiendToPublisher_Employee_ID :Publisher_ID;
+						AIMasterRevision_PublishStatus				    :0;
+						AIMasterRevision_PublishDate_Start	    		:new Date();
+				} };
+
+				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
+
+				AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
 		function getMasterTasksId(){
 			return new Promise((resolve, reject) => {
 				AITasks.getLastCode(function(err, AIMaTs){
@@ -3061,34 +3155,22 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getEmployeeId(){
-			return new Promise((resolve, reject) => {
-				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:4 }, { Employee_Role_Type_Code: 1 } ] }, function(err, emp_role) {
-				    if (err){
-				    	resolve({message: 'Error'});
-				    }
-			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
-			        } 
-		    	});
-			})
-		}
-
 
 		function insetIntoAITasks(Publisher_ID,MasterTasks_ID){
 		
 			var newAITasks =  AITasks() ;
 
-			newAITasks.AI_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 								  = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Publisher";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 								  = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 			  = request.body.ai_revision_id;	 
-			 
+			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
+			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 					= new Date();
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Publisher";
+			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code      = Publisher_ID;
+			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 					= null;
+			newAITasks.AI_Master_Clinical_Data_Task_Status 						= 0;
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id;	 
+			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
+			
 			newAITasks.save();
 
 			return response.send({
@@ -3107,12 +3189,14 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/AddAIData',function (request, response){
 
 		async function AddNewAiData(){
-			var result  		 = await updateTaskDone();
-			var dataAIRevision   = await getAIRevision(request.body.revision_id);
-			var AIHistoryID      =await getNextAIHistoryID();
-			var insertAi         = await insetIntoAI(dataAIRevision);
-			var insertAiHistory  = await insetIntoAIHistory(dataAIRevision,AIHistoryID);
-			var removeAIRevision = await removeOldAiRevision(request.body.revision_id);
+			var resultTask  		= await updateTaskDone();
+			var resultAIRevision    = await updateAIRevision();
+
+			var dataAIRevision   	= await getAIRevision(request.body.revision_id);
+			var insertAi         	= await insetIntoAI(dataAIRevision);
+			var AIHistoryID      	= await getNextAIHistoryID();
+			var insertAiHistory  	= await insetIntoAIHistory(dataAIRevision,AIHistoryID);
+			var removeAIRevision 	= await removeOldAiRevision(request.body.revision_id);
 		}
 
 		function updateTaskDone(){
@@ -3141,6 +3225,33 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
+		function updateAIRevision(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						AIMasterRevision_PublishStatus 				: 1,
+						AIMasterRevision_Publishedby_Employee_ID   	:request.body.user_id,
+						AIMasterRevision_PublishDate_Close 			:new Date(),
+						AIMasterRevision_RevisionCode				:1,
+				} };
+
+				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
+
+				AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
 
 		function getAIRevision(revision_id){
 			return new Promise((resolve, reject) => {
@@ -3152,7 +3263,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
 
 		function insetIntoAI(data){
 
@@ -3219,8 +3329,37 @@ app.post('/addStrengthUnits',function (request, response){
 		    newAIHistory.AIHistory_Others							= data.AIMasterRevision_Others;
 		    newAIHistory.AIHistory_GeriatricConsideration			= data.AIMasterRevision_GeriatricConsideration;
 		    newAIHistory.AIHistory_PregnancyConsideration			= data.AIMasterRevision_PregnancyConsideration;
+		    
+		    newAIHistory.AIHistory_AssiendToEditor_Employee_ID		= data.AIMasterRevision_AssiendToEditor_Employee_ID;
+		    newAIHistory.AIHistory_EditStatus						= data.AIMasterRevision_EditStatus;
+		    newAIHistory.AIHistory_EditDate_Start					= data.AIMasterRevision_EditDate_Start;
+		    newAIHistory.AIHistory_EditedBy_Employee_ID				= data.AIMasterRevision_EditedBy_Employee_ID;
+		    newAIHistory.AIHistory_EditDate_Close					= data.AIMasterRevision_EditDate_Close;
+		    
+		    newAIHistory.AIHistory_AssiendToReviewer_Employee_ID	= data.AIMasterRevision_AssiendToReviewer_Employee_ID;
+		    newAIHistory.AIHistory_ReviewStatus						= data.AIMasterRevision_ReviewStatus;
+		    newAIHistory.AIHistory_ReviewDate_Start					= data.AIMasterRevision_ReviewDate_Start;
+		    newAIHistory.AIHistory_ReviewedBy_Employee_ID			= data.AIMasterRevision_ReviewedBy_Employee_ID;
+		    newAIHistory.AIHistory_ReviewDate_Close					= data.AIMasterRevision_ReviewDate_Close;
+		   
+		    newAIHistory.AIHistory_AssiendToGrammer_Employee_ID		= data.AIMasterRevision_AssiendToGrammer_Employee_ID;
+		    newAIHistory.AIHistory_GrammerStatus					= data.AIMasterRevision_GrammerStatus;
+		    newAIHistory.AIHistory_GrammerReview_Date_Start			= data.AIMasterRevision_GrammerReview_Date_Start;
+		    newAIHistory.AIHistory_GrammerReviewBy_Employee_ID		= data.AIMasterRevision_GrammerReviewBy_Employee_ID;
+		    newAIHistory.AIHistory_GrammerReview_Date_Close			= data.AIMasterRevision_GrammerReview_Date_Close;
+		    
+		    newAIHistory.AIHistory_AssiendToPublisher_Employee_ID	= data.AIMasterRevision_AssiendToPublisher_Employee_ID;
+		    newAIHistory.AIHistory_PublishStatus					= data.AIMasterRevision_PublishStatus;
+		    newAIHistory.AIHistory_PublishDate_Start				= data.AIMasterRevision_PublishDate_Start;
+		    newAIHistory.AIHistory_Publishedby_Employee_ID			= data.AIMasterRevision_Publishedby_Employee_ID;
+		    newAIHistory.AIHistory_PublishDate_Close				= data.AIMasterRevision_PublishDate_Close;
 
-		   newAIHistory.save(function(error, doneadd){
+    		AIHistory_revision                      				= data.AIMasterRevision_RevisionCode;
+
+
+
+
+		   	newAIHistory.save(function(error, doneadd){
 				if(error){
 					return response.send({
 						message: error

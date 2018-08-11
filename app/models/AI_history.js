@@ -19,6 +19,30 @@ var rxp_AIHistorySchema = mongoose.Schema({
     AIHistory_Others						:String,
     AIHistory_GeriatricConsideration		:String,
     AIHistory_PregnancyConsideration		:String,
+    
+    AIHistory_AssiendToEditor_Employee_ID   :Number,
+    AIHistory_EditStatus                    :Number,
+    AIHistory_EditDate_Start                :Date,
+    AIHistory_EditedBy_Employee_ID          :Number,
+    AIHistory_EditDate_Close                :Date,
+    
+    AIHistory_AssiendToReviewer_Employee_ID :Number,
+    AIHistory_ReviewStatus                  :Number,
+    AIHistory_ReviewDate_Start              :Date,
+    AIHistory_ReviewedBy_Employee_ID        :Number,
+    AIHistory_ReviewDate_Close              :Date,
+    
+    AIHistory_AssiendToGrammer_Employee_ID  :Number,
+    AIHistory_GrammerStatus                 :Number,
+    AIHistory_GrammerReview_Date_Start      :Date,
+    AIHistory_GrammerReviewBy_Employee_ID   :Number,
+    AIHistory_GrammerReview_Date_Close      :Date,
+    
+    AIHistory_AssiendToPublisher_Employee_ID:Number,
+    AIHistory_PublishStatus                 :Number,
+    AIHistory_PublishDate_Start             :Date,
+    AIHistory_Publishedby_Employee_ID       :Number,
+    AIHistory_PublishDate_Close             :Date,
     AIHistory_revision                      :Number,
 
 });
