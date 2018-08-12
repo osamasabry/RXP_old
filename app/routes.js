@@ -3317,7 +3317,7 @@ app.post('/addStrengthUnits',function (request, response){
 					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.row_id }; 
+				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
 
 				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
@@ -3399,7 +3399,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
 			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 					= new Date();
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Publisher";
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Publish";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code      = Publisher_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 					= null;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 						= 0;
