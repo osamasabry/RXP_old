@@ -3197,7 +3197,7 @@ app.post('/addStrengthUnits',function (request, response){
 					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.row_id }; 
+				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
 
 				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
