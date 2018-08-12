@@ -867,7 +867,7 @@ module.exports = function(app, passport, server, generator, sgMail) {
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
@@ -1665,7 +1665,7 @@ app.post('/addStrengthUnits',function (request, response){
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
@@ -1754,7 +1754,7 @@ app.post('/addStrengthUnits',function (request, response){
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
@@ -3081,7 +3081,7 @@ app.post('/addStrengthUnits',function (request, response){
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
@@ -3233,7 +3233,7 @@ app.post('/addStrengthUnits',function (request, response){
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
@@ -3342,7 +3342,7 @@ app.post('/addStrengthUnits',function (request, response){
 				    	resolve({message: 'Error'});
 				    }
 			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Code);
+			            resolve(emp_role.Employee_Role_Employee_Code);
 			        } 
 		    	});
 			})
