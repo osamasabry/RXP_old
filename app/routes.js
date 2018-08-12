@@ -3280,7 +3280,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
 			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 				    = new Date();
 			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Grammer Reviewer";
+			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Grammer Review";
 			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   	= Grammer_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 				    = null;
 			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
