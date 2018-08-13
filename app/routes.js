@@ -3427,11 +3427,11 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  		= await updateTaskDone();
 			var resultAIRevision    = await updateAIRevision();
 
-			var dataAIRevision   	= await getAIRevision(request.body.revision_id);
+			var dataAIRevision   	= await getAIRevision(request.body.ai_revision_id);
 			var insertAi         	= await insetIntoAI(dataAIRevision);
 			var AIHistoryID      	= await getNextAIHistoryID();
 			var insertAiHistory  	= await insetIntoAIHistory(dataAIRevision,AIHistoryID);
-			var removeAIRevision 	= await removeOldAiRevision(request.body.revision_id);
+			var removeAIRevision 	= await removeOldAiRevision(request.body.ai_revision_id);
 		}
 
 		function updateTaskDone(){
