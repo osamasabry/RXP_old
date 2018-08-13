@@ -18,30 +18,6 @@ var rxp_TNTableSchema = mongoose.Schema({
     TN_Concentration_Unit_ID		 :Number,
     TN_Concentration_Value			 :String,
     TN_Country_ID					 :[Number],
-
-    TN_AssiendToEditor_Employee_ID    :Number,
-    TN_EditStatus                     :Number,
-    TN_EditDate_Start                 :Date,
-    TN_EditedBy_Employee_ID           :Number,
-    TN_EditDate_Close                 :Date,
-    
-    TN_AssiendToReviewer_Employee_ID  :Number,
-    TN_ReviewStatus                   :Number,
-    TN_ReviewDate_Start               :Date,
-    TN_ReviewedBy_Employee_ID         :Number,
-    TN_ReviewDate_Close               :Date,
-    
-    TN_AssiendToGrammer_Employee_ID   :Number,
-    TN_GrammerStatus                  :Number,
-    TN_GrammerReview_Date_Start       :Date,
-    TN_GrammerReviewBy_Employee_ID    :Number,
-    TN_GrammerReview_Date_Close       :Date,
-    
-    TN_AssiendToPublisher_Employee_ID :Number,
-    TN_PublishStatus                  :Number,
-    TN_PublishDate_Start              :Date,
-    TN_Publishedby_Employee_ID        :Number,
-    TN_PublishDate_Close              :Date,
 });
 
 

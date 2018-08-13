@@ -2043,6 +2043,54 @@ app.post('/addStrengthUnits',function (request, response){
     });
 
 
+	app.post('/searchTNName', function(request, response) {
+		var Searchquery = request.body.searchField;
+			TNRevisions.find ({TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, tn) {
+				if (err){
+    	    		return response.send({
+						user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (tn.length == 0) {
+					return response.send({
+						user : request.user ,
+						message: 'No TN Name Found !!'
+					});
+            	} else {
+					return response.send({
+						user : request.user ,
+						tn: tn
+					});
+				}
+			}).sort({TN_Name:-1})
+	});
+
+	app.post('/searchAIForTN', function(request, response) {
+		var Searchquery = request.body.searchField;
+			TNRevisions.find ({TNRevision_ActiveIngredients:{$in:[Searchquery]}},function(err, tn) {
+				if (err){
+    	    		return response.send({
+						// user : request.user ,
+						message: err
+					});
+    	    	}
+
+    	    	if (tn.length == 0) {
+					return response.send({
+						// user : request.user ,
+						message: 'No TN Found !!'
+					});
+            	} else {
+					return response.send({
+						// user : request.user ,
+						tn: tn
+					});
+				}
+			})
+	});
+
 	app.post('/addCountry',function (request, response){
 
 		async function getLastCountry(){
