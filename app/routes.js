@@ -2030,8 +2030,8 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewTNData();
 	})
 	// get  basic data of TN
-	app.get('/getTNRevisions', function(request, response) {
-		TNRevisions.find({TNRevision_Code:request.body.revision_id}, function(err, tn) {
+	app.get('/getTNRevisionByID', function(request, response) {
+		TNRevisions.find({TNRevision_Code:request.body.tn_revision_id}, function(err, tn) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -2045,7 +2045,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.post('/searchTNName', function(request, response) {
 		var Searchquery = request.body.searchField;
-			TNRevisions.find ({TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, tn) {
+			TN.find ({TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, tn) {
 				if (err){
     	    		return response.send({
 						user : request.user ,
@@ -2069,7 +2069,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.post('/searchAIForTN', function(request, response) {
 		var Searchquery = request.body.searchField;
-			TNRevisions.find ({TNRevision_ActiveIngredients:{$in:[Searchquery]}},function(err, tn) {
+			TN.find ({TN_ActiveIngredients:{$in:[Searchquery]}},function(err, tn) {
 				if (err){
     	    		return response.send({
 						// user : request.user ,
@@ -2090,6 +2090,19 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			})
 	});
+
+
+	app.get('/getTN', function(request, response) {
+		TN.find({}, function(err, tn) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            response.send(tn);
+	        } 
+    	}).sort({TN_Code:-1}).limit(20)
+    });
 
 	app.post('/addCountry',function (request, response){
 
