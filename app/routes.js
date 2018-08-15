@@ -1610,6 +1610,11 @@ app.post('/addStrengthUnits',function (request, response){
 			var insertTN         	= await insetIntoTN(TNID);
 			var TNRevisionNextCode  = await getNextTNRevisionCode();
 			var insertIntoTNRevison = await insertNewTNRevision(TNRevisionNextCode,TNID);
+			var Reviewer_ID 		= await getEmployeeId();
+			var resultTNRevision 	= await updateTNRevision(Reviewer_ID);
+			var MasterTasks_ID   	= await getMasterTasksId();
+			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID);
+			
 		}
 
 		function getNextTNID(){
@@ -1622,6 +1627,7 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
+
         function getNextTNRevisionCode(){	
         	return new Promise((resolve, reject) => {		
 				TNRevisions.getLastCode(function(err,tnrev){
@@ -1632,7 +1638,8 @@ app.post('/addStrengthUnits',function (request, response){
 					}
 				})
 			})   
-		}			
+		}
+
 		function insetIntoTN(TNID){
 
 			var newTn  = new TN();
@@ -1663,7 +1670,7 @@ app.post('/addStrengthUnits',function (request, response){
        			}
        		})
 		}
-		
+
 		function insertNewTNRevision(TNRevisionNextCode,TNID){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
@@ -1699,22 +1706,9 @@ app.post('/addStrengthUnits',function (request, response){
 					});
        			}
        		})
-        } 
+        }
 
-        AddNewTNRevisionData();
-	});
-
-
-	app.post('/AddTaskTNToReviewer',function (request, response){
-
-		async function AddNewTasks(){
-			var Reviewer_ID = await getEmployeeId();
-			var resultTNRevision = await updateTNRevision(Reviewer_ID);
-			var MasterTasks_ID   = await getMasterTasksId();
-			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID);
-		}
-
-		function getEmployeeId(){
+        function getEmployeeId(){
 			return new Promise((resolve, reject) => {
 				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 },{ Employee_Role_Sub_Role_Type:2 } ] }, function(err, emp_role) {
 				    if (err){
@@ -1756,8 +1750,7 @@ app.post('/addStrengthUnits',function (request, response){
 					}
 				})
 			})
-		};
-
+		}; 
 
 		function getMasterTasksId(){
 			return new Promise((resolve, reject) => {
@@ -1769,7 +1762,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
 
 		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID){
 			var newTNTasks =  TNTasks() ;
@@ -1790,9 +1782,9 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-
-		AddNewTasks();
+        AddNewTNRevisionData();
 	});
+
 
 	app.post('/AddTaskTNToPublisher',function (request, response){
 
