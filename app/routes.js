@@ -981,6 +981,18 @@ module.exports = function(app, passport, server, generator, sgMail) {
 	            response.send(ai);
 	        } 
     	}).sort({AI_Code:-1}).limit(20)
+	});
+	
+	app.get('/getAllAI', function(request, response) {
+		AI.find({}, function(err, ai) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (ai) {
+	        	
+	            response.send(ai);
+	        } 
+    	}).sort({AI_Name:-1})
     });
 	
 	app.get('/getAIRevision', function(request, response) {
@@ -1594,10 +1606,22 @@ app.post('/addStrengthUnits',function (request, response){
 	// add  of TN revision
 	app.post('/addTNRevision',function (request, response){
 		async function AddNewTNRevisionData(){
+			var TNID 				= await getNextTNID();
+			var insertTN         	= await insetIntoTN(TNID);
 			var TNRevisionNextCode  	 = await getNextTNRevisionCode();
 			var insertIntoTNRevison   = await insertNewTNRevision(TNRevisionNextCode);
 		}
 
+		function getNextTNID(){
+			return new Promise((resolve, reject) => {
+				TN.getLastCode(function(err, TN){
+					if (TN) 
+						resolve( Number(AIdata.TN_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
         function getNextTNRevisionCode(){	
         	return new Promise((resolve, reject) => {		
 				TNRevisions.getLastCode(function(err,tn){
@@ -1609,28 +1633,61 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})   
 		}			
+		function insetIntoTN(TNID){
 
+			var newTn  = new TN();
+            newTn.TN_Code     	 					= TNID;
+            newTn.TN_Name 	     					= request.body.TN_Name;
+            newTn.TN_ActiveIngredients	 			= request.body.TN_ActiveIngredients;
+            newTn.TN_Status	     					= 0;
+            newTn.TN_Form_ID   						= request.body.TN_Form_ID
+            newTn.TN_Route_ID			    		= request.body.TN_Route_ID;
+            newTn.TN_Strength_Unit_ID				= request.body.TN_Strength_Unit_ID;
+            newTn.TN_Strength_Value					= request.body.TN_Strength_Value;
+            newTn.TN_Weight_Unit_ID					= request.body.TN_Weight_Unit_ID;
+            newTn.TN_Weight_Value					= request.body.TN_Weight_Value;
+            newTn.TN_Volume_Unit_ID					= request.body.TN_Volume_Unit_ID;
+            newTn.TN_Volume_Value		    		= request.body.TN_Volume_Value;
+            newTn.TN_Concentration_Unit_ID			= request.body.TN_Concentration_Unit_ID;
+            newTn.TN_Concentration_Value	    	= request.body.TN_Concentration_Value;
+            newTn.TN_Country_ID						= request.body.TN_Country_ID;
+            newTn.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else{
+		            return response.send({
+						message: true
+					});
+       			}
+       		})
+		}
 		function insertNewTNRevision(TNRevisionNextCode){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
-            newTnRevision.TNRevision_Name 	     						= request.body.TNRevision_Name;
-            newTnRevision.TNRevision_ActiveIngredients	 				= request.body.TNRevision_ActiveIngredients;
-            newTnRevision.TNRevision_Status	     						= 1;
-            newTnRevision.TNRevision_Form_ID   							= request.body.TNRevision_Form_ID
-            newTnRevision.TNRevision_Route_ID			    			= request.body.TNRevision_Route_ID;
-            newTnRevision.TNRevision_Strength_Unit_ID					= request.body.TNRevision_Strength_Unit_ID;
-            newTnRevision.TNRevision_Strength_Value						= request.body.TNRevision_Strength_Value;
-            newTnRevision.TNRevision_Weight_Unit_ID						= request.body.TNRevision_Weight_Unit_ID;
-            newTnRevision.TNRevision_Weight_Value						= request.body.TNRevision_Weight_Value;
-            newTnRevision.TNRevision_Volume_Unit_ID						= request.body.TNRevision_Volume_Unit_ID;
-            newTnRevision.TNRevision_Volume_Value		    			= request.body.TNRevision_Volume_Value;
-            newTnRevision.TNRevision_Concentration_Unit_ID				= request.body.TNRevision_Concentration_Unit_ID;
-            newTnRevision.TNRevision_Concentration_Value	    		= request.body.TNRevision_Concentration_Value;
-            newTnRevision.TNRevision_Country_ID							= request.body.TNRevision_Country_ID;
+            newTnRevision.TNRevision_Name 	     						= request.body.TN_Name;
+            newTnRevision.TNRevision_ActiveIngredients	 				= request.body.TN_ActiveIngredients;
+            newTnRevision.TNRevision_Status	     						= 0;
+            newTnRevision.TNRevision_Form_ID   							= request.body.TN_Form_ID
+            newTnRevision.TNRevision_Route_ID			    			= request.body.TN_Route_ID;
+            newTnRevision.TNRevision_Strength_Unit_ID					= request.body.TN_Strength_Unit_ID;
+            newTnRevision.TNRevision_Strength_Value						= request.body.TN_Strength_Value;
+            newTnRevision.TNRevision_Weight_Unit_ID						= request.body.TN_Weight_Unit_ID;
+            newTnRevision.TNRevision_Weight_Value						= request.body.TN_Weight_Value;
+            newTnRevision.TNRevision_Volume_Unit_ID						= request.body.TN_Volume_Unit_ID;
+            newTnRevision.TNRevision_Volume_Value		    			= request.body.TN_Volume_Value;
+            newTnRevision.TNRevision_Concentration_Unit_ID				= request.body.TN_Concentration_Unit_ID;
+            newTnRevision.TNRevision_Concentration_Value	    		= request.body.TN_Concentration_Value;
+            newTnRevision.TNRevision_Country_ID							= request.body.TN_Country_ID;
            
-            newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID  = request.body.TNMasterRevision_AssiendToEditor_Employee_ID;
-            newTnRevision.TNMasterRevision_EditStatus					= 0;
+            newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID  = request.body.TNRevision_EditedBy_Employee_ID;
+            newTnRevision.TNMasterRevision_EditStatus					= 1;
             newTnRevision.TNMasterRevision_EditDate_Start				= new Date();
+			newTnRevision.TNRevision_EditedBy_Employee_ID				= request.body.TNRevision_EditedBy_Employee_ID;
+			newTnRevision.TNRevision_EditDate_Close						= new Date();
+			
+			
            	
             newTnRevision.save(function(error, doneadd){
 				if(error){
