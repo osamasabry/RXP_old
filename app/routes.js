@@ -1614,9 +1614,9 @@ app.post('/addStrengthUnits',function (request, response){
 
 		function getNextTNID(){
 			return new Promise((resolve, reject) => {
-				TN.getLastCode(function(err, TN){
-					if (TN) 
-						resolve( Number(AIdata.TN_Code)+1);
+				TN.getLastCode(function(err, tn){
+					if (tn) 
+						resolve( Number(tn.TN_Code)+1);
 					else
 						resolve(1);
 				})
@@ -1890,8 +1890,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  		= await updateTaskDone();
 			var resultTNRevision    = await updateTNRevision();
 			var dataTNRevision   	= await getTNRevision(request.body.revision_id);
-			var TNID 				= await getNextTNID();
-			var insertTN         	= await insetIntoTN(dataTNRevision,TNID);
+			var UpdateTN         	= await UpdateIntoTN(dataTNRevision);
 			var TNHistoryID      	= await getNextTNHistoryID();
 			var insertTNHistory  	= await insetIntoTNHistory(dataTNRevision,TNHistoryID);
 			var removeTNRevision 	= await removeOldTNRevision(request.body.revision_id);
@@ -1962,48 +1961,46 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getNextTNID(){
-			return new Promise((resolve, reject) => {
-				TN.getLastCode(function(err, TN){
-					if (TN) 
-						resolve( Number(AIdata.TN_Code)+1);
-					else
-						resolve(1);
-				})
+		function UpdateIntoTN(data,TNID){
+
+			var newvalues = { $set: {
+	            TN_Name 	     				: data.TNRevision_Name,
+	            TN_ActiveIngredients	 		: data.TNRevision_ActiveIngredients,
+	            TN_Status	     				: 1,
+	            TN_Form_ID   					: data.TNRevision_Form_ID,
+	            TN_Route_ID			    		: data.TNRevision_Route_ID,
+	            TN_Strength_Unit_ID				: data.TNRevision_Strength_Unit_ID,
+	            TN_Strength_Value				: data.TNRevision_Strength_Value,
+	            TN_Weight_Unit_ID				: data.TNRevision_Weight_Unit_ID,
+	            TN_Weight_Value					: data.TNRevision_Weight_Value,
+	            TN_Volume_Unit_ID				: data.TNRevision_Volume_Unit_ID,
+	            TN_Volume_Value		    		: data.TNRevision_Volume_Value,
+	            TN_Concentration_Unit_ID		: data.TNRevision_Concentration_Unit_ID,
+	            TN_Concentration_Value	    	: data.TNRevision_Concentration_Value,
+	            TN_Country_ID					: data.TNRevision_Country_ID,
+			} };
+
+			var myquery = { TN_Code: request.body.tn_id };
+
+
+			TN.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'TN not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
 			})
-		};
-
-		function insetIntoTN(data,TNID){
-
-			var newTn  = new TN();
-            newTn.TN_Code     	 					= TNID;
-            newTn.TN_Name 	     					= data.TNRevision_Name;
-            newTn.TN_ActiveIngredients	 			= data.TNRevision_ActiveIngredients;
-            newTn.TN_Status	     					= 1;
-            newTn.TN_Form_ID   						= data.TNRevision_Form_ID
-            newTn.TN_Route_ID			    		= data.TNRevision_Route_ID;
-            newTn.TN_Strength_Unit_ID				= data.TNRevision_Strength_Unit_ID;
-            newTn.TN_Strength_Value					= data.TNRevision_Strength_Value;
-            newTn.TN_Weight_Unit_ID					= data.TNRevision_Weight_Unit_ID;
-            newTn.TN_Weight_Value					= data.TNRevision_Weight_Value;
-            newTn.TN_Volume_Unit_ID					= data.TNRevision_Volume_Unit_ID;
-            newTn.TN_Volume_Value		    		= data.TNRevision_Volume_Value;
-            newTn.TN_Concentration_Unit_ID			= data.TNRevision_Concentration_Unit_ID;
-            newTn.TN_Concentration_Value	    	= data.TNRevision_Concentration_Value;
-            newTn.TN_Country_ID						= data.TNRevision_Country_ID;
-            newTn.save(function(error, doneadd){
-				if(error){
-					return response.send({
-						message: error
-					});
-				}else{
-		            return response.send({
-						message: true
-					});
-       			}
-       		})
 		}
-
 		function getNextTNHistoryID(){
 			return new Promise((resolve, reject) => {
 				TNHistory.getLastCode(function(err, TNdata){
