@@ -1611,9 +1611,9 @@ app.post('/addStrengthUnits',function (request, response){
 			var TNRevisionNextCode  = await getNextTNRevisionCode();
 			var insertIntoTNRevison = await insertNewTNRevision(TNRevisionNextCode,TNID);
 			var Reviewer_ID 		= await getEmployeeId();
-			var resultTNRevision 	= await updateTNRevision(Reviewer_ID);
+			var resultTNRevision 	= await updateTNRevision(Reviewer_ID,TNRevisionNextCode);
 			var MasterTasks_ID   	= await getMasterTasksId();
-			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID);
+			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode);
 			
 		}
 
@@ -1721,20 +1721,15 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		}
 
-		function updateTNRevision(Reviewer_ID){
+		function updateTNRevision(Reviewer_ID,TNRevisionNextCode){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-						TNMasterRevision_EditStatus 					: 1,
-						TNMasterRevision_EditedBy_Employee_ID   		:request.body.user_id,
-						TNMasterRevision_EditDate_Close 				:new Date(),
-
 						TNMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID,
-						TNMasterRevision_ReviewStatus					:0,
 						TNMasterRevision_ReviewDate_Start				:new Date(),
 				} };
 
-				var myquery = { TNMasterRevision_Code: request.body.TNMasterRevision_Code }; 
+				var myquery = { TNMasterRevision_Code:TNRevisionNextCode }; 
 
 				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
@@ -1763,7 +1758,7 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID){
+		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode){
 			var newTNTasks =  TNTasks() ;
 
 			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
@@ -1774,7 +1769,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code	 
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = TNRevisionNextCode;	 
 			newTNTasks.save();
 
 			return response.send({
