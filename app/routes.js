@@ -1608,8 +1608,8 @@ app.post('/addStrengthUnits',function (request, response){
 		async function AddNewTNRevisionData(){
 			var TNID 				= await getNextTNID();
 			var insertTN         	= await insetIntoTN(TNID);
-			var TNRevisionNextCode  	 = await getNextTNRevisionCode();
-			var insertIntoTNRevison   = await insertNewTNRevision(TNRevisionNextCode,TNID);
+			var TNRevisionNextCode  = await getNextTNRevisionCode();
+			var insertIntoTNRevison = await insertNewTNRevision(TNRevisionNextCode,TNID);
 		}
 
 		function getNextTNID(){
@@ -1624,9 +1624,9 @@ app.post('/addStrengthUnits',function (request, response){
 		};
         function getNextTNRevisionCode(){	
         	return new Promise((resolve, reject) => {		
-				TNRevisions.getLastCode(function(err,tn){
-					if (tn) {
-						resolve(Number(tn.TNRevision_Code)+1);
+				TNRevisions.getLastCode(function(err,tnrev){
+					if (tnrev) {
+						resolve(Number(tnrev.TNRevision_Code)+1);
 					}else{
 						resolve(1);
 					}
@@ -1663,6 +1663,7 @@ app.post('/addStrengthUnits',function (request, response){
        			}
        		})
 		}
+		
 		function insertNewTNRevision(TNRevisionNextCode,TNID){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
@@ -1687,8 +1688,6 @@ app.post('/addStrengthUnits',function (request, response){
 			newTnRevision.TNRevision_EditedBy_Employee_ID				= request.body.TNRevision_EditedBy_Employee_ID;
 			newTnRevision.TNRevision_EditDate_Close						= new Date();
 			newTnRevision.TNRevision_TN_Code							= TNID;
-			
-           	
             newTnRevision.save(function(error, doneadd){
 				if(error){
 					return response.send({
