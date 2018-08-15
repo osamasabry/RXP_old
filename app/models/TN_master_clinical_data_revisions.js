@@ -43,6 +43,7 @@ var rxp_TNRevisionTableSchema = mongoose.Schema({
     TNRevision_Publishedby_Employee_ID        :Number,
     TNRevision_PublishDate_Close              :Date,
     TNRevision_RevisionCode                   :Number,
+    TNRevision_TN_Code                        :Number,
 
 });
 

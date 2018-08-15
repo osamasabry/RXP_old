@@ -1609,7 +1609,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var TNID 				= await getNextTNID();
 			var insertTN         	= await insetIntoTN(TNID);
 			var TNRevisionNextCode  	 = await getNextTNRevisionCode();
-			var insertIntoTNRevison   = await insertNewTNRevision(TNRevisionNextCode);
+			var insertIntoTNRevison   = await insertNewTNRevision(TNRevisionNextCode,TNID);
 		}
 
 		function getNextTNID(){
@@ -1663,7 +1663,7 @@ app.post('/addStrengthUnits',function (request, response){
        			}
        		})
 		}
-		function insertNewTNRevision(TNRevisionNextCode){
+		function insertNewTNRevision(TNRevisionNextCode,TNID){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
             newTnRevision.TNRevision_Name 	     						= request.body.TN_Name;
@@ -1686,7 +1686,7 @@ app.post('/addStrengthUnits',function (request, response){
             newTnRevision.TNMasterRevision_EditDate_Start				= new Date();
 			newTnRevision.TNRevision_EditedBy_Employee_ID				= request.body.TNRevision_EditedBy_Employee_ID;
 			newTnRevision.TNRevision_EditDate_Close						= new Date();
-			
+			newTnRevision.TNRevision_TN_Code							= TNID;
 			
            	
             newTnRevision.save(function(error, doneadd){
@@ -1980,7 +1980,7 @@ app.post('/addStrengthUnits',function (request, response){
 	            TN_Country_ID					: data.TNRevision_Country_ID,
 			} };
 
-			var myquery = { TN_Code: request.body.tn_id };
+			var myquery = { TN_Code: request.body.data.TNRevision_TN_Code };
 
 
 			TN.findOneAndUpdate( myquery,newvalues, function(err, field) {
