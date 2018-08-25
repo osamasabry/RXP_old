@@ -20,45 +20,45 @@ var bcrypt			 = require('bcrypt-nodejs');
 // *************************************************
 
 
-var Data_types      			= require('../app/models/field_data_types');
+var Data_types      		   = require('../app/models/field_data_types');
 
 
-var AI      					 = require('../app/models/AI');
+var AI      				   = require('../app/models/AI');
 
-var AIRevisions    				 = require('../app/models/AI_master_clinical_data_revisions');
+var AIRevisions    		       = require('../app/models/AI_master_clinical_data_revisions');
 
-var AIHistory      				 = require('../app/models/AI_history');
+var AIHistory      			   = require('../app/models/AI_history');
 
 var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
 
 
-var Pharmaceutical_category 	=require('../app/models/lut_pharmaceutical_categories');
+var Pharmaceutical_category    =require('../app/models/lut_pharmaceutical_categories');
 
 
-var Forms                        = require('../app/models/lut_form');
+var Forms                      = require('../app/models/lut_form');
 
-var Routes                       = require('../app/models/lut_route');
+var Routes                     = require('../app/models/lut_route');
 
-var Concentration                = require('../app/models/lut_concentration');
+var Concentration              = require('../app/models/lut_concentration');
 
-var StrengthUnits				= require('../app/models/lut_strength_units');
+var StrengthUnits			   = require('../app/models/lut_strength_units');
 
-var WeightUnits				    = require('../app/models/lut_weight_units');
+var WeightUnits				   = require('../app/models/lut_weight_units');
 
-var VolumeUnits				    = require('../app/models/lut_volume_units');
+var VolumeUnits				   = require('../app/models/lut_volume_units');
 
-var SizeUnits				    = require('../app/models/lut_size_units');
+var SizeUnits				   = require('../app/models/lut_size_units');
 
 
-var TN     					     = require('../app/models/TN');
+var TN     					   = require('../app/models/TN');
 
-var TNRevisions          = require('../app/models/TN_master_clinical_data_revisions');
+var TNRevisions                = require('../app/models/TN_master_clinical_data_revisions');
 
 var TNTasks                    = require('../app/models/TN_master_clinical_data_tasks');
 
-var TNHistory      				 = require('../app/models/TN_history');
+var TNHistory      			   = require('../app/models/TN_history');
 
-var UsageDoseUnit                  = require('../app/models/lut_usage_dose_unit');
+var UsageDoseUnit              = require('../app/models/lut_usage_dose_unit');
 
 
 var UsageDoseDuration          = require('../app/models/lut_usage_dose_duration_unit');
@@ -67,11 +67,23 @@ var UsageDoseType              = require('../app/models/lut_usage_dose_types');
 
 var UsageFrequenInterval       = require('../app/models/lut_usage_frequency_interval_unit');
 
-var UsageAge       = require('../app/models/lut_usage_age');
+var UsageAge      			   = require('../app/models/lut_usage_age');
 
-var Currency       = require('../app/models/lut_currency');
+var Currency       			   = require('../app/models/lut_currency');
 
-var MedicalCondition       = require('../app/models/lut_medical_condition');
+var MedicalCondition           = require('../app/models/lut_medical_condition');
+
+
+
+var CountryBasedAI             = require('../app/models/country_based_AI');
+
+var CountryBasedAIRevision     = require('../app/models/country_based_AI_revision');
+
+var CountryBasedAIHistory      = require('../app/models/country_based_AI_history');
+
+var CountryBasedAITasks        = require('../app/models/country_based_AI_tasks');
+
+
 
 
 
@@ -1605,16 +1617,21 @@ app.post('/addStrengthUnits',function (request, response){
 
 	// add  of TN revision
 	app.post('/addTNRevision',function (request, response){
+		// var country_ids = [{Country_Code:1,Country_Name:"Egypt"},
+		// 					{Country_Code:2,Country_Name:"KSA"}];
+
+		// var ai_ids = [{AI_Code:1,AI_Name:"AI1"},
+		// 				{AI_Code:2,AI_Name:"AI2"}];
+
 		async function AddNewTNRevisionData(){
-			var TNID 				= await getNextTNID();
-			var insertTN         	= await insetIntoTN(TNID);
-			var TNRevisionNextCode  = await getNextTNRevisionCode();
-			var insertIntoTNRevison = await insertNewTNRevision(TNRevisionNextCode,TNID);
-			var Reviewer_ID 		= await getEmployeeId();
-			var resultTNRevision 	= await updateTNRevision(Reviewer_ID,TNRevisionNextCode);
-			var MasterTasks_ID   	= await getMasterTasksId();
-			insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode);
-			
+			var TNID 					 	  = await getNextTNID();
+			var insertTN         		 	  = await insetIntoTN(TNID);
+			var TNRevisionNextCode      	  = await getNextTNRevisionCode();
+			var Reviewer_ID 	        	  = await getEmployeeId();
+			var insertIntoTNRevison     	  = await insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID);
+			// var resultTNRevision 	    	  = await updateTNRevision(Reviewer_ID,TNRevisionNextCode);
+			var MasterTasks_ID   	   		  = await getMasterTasksId();
+			var InsetIntoTNTasks        	  = await insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode);
 		}
 
 		function getNextTNID(){
@@ -1628,17 +1645,6 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-        function getNextTNRevisionCode(){	
-        	return new Promise((resolve, reject) => {		
-				TNRevisions.getLastCode(function(err,tnrev){
-					if (tnrev) {
-						resolve(Number(tnrev.TNRevision_Code)+1);
-					}else{
-						resolve(1);
-					}
-				})
-			})   
-		}
 
 		function insetIntoTN(TNID){
 
@@ -1671,30 +1677,44 @@ app.post('/addStrengthUnits',function (request, response){
        		})
 		}
 
-		function insertNewTNRevision(TNRevisionNextCode,TNID){
+		function getNextTNRevisionCode(){	
+        	return new Promise((resolve, reject) => {		
+				TNRevisions.getLastCode(function(err,tnrev){
+					if (tnrev) {
+						resolve(Number(tnrev.TNRevision_Code)+1);
+					}else{
+						resolve(1);
+					}
+				})
+			})   
+		}
+
+		function insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID){
             var newTnRevision = new TNRevisions();
-            newTnRevision.TNRevision_Code     	 						= TNRevisionNextCode;
-            newTnRevision.TNRevision_Name 	     						= request.body.TN_Name;
-            newTnRevision.TNRevision_ActiveIngredients	 				= request.body.TN_ActiveIngredients;
-            newTnRevision.TNRevision_Status	     						= 0;
-            newTnRevision.TNRevision_Form_ID   							= request.body.TN_Form_ID
-            newTnRevision.TNRevision_Route_ID			    			= request.body.TN_Route_ID;
-            newTnRevision.TNRevision_Strength_Unit_ID					= request.body.TN_Strength_Unit_ID;
-            newTnRevision.TNRevision_Strength_Value						= request.body.TN_Strength_Value;
-            newTnRevision.TNRevision_Weight_Unit_ID						= request.body.TN_Weight_Unit_ID;
-            newTnRevision.TNRevision_Weight_Value						= request.body.TN_Weight_Value;
-            newTnRevision.TNRevision_Volume_Unit_ID						= request.body.TN_Volume_Unit_ID;
-            newTnRevision.TNRevision_Volume_Value		    			= request.body.TN_Volume_Value;
-            newTnRevision.TNRevision_Concentration_Unit_ID				= request.body.TN_Concentration_Unit_ID;
-            newTnRevision.TNRevision_Concentration_Value	    		= request.body.TN_Concentration_Value;
-            newTnRevision.TNRevision_Country_ID							= request.body.TN_Country_ID;
+            newTnRevision.TNRevision_Code     	 							= TNRevisionNextCode;
+            newTnRevision.TNRevision_Name 	     							= request.body.TN_Name;
+            newTnRevision.TNRevision_ActiveIngredients	 					= request.body.TN_ActiveIngredients;
+            newTnRevision.TNRevision_Status	     							= 0;
+            newTnRevision.TNRevision_Form_ID   								= request.body.TN_Form_ID
+            newTnRevision.TNRevision_Route_ID			    				= request.body.TN_Route_ID;
+            newTnRevision.TNRevision_Strength_Unit_ID						= request.body.TN_Strength_Unit_ID;
+            newTnRevision.TNRevision_Strength_Value							= request.body.TN_Strength_Value;
+            newTnRevision.TNRevision_Weight_Unit_ID							= request.body.TN_Weight_Unit_ID;
+            newTnRevision.TNRevision_Weight_Value							= request.body.TN_Weight_Value;
+            newTnRevision.TNRevision_Volume_Unit_ID							= request.body.TN_Volume_Unit_ID;
+            newTnRevision.TNRevision_Volume_Value		    				= request.body.TN_Volume_Value;
+            newTnRevision.TNRevision_Concentration_Unit_ID					= request.body.TN_Concentration_Unit_ID;
+            newTnRevision.TNRevision_Concentration_Value	    			= request.body.TN_Concentration_Value;
+            newTnRevision.TNRevision_Country_ID								= request.body.TN_Country_ID;
            
-            newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID  = request.body.TNRevision_EditedBy_Employee_ID;
-            newTnRevision.TNMasterRevision_EditStatus					= 1;
-            newTnRevision.TNMasterRevision_EditDate_Start				= new Date();
-			newTnRevision.TNRevision_EditedBy_Employee_ID				= request.body.TNRevision_EditedBy_Employee_ID;
-			newTnRevision.TNRevision_EditDate_Close						= new Date();
-			newTnRevision.TNRevision_TN_Code							= TNID;
+            newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID 	    = request.body.TNRevision_EditedBy_Employee_ID;
+            newTnRevision.TNMasterRevision_EditStatus						= 1;
+            newTnRevision.TNMasterRevision_EditDate_Start					= new Date();
+			newTnRevision.TNRevision_EditedBy_Employee_ID					= request.body.TNRevision_EditedBy_Employee_ID;
+			newTnRevision.TNRevision_EditDate_Close							= new Date();
+			newTnRevision.TNRevision_TN_Code								= TNID;
+			newTnRevision.TNMasterRevision_AssiendToReviewer_Employee_ID  	= Reviewer_ID;
+			newTnRevision.TNMasterRevision_ReviewDate_Start					= new Date();
             newTnRevision.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -1721,31 +1741,31 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		}
 
-		function updateTNRevision(Reviewer_ID,TNRevisionNextCode){
-			return new Promise((resolve, reject) => {
+		// function updateTNRevision(Reviewer_ID,TNRevisionNextCode){
+		// 	return new Promise((resolve, reject) => {
 
-				var newvalues = { $set: {
-						TNMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID,
-						TNMasterRevision_ReviewDate_Start				:new Date(),
-				} };
+		// 		var newvalues = { $set: {
+		// 				TNMasterRevision_AssiendToReviewer_Employee_ID  :Reviewer_ID,
+		// 				TNMasterRevision_ReviewDate_Start				:new Date(),
+		// 		} };
 
-				var myquery = { TNMasterRevision_Code:TNRevisionNextCode }; 
+		// 		var myquery = { TNMasterRevision_Code:TNRevisionNextCode }; 
 
-				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
-					if (err){
-						resolve("Error");
-    	    		}
-            		if (!field) {
+		// 		TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+		// 			if (err){
+		// 				resolve("Error");
+  //   	    		}
+  //           		if (!field) {
 
-						resolve("Field Not Exist");
+		// 				resolve("Field Not Exist");
 
-		            } else {
+		//             } else {
 
-						resolve(true);
-					}
-				})
-			})
-		}; 
+		// 				resolve(true);
+		// 			}
+		// 		})
+		// 	})
+		// }; 
 
 		function getMasterTasksId(){
 			return new Promise((resolve, reject) => {
@@ -1777,7 +1797,140 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
+			
+
+		async function addTaskCountry(ai_ids,country_ids){
+
+			var CountryBasedAIID           	= await getNextCountryBasedAIID();
+			var CountryBasedAIIDRevision     = await getNextCountryBasedAIRevisionID();
+			var CountryBaesdAITaskID     	= await getNextCountryBasedAITaskID();
+			
+			for (var i = 0; i < ai_ids.length; i++) {
+				var ai_id 	= Number(ai_ids[i].AI_Code);
+				var ai_name = ai_ids[i].AI_Name;
+
+				for (var j = 0; j < country_ids.length; j++) {
+					var country_id 			   		  = Number(country_ids[j].Country_Code);
+					var Title 				  		  = ai_name +' for '+ country_ids[j].Country_Name; 			
+					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
+					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
+					var InsertCountryBasedAIRevision  = await insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID);
+					var InsertIntoCountryBasedAITasks = await insertIntoCountryBasedAITasks(CountryBaesdAITaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title);
+					
+					CountryBasedAIID++;
+					CountryBasedAIIDRevision++;
+					CountryBaesdAITaskID++;
+				}
+			}
+		}
+
+		function getNextCountryBasedAIID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedAI.getLastCode(function(err, ai){
+					if (ai) 
+						resolve( Number(ai.CountryBasedAI_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
+
+		function insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id){
+			var newCountryBasedAI =  CountryBasedAI() ;
+
+			newCountryBasedAI.CountryBasedAI_Code       	= CountryBasedAIID;
+			newCountryBasedAI.CountryBasedAI_AI_Code 		= ai_id;
+			newCountryBasedAI.CountryBasedAI_Country_ID 	= country_id;
+			newCountryBasedAI.save(function(err,done){;
+				if (err) {
+					return response.send({
+						message: err
+					});
+				}
+				if (done) {
+					return response.send({
+						message: true
+					});
+				}	
+				
+			})
+		}
+
+		function getEditorCountryBasedAI(country_id){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 2 },{ Employee_Role_Sub_Role_Type:3 },{ Employee_Role_Country_Code:country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Employee_Code);
+			        }
+		    	});
+			})
+		}
+
+		function getNextCountryBasedAIRevisionID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedAIRevision.getLastCode(function(err, revision){
+					if (revision) 
+						resolve( Number(revision.CountryBasedAIRevision_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
+
+		function insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID){
+			var newCountryBasedAIRevision =  CountryBasedAIRevision() ;
+
+			newCountryBasedAIRevision.CountryBasedAIRevision_Code       					    = CountryBasedAIIDRevision;
+			newCountryBasedAIRevision.CountryBasedAIRevision_AI_Code       					    = ai_id;
+			newCountryBasedAIRevision.CountryBasedAIRevision_Country_ID       					= country_id;
+			newCountryBasedAIRevision.CountryBasedAIRevision_CountryBasedAI_Code				= CountryBasedAIID;
+			newCountryBasedAIRevision.CountryBasedAIRevision_AssiendToEditor_Employee_ID 		= EditorCountryBasedAIID;
+			newCountryBasedAIRevision.CountryBasedAIRevision_EditStatus 						= 0;
+			newCountryBasedAIRevision.CountryBasedAIRevision_EditDate_Start 	  				= new Date();
+			newCountryBasedAIRevision.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+		function getNextCountryBasedAITaskID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedAITasks.getLastCode(function(err, task){
+					if (task) 
+						resolve( Number(task.CountryBasedAITask_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insertIntoCountryBasedAITasks(CountryBasedAITaskID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title){
+			var newCountryBasedAITask =  CountryBasedAITasks() ;
+
+			newCountryBasedAITask.CountryBasedAITask_Code       					= CountryBasedAITaskID;
+			newCountryBasedAITask.CountryBasedAITask_Title 							= Title;
+			newCountryBasedAITask.CountryBasedAITask_AssignDate 				    = new Date();
+			newCountryBasedAITask.CountryBasedAITask_Task_Type_Code 	  		    = 1;
+			newCountryBasedAITask.CountryBasedAITask_Task_Type_Name 	  		    = "Edit";
+			newCountryBasedAITask.CountryBasedAITask_AssignTo_Employee_Code   	    = EditorCountryBasedAIID;
+			newCountryBasedAITask.CountryBasedAITask_ClosedDate 					= null;
+			newCountryBasedAITask.CountryBasedAITask_Status 						= 0;
+			newCountryBasedAITask.CountryBasedAITask_Revision_Code  			  	= CountryBasedAIRevisionID;	 
+			newCountryBasedAITask.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+
         AddNewTNRevisionData();
+        addTaskCountry(TN_ActiveIngredients,TN_Country_ID);
 	});
 
 
@@ -2365,8 +2518,6 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			})
 	});
-
-
 
     app.post('/searchPharmaceuticalAtcCode', function(request, response) {
 		var Searchquery = request.body.searchField;
@@ -3894,6 +4045,11 @@ app.post('/addStrengthUnits',function (request, response){
 			}
 		})
 	});
+
+
+	// new route 
+
+
 
 };
 function auth(req, res, next) {
