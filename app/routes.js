@@ -1930,7 +1930,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 
         AddNewTNRevisionData();
-        addTaskCountry(TN_ActiveIngredients,TN_Country_ID);
+        addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Country_ID);
 	});
 
 
