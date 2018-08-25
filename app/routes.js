@@ -1651,7 +1651,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var newTn  = new TN();
             newTn.TN_Code     	 					= TNID;
             newTn.TN_Name 	     					= request.body.TN_Name;
-            newTn.TN_ActiveIngredients	 			= request.body.TN_ActiveIngredients;
+            newTn.TN_ActiveIngredients	 			= request.body.TN_ActiveIngredientsIDs;
             newTn.TN_Status	     					= 0;
             newTn.TN_Form_ID   						= request.body.TN_Form_ID
             newTn.TN_Route_ID			    		= request.body.TN_Route_ID;
@@ -1663,7 +1663,7 @@ app.post('/addStrengthUnits',function (request, response){
             newTn.TN_Volume_Value		    		= request.body.TN_Volume_Value;
             newTn.TN_Concentration_Unit_ID			= request.body.TN_Concentration_Unit_ID;
             newTn.TN_Concentration_Value	    	= request.body.TN_Concentration_Value;
-            newTn.TN_Country_ID						= request.body.TN_Country_ID;
+            newTn.TN_Country_ID						= request.body.TN_Country_IDs;
             newTn.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -1693,7 +1693,7 @@ app.post('/addStrengthUnits',function (request, response){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 							= TNRevisionNextCode;
             newTnRevision.TNRevision_Name 	     							= request.body.TN_Name;
-            newTnRevision.TNRevision_ActiveIngredients	 					= request.body.TN_ActiveIngredients;
+            newTnRevision.TNRevision_ActiveIngredients	 					= request.body.TN_ActiveIngredientsIDs;
             newTnRevision.TNRevision_Status	     							= 0;
             newTnRevision.TNRevision_Form_ID   								= request.body.TN_Form_ID
             newTnRevision.TNRevision_Route_ID			    				= request.body.TN_Route_ID;
@@ -1705,7 +1705,7 @@ app.post('/addStrengthUnits',function (request, response){
             newTnRevision.TNRevision_Volume_Value		    				= request.body.TN_Volume_Value;
             newTnRevision.TNRevision_Concentration_Unit_ID					= request.body.TN_Concentration_Unit_ID;
             newTnRevision.TNRevision_Concentration_Value	    			= request.body.TN_Concentration_Value;
-            newTnRevision.TNRevision_Country_ID								= request.body.TN_Country_ID;
+            newTnRevision.TNRevision_Country_ID								= request.body.TN_Country_IDs;
            
             newTnRevision.TNMasterRevision_AssiendToEditor_Employee_ID 	    = request.body.TNRevision_EditedBy_Employee_ID;
             newTnRevision.TNMasterRevision_EditStatus						= 1;
@@ -1927,9 +1927,7 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-
-
-        AddNewTNRevisionData();
+		AddNewTNRevisionData();
         addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Country_ID);
 	});
 
