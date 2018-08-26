@@ -11,7 +11,6 @@ var rxp_CountryBasedAITaskSchema = mongoose.Schema({
     CountryBasedAITask_Title                                   :String,
     CountryBasedAITask_Task_Type_Name                          :String,
     CountryBasedAITask_Revision_Code                           :Number,
-    // CountryBasedAITask_AI_Code                                 :Number,
     CountryBasedAITask_Status                                  :Number,
 
 });

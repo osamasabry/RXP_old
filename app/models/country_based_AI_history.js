@@ -15,6 +15,8 @@ var rxp_CountryBasedAIHistorySchema = mongoose.Schema({
     CountryBasedAIHistory_Stability					       :String,
     CountryBasedAIHistory_AI_Code                          :Number,
     CountryBasedAIHistory_Country_ID                       :Number,
+    CountryBasedAIHistory_CountryBasedAI_Code              :Number,
+
 
     CountryBasedAIHistory_AssiendToEditor_Employee_ID    :Number,
     CountryBasedAIHistory_EditStatus                     :Number,
