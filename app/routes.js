@@ -2304,7 +2304,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.get('/getCountryBasedAIRevision', function(request, response) {
 
-		CountryBasedAIRevision.find({CountryBasedAIRevision_Code:CountryBasedAIRevision_Code}, function(err, basedai) {
+		CountryBasedAIRevision.find({CountryBasedAIRevision_Code:request.body.CountryBasedAIRevision_Code}, function(err, basedai) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -2856,6 +2856,8 @@ app.post('/addStrengthUnits',function (request, response){
 
 		AddNewCountryBasedAIData();
 	})
+	
+	
 
 
 	app.post('/addCountry',function (request, response){
