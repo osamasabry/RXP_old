@@ -2857,7 +2857,18 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewCountryBasedAIData();
 	})
 	
-	
+	app.get('/getTasksBasedAIByEmployeeID', function(request, response) {
+
+		CountryBasedAITasks.find({CountryBasedAITask_AssignTo_Employee_Code:request.body.employee_id}, function(err, tasks) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tasks) {
+	        	
+	            response.send(tasks);
+	        } 
+    	})
+    });
 
 
 	app.post('/addCountry',function (request, response){
