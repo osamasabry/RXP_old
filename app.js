@@ -14,13 +14,15 @@ var path = require('path');
     // fs = require('fs');
  var urls = require('http');
 var server = urls.createServer(app);
+var io = require('socket.io')(server);
+
 // comment
 
 // var configDB = require('./config/database.js');
 mongoose.connect("mongodb://webappdba:Ma13579@localhost:27017/RxPediaDB");
-//mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
+// mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
 
-//mongoose.connect("mongodb://localhost:27017/Medical"); 
+// mongoose.connect("mongodb://localhost:27017/Medical"); 
 
 require('./config/passport')(passport); 
 
@@ -43,7 +45,7 @@ app.configure(function() {
 
 
 
-require('./app/routes.js')(app, passport,server,generator,sgMail ); 
+require('./app/routes.js')(app, passport,server,generator,sgMail,io ); 
 
 server.listen(port);
 console.log('Listening  to  port ' + port);

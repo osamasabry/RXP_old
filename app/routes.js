@@ -956,7 +956,9 @@ module.exports = function(app, passport, server, generator, sgMail) {
 		getLastAIID();
 	});
 
-
+	io.on('connection', function (socket) {
+	  socket.emit('news', { hello: 'world' });
+	});
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
 		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
