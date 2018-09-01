@@ -92,7 +92,7 @@ var data = [];
 
 var PermissionName = [];
 
-module.exports = function(app, passport, server, generator, sgMail) {
+module.exports = function(app, passport, server, generator, sgMail,io) {
 	
 	app.get('/logout', function(request, response) {
 		request.logout();
