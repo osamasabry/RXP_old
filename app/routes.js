@@ -958,7 +958,17 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 	io.on('connection', function (socket) {
 	  socket.emit('news', { hello: 'world' });
+	  var clients = io.sockets.clients();
+	  //var clients = io.sockets.clients('rooms');
+	  console.log(clients);
+	  //socket.emit('notification', { Notification: 'Nogified' });
+	  socket.on('new_notification', function () {
+		console.log('I received a private message');
+		//console.log(io.clients);
+		socket.emit('notification', { Notification: 'Nogified' });
+	  });
 	});
+	
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
 		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
