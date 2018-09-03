@@ -92,6 +92,11 @@ var data = [];
 
 var PermissionName = [];
 
+var NotificationDetails = {};
+
+var clients = {};
+
+
 module.exports = function(app, passport, server, generator, sgMail,io) {
 	
 	app.get('/logout', function(request, response) {
@@ -116,6 +121,13 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		  })(req, res, next);
 	});
 
+
+	io.sockets.on('connection', function (socket) {
+	  socket.on('add-user', function(data){
+	    clients[data] = {
+	      "socket": socket.id
+	    };
+	  });
 
 	// when login 
 	app.get('/about',  function(request, response) {
@@ -932,11 +944,20 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();	
 					newAiReVision.save();
 
-
+					NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.name
+						Task_date 				: new Date(),
+						Type_Code 				: 1,
+						Type_Name 				: "Edit",
+						AssignTo_Employee_Code 	: MasterTasks_ID,
+						AIRevision_ID 			: AIRevision_ID,
+						Task_Status 			:0,
+					}
 					var newAITasks =  AITasks() ;
 
 					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name
+					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name;
 					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
@@ -957,18 +978,24 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	});
 
 	io.on('connection', function (socket) {
-	  socket.emit('news', { hello: 'world' });
-	  var clients = io.sockets.clients();
-	  //var clients = io.sockets.clients('rooms');
-	  console.log(clients);
-	  //socket.emit('notification', { Notification: 'Nogified' });
-	  socket.on('new_notification', function () {
-		console.log('I received a private message');
-		//console.log(io.clients);
-		socket.emit('notification', { Notification: 'Nogified' });
+	  // socket.emit('news', { hello: 'world' });
+	 	socket.on('new_notification', function (data) {
+	 	if (clients[data]){
+      		 io.sockets.connected[clients[data].socket].emit("notification", NotificationDetails);
+    	}
+		// socket.emit('notification', NotificationDetails);
 	  });
 	});
 	
+ //Removing the socket on disconnect
+  socket.on('disconnect', function() {
+  	for(var name in clients) {
+  		if(clients[name].socket === socket.id) {
+  			delete clients[name];
+  			break;
+  		}
+  	}	
+  })
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
 		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
