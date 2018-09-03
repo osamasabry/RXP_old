@@ -128,7 +128,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	      "socket": socket.id
 	    };
 	  });
-
+	})
 	// when login 
 	app.get('/about',  function(request, response) {
 		response.render('about.html', {
@@ -946,7 +946,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 					NotificationDetails = {
 						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.name
+						Title 					: request.body.name,
 						Task_date 				: new Date(),
 						Type_Code 				: 1,
 						Type_Name 				: "Edit",
@@ -985,17 +985,20 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
     	}
 		// socket.emit('notification', NotificationDetails);
 	  });
+
+		 // / /Removing the socket on disconnect
+	  socket.on('disconnect', function() {
+	  	for(var name in clients) {
+	  		if(clients[name].socket === socket.id) {
+	  			delete clients[name];
+	  			break;
+	  		}
+	  	}	
+	  })
 	});
 	
- //Removing the socket on disconnect
-  socket.on('disconnect', function() {
-  	for(var name in clients) {
-  		if(clients[name].socket === socket.id) {
-  			delete clients[name];
-  			break;
-  		}
-  	}	
-  })
+
+
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
 		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
