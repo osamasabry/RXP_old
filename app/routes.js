@@ -94,7 +94,7 @@ var PermissionName = [];
 
 var NotificationDetails = {};
 
-var clients = {};
+var clients = [];
 
 
 module.exports = function(app, passport, server, generator, sgMail,io) {
@@ -123,11 +123,36 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 
 	io.sockets.on('connection', function (socket) {
-	  socket.on('add-user', function(data){
-	    clients[data] = {
-	      "socket": socket.id
-	    };
-	  });
+		socket.on('add-user', function(data){
+			console.log(data);
+			var ConnctedUser ={};
+			// var ConnctedUser2 ={};
+			// var ConnctedUser3 ={};
+			ConnctedUser.UserID = data.id;
+			ConnctedUser.Socket = socket.id
+			// clients[data.id] = {
+			// "socket": socket.id
+			// };
+			// ConnctedUser2.UserID = data.id;
+			// ConnctedUser2.Socket = 'hqo5PjzSacMV_ZEQAAAB'
+
+			// ConnctedUser3.UserID = 3;
+			// ConnctedUser3.Socket = 'hqo5PjzSacMV_ZEQAA99933322AB'
+
+			clients.push(ConnctedUser);
+			// clients.push(ConnctedUser2);
+			// clients.push(ConnctedUser3);
+			
+		});
+	   // / /Removing the socket on disconnect
+		socket.on('disconnect', function() {
+		for(var name in clients) {
+			if(clients[name].socket === socket.id) {
+				delete clients[name];
+				break;
+			}
+		}	
+		})
 	})
 	// when login 
 	app.get('/about',  function(request, response) {
@@ -266,10 +291,12 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	                var newUser = new User();
 
 	                newUser.User_Code             	   = nextCode;
-		            newUser.User_Name 	     	  	   = request.body.email;
-	                newUser.User_Password    	  	   = newUser.generateHash(password);
+					newUser.User_Name 	     	  	   = request.body.email;
+					newUser.User_Password    	  	   = newUser.generateHash(password);
+					newUser.User_DisplayName		   = request.body.display_name;
 	                newUser.User_IsActive              = 1;
-	                newUser.User_Employee_ID           = nextCode;
+					newUser.User_Employee_ID           = nextCode;
+					newUser.User_Permissions           = [];
 	                newUser.User_Permissions_List      = request.body.ids_permissions;
 
 	                newUser.save();
@@ -967,7 +994,22 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
-
+					var UserInSockets = clients.find(o => o.UserID === Employee_ID);
+					if(UserInSockets){
+						console.log(clients);
+						var ClientSocketArray = clients.filter(function(obj) {
+							if(obj.UserID === 1)
+								return true
+							else
+								return false
+						});
+						ClientSocketArray.forEach(function (arrayItem) {
+							var SocktesToSendNotification = arrayItem.Socket;
+							console.log(SocktesToSendNotification)
+							io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+						});
+						
+					}
 					return response.send({
 						message: true
 					});
@@ -977,25 +1019,17 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		getLastAIID();
 	});
 
-	io.on('connection', function (socket) {
-	  // socket.emit('news', { hello: 'world' });
-	 	socket.on('new_notification', function (data) {
-	 	if (clients[data]){
-      		 io.sockets.connected[clients[data].socket].emit("notification", NotificationDetails);
-    	}
-		// socket.emit('notification', NotificationDetails);
-	  });
+	// io.on('connection', function (socket) {
+	//   // socket.emit('news', { hello: 'world' });
+	//  	socket.on('new_notification', function (data) {
+	//  	if (clients[data.id]){
+      		 
+    // 	}
+	// 	// socket.emit('notification', NotificationDetails);
+	//   });
 
-		 // / /Removing the socket on disconnect
-	  socket.on('disconnect', function() {
-	  	for(var name in clients) {
-	  		if(clients[name].socket === socket.id) {
-	  			delete clients[name];
-	  			break;
-	  		}
-	  	}	
-	  })
-	});
+		
+	// });
 	
 
 
