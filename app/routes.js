@@ -604,7 +604,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
         });
 	});
 
-
 	app.get('/searchAccount', function(request, response) {
     	response.render('search-account.html', {
 			user : request.user ,
@@ -977,10 +976,11 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 						Task_date 				: new Date(),
 						Type_Code 				: 1,
 						Type_Name 				: "Edit",
-						AssignTo_Employee_Code 	: MasterTasks_ID,
+						AssignTo_Employee_Code 	: Employee_ID,
 						AIRevision_ID 			: AIRevision_ID,
 						Task_Status 			:0,
 					}
+
 					var newAITasks =  AITasks() ;
 
 					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
@@ -994,6 +994,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
+
 					var UserInSockets = clients.find(o => o.UserID === Employee_ID);
 					if(UserInSockets){
 						console.log(clients);
@@ -1018,20 +1019,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		}
 		getLastAIID();
 	});
-
-	// io.on('connection', function (socket) {
-	//   // socket.emit('news', { hello: 'world' });
-	//  	socket.on('new_notification', function (data) {
-	//  	if (clients[data.id]){
-      		 
-    // 	}
-	// 	// socket.emit('notification', NotificationDetails);
-	//   });
-
-		
-	// });
-	
-
 
 
 	app.post('/getUserAITasksbyUserID', function(request, response) {
@@ -1836,6 +1823,36 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = TNRevisionNextCode;	 
 			newTNTasks.save();
 
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.TN_Master_Clinical_Data_Task_Title,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Review",
+						AssignTo_Employee_Code 	: Reviewer_ID,
+						AIRevision_ID 			: TNRevisionNextCode,
+						Task_Status 			:0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
 			return response.send({
 				message: true
 			});
@@ -2048,12 +2065,42 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Master_Clinical_Data_Task_Title;
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
+			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Publish";
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code;	 
 			newTNTasks.save();
+
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.TN_Master_Clinical_Data_Task_Title,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Publish",
+						AssignTo_Employee_Code 	: Publisher_ID,
+						AIRevision_ID 			: request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code,
+						Task_Status 			:0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
 
 			return response.send({
 				message: true
@@ -2968,6 +3015,9 @@ app.post('/addStrengthUnits',function (request, response){
 			newcontry.Country_Code     	 		 = NextCode;
 			newcontry.Country_Name 	     		 = request.body.name;
 			newcontry.Country_IsActive	         = 1;
+			newcontry.Country_Tcode 	         = request.body.Tcode;
+			newcontry.Country_IsDB 		         = 0;
+
 			newcontry.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -2990,6 +3040,8 @@ app.post('/addStrengthUnits',function (request, response){
 		var newvalues = { $set: {
 				Country_Name 					: request.body.name,
 				Country_IsActive 				: request.body.status,
+				Country_Tcode 					: request.body.Tcode,
+				Country_IsDB 					: request.body.IsDB,
 			} };
 
 		var myquery = { Country_Code: request.body.row_id }; 
@@ -4032,6 +4084,7 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
+
 			var newAITasks =  AITasks() ;
 			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
 			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
@@ -4043,8 +4096,37 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id;	 
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
-			
 			newAITasks.save();
+
+			NotificationDetails='';
+
+			NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Review",
+						AssignTo_Employee_Code 	: Reviewer_ID,
+						AIRevision_ID 			: AIRevision_ID,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
 
 			return response.send({
 				message: true
@@ -4191,6 +4273,36 @@ app.post('/addStrengthUnits',function (request, response){
 			
 			newAITasks.save();
 
+			NotificationDetails='';
+
+			NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Grammer",
+						AssignTo_Employee_Code 	: Grammer_ID,
+						AIRevision_ID 			: AIRevision_ID,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
 			return response.send({
 				message: true
 			});
@@ -4309,6 +4421,36 @@ app.post('/addStrengthUnits',function (request, response){
 			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
 			
 			newAITasks.save();
+
+			NotificationDetails='';
+
+			NotificationDetails = {
+						Task_id 				: MasterTasks_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Publish",
+						AssignTo_Employee_Code 	: Publisher_ID,
+						AIRevision_ID 			: AIRevision_ID,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
 
 			return response.send({
 				message: true

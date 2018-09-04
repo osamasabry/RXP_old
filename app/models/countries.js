@@ -8,7 +8,9 @@ var rxpCountriesSchema = mongoose.Schema({
 	       type: String,
 	       required: true
 	  },
-    Country_IsActive	:Number
+    Country_IsActive	:Number,
+    Country_Tcode		:String,
+    Country_IsDB		:Number,
     
 });
 
