@@ -123,6 +123,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 
 	io.sockets.on('connection', function (socket) {
+		console.log('connected: ' + socket.id)
 		socket.on('add-user', function(data){
 			console.log(data);
 			var ConnctedUser ={};
@@ -146,12 +147,26 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		});
 	   // / /Removing the socket on disconnect
 		socket.on('disconnect', function() {
-		for(var name in clients) {
-			if(clients[name].socket === socket.id) {
-				delete clients[name];
-				break;
-			}
-		}	
+			// console.log('disconnected: ' + socket.id);
+			// console.log('clients Befor delete:');
+			// console.log(clients);
+			clients.forEach(function (arrayItem) {
+				if(arrayItem.Socket === socket.id){
+					var index = clients.indexOf(arrayItem);
+    				clients.splice(index, 1);
+					//clients.remove(function(el) { return el.Socket === socket.id; });
+					//console.log('disconnected: ' + socket.id);
+
+				}
+			});
+			// for(var name in clients) {
+			// 	if(clients[name].socket === socket.id) {
+			// 		delete clients[name];
+			// 		//break;
+			// 	}
+			// }	
+			// console.log('clients After delete:');
+			// console.log(clients);
 		})
 	})
 	// when login 
@@ -1006,7 +1021,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 						});
 						ClientSocketArray.forEach(function (arrayItem) {
 							var SocktesToSendNotification = arrayItem.Socket;
-							console.log(SocktesToSendNotification)
 							io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
 						});
 						
