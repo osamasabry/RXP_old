@@ -322,7 +322,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					  text: 'Hello mr'+request.body.name+' userName:'+request.body.email+' Password:'+password,
 					  html: '<h1>Hello mr'+request.body.name+'</h1><br><p>userName:'+request.body.email+'</p><br>Password:'+password,
 					};
-					console.log(msg);
 					sgMail.send(msg); 
 
                 	response.send({flag: true});
@@ -341,6 +340,18 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 	app.get('/getCountries', function(request, response) {
 		Country.find({Country_IsActive:1}, function(err, country) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (country) {
+	        	
+	            response.send(country);
+	        } 
+    	});
+    });
+
+    app.get('/getCountriesIsDB', function(request, response) {
+		Country.find({$and:[ {'Country_IsActive':1}, {'Country_IsDB':1} ]}, function(err, country) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1872,20 +1883,43 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 			
+		// country_ids=[];
+		// country_ids = [
+		// 				{
+		// 					"Country_Code":1,
+		// 					"Country_Name":"Qatar"
+		// 				},
+		// 				{
+		// 					"Country_Code":2,
+		// 					"Country_Name":"Egypt"
+		// 				},
+		// 				{
+		// 					"Country_Code":3,
+		// 					"Country_Name":"KSA"
+		// 				}
+		// 			];
 
-		async function addTaskCountry(ai_ids,country_ids){
+			
 
+		async function addTaskCountry(ai_ids,cont_ids){
+
+			ids=[];
+			for (var o= 0; o < cont_ids.length; o++) {
+				ids.push(cont_ids[o].Country_Code);
+			}
+
+			var CountryIsDB 				= await checkCountryIsDB(ids);
 			var CountryBasedAIID           	= await getNextCountryBasedAIID();
-			var CountryBasedAIIDRevision     = await getNextCountryBasedAIRevisionID();
+			var CountryBasedAIIDRevision    = await getNextCountryBasedAIRevisionID();
 			var CountryBaesdAITaskID     	= await getNextCountryBasedAITaskID();
 			
 			for (var i = 0; i < ai_ids.length; i++) {
 				var ai_id 	= Number(ai_ids[i].AI_Code);
 				var ai_name = ai_ids[i].AI_Name;
 
-				for (var j = 0; j < country_ids.length; j++) {
-					var country_id 			   		  = Number(country_ids[j].Country_Code);
-					var Title 				  		  = ai_name +' for '+ country_ids[j].Country_Name; 			
+				for (var j = 0; j < CountryIsDB.length; j++) {
+					var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
+					var Title 				  		  = ai_name +' for '+ CountryIsDB[j].Country_Name; 			
 					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
 					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
 					var InsertCountryBasedAIRevision  = await insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID);
@@ -1897,6 +1931,24 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			}
 		}
+
+		function checkCountryIsDB(cont_ids){
+			return new Promise((resolve, reject) => {
+				Country.find({$and:[ {'Country_Code':{$in:cont_ids}}, {'Country_IsDB':1} ]}, function(err, country) {
+				
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (country) {
+			            resolve(country);
+
+			        }else{
+			        	resolve({message: false});
+			        }
+		    	});
+			})
+		}
+			
 
 		function getNextCountryBasedAIID(){
 			return new Promise((resolve, reject) => {
@@ -1996,12 +2048,45 @@ app.post('/addStrengthUnits',function (request, response){
 			newCountryBasedAITask.CountryBasedAITask_Revision_Code  			  	= CountryBasedAIRevisionID;	 
 			newCountryBasedAITask.save();
 
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: CountryBasedAITaskID,
+						Title 					: Title,
+						Task_date 				: new Date(),
+						Type_Code 				: 1,
+						Type_Name 				: "Edit",
+						AssignTo_Employee_Code 	: EditorCountryBasedAIID,
+						AIRevision_ID 			: CountryBasedAIRevisionID,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === EditorCountryBasedAIID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
 			return response.send({
 				message: true
 			});
 		}
 
 		AddNewTNRevisionData();
+		// country_ids
+        // addTaskCountry(request.body.TN_ActiveIngredients,ids);
+
         addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Country_ID);
 	});
 
@@ -2559,6 +2644,36 @@ app.post('/addStrengthUnits',function (request, response){
 			
 			newBasedAITasks.save();
 
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: CountryBasedAI_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 2,
+						Type_Name 				: "Review",
+						AssignTo_Employee_Code 	: Reviewer_ID,
+						AIRevision_ID 			: request.body.based_ai_revision_id,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
 			return response.send({
 				message: true
 			});
@@ -2675,6 +2790,36 @@ app.post('/addStrengthUnits',function (request, response){
 			
 			newBasedAITasks.save();
 
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: CountryBasedAI_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 3,
+						Type_Name 				: "Grammer",
+						AssignTo_Employee_Code 	: Grammer_ID,
+						AIRevision_ID 			: request.body.based_ai_revision_id,
+						Task_Status 			:  0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
 			return response.send({
 				message: true
 			});
@@ -2789,6 +2934,36 @@ app.post('/addStrengthUnits',function (request, response){
 			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.based_ai_revision_id;	 
 			
 			newBasedAITasks.save();
+
+			NotificationDetails ='';
+
+			NotificationDetails = {
+						Task_id 				: CountryBasedAI_ID,
+						Title 					: request.body.name,
+						Task_date 				: new Date(),
+						Type_Code 				: 4,
+						Type_Name 				: "Publish",
+						AssignTo_Employee_Code 	: Publisher_ID,
+						AIRevision_ID 			: request.body.based_ai_revision_id,
+						Task_Status 			: 0,
+					}
+
+			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					console.log(SocktesToSendNotification)
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
 
 			return response.send({
 				message: true
