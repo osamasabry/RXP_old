@@ -994,6 +994,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 						AssignTo_Employee_Code 	: Employee_ID,
 						AIRevision_ID 			: AIRevision_ID,
 						Task_Status 			:0,
+						AI_ID					: AINextID,
 					}
 
 					var newAITasks =  AITasks() ;
