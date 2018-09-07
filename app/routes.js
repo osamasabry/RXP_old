@@ -995,18 +995,20 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAiReVision.AIMasterRevision_EditStatus 				   = 0;
 					newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();	
 					newAiReVision.save();
-
 					NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 1,
-						Type_Name 				: "Edit",
-						AssignTo_Employee_Code 	: Employee_ID,
-						AIRevision_ID 			: AIRevision_ID,
-						Task_Status 			:0,
-						AI_ID					: AINextID,
+						title: request.body.name,
+						icon: 'fa fa-edit',
+						iconColor: '#ef9a29',
+						revisionid : AIRevision_ID,
+						taskid: MasterTasks_ID,
+						objid : AINextID,
+						date : new Date(),
+						group : 'Edit',
+						over: 'Master AI',
+						AssignTo_Employee_Code : Employee_ID,
+						Task_Status 			:0
 					}
+					
 
 					var newAITasks =  AITasks() ;
 
@@ -1848,21 +1850,21 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Code 							  = TNID;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = TNRevisionNextCode;	 
-			newTNTasks.save();
-
-			NotificationDetails ='';
+			newTNTasks.save();			
 
 			NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.TN_Name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Review",
-						AssignTo_Employee_Code 	: Reviewer_ID,
-						AIRevision_ID 			: TNRevisionNextCode,
-						Task_Status 			:0,
-					}
-
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : TNRevisionNextCode,
+				taskid: MasterTasks_ID,
+				objid : TNID,
+				date : new Date(),
+				group : 'Review',
+				over: 'Master TN',
+				AssignTo_Employee_Code : Reviewer_ID,
+				Task_Status 			:0
+			}
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
 			if(UserInSockets){
 				console.log(clients);
