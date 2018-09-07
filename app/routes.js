@@ -1714,7 +1714,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var Reviewer_ID 	        	  = await getEmployeeId();
 			var insertIntoTNRevison     	  = await insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID);
 			var MasterTasks_ID   	   		  = await getMasterTasksId();
-			var InsetIntoTNTasks        	  = await insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode);
+			var InsetIntoTNTasks        	  = await insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode,TNID);
 		}
 
 		function getNextTNID(){
@@ -1835,17 +1835,18 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode){
+		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode,TNID){
 			var newTNTasks =  TNTasks() ;
 
 			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Master_Clinical_Data_Task_Title;
+			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Name;
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Code 							  = TNID;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = TNRevisionNextCode;	 
 			newTNTasks.save();
 
@@ -1853,7 +1854,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			NotificationDetails = {
 						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.TN_Master_Clinical_Data_Task_Title,
+						Title 					: request.body.TN_Name,
 						Task_date 				: new Date(),
 						Type_Code 				: 2,
 						Type_Name 				: "Review",
@@ -2162,13 +2163,14 @@ app.post('/addStrengthUnits',function (request, response){
 			var newTNTasks =  TNTasks() ;
 
 			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Master_Clinical_Data_Task_Title;
+			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Name;
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
 			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Publish";
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
+			newTNTasks.AI_Master_Clinical_Data_Task_TN_Code 							  = request.body.TN_Master_Clinical_Data_Task_TN_Code;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code;	 
 			newTNTasks.save();
 
@@ -2176,7 +2178,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			NotificationDetails = {
 						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.TN_Master_Clinical_Data_Task_Title,
+						Title 					: request.body.TN_Name,
 						Task_date 				: new Date(),
 						Type_Code 				: 2,
 						Type_Name 				: "Publish",
@@ -2412,6 +2414,34 @@ app.post('/addStrengthUnits',function (request, response){
 
 		AddNewTNData();
 	})
+
+	app.post('/getUserTNTasksbyUserID', function(request, response) {
+		TNTasks.find({ $and:[ {'TN_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
+		 {'TN_Master_Clinical_Data_Task_Status':0} ]},function(err, tasks) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}
+	    	if (tasks.length == 0) {
+				return response.send({
+					// user : request.user ,
+					message: 'No Roles Found !!',
+					length: tasks.length
+				});
+        	} else {
+				return response.send({
+					// user : request.user ,
+					tasks: tasks
+				});
+			}
+		})
+	});
+
+
+
+
+
 	// get  basic data of TN
 	app.get('/getTNRevisionByID', function(request, response) {
 		TNRevisions.find({TNRevision_Code:request.body.tn_revision_id}, function(err, tn) {

@@ -11,6 +11,7 @@ var rxp_TN_MasterClinicalDataTaskSchema = mongoose.Schema({
     TN_Master_Clinical_Data_Task_Title                                   :String,
     TN_Master_Clinical_Data_Task_Task_Type_Name                          :String,
     TN_Master_Clinical_Data_Task_TN_Master_Revision_Code                 :Number,
+    TN_Master_Clinical_Data_Task_TN_Code                                 :Number,
     TN_Master_Clinical_Data_Task_Status                                  :Number,
 
 });
