@@ -995,6 +995,22 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAiReVision.AIMasterRevision_EditStatus 				   = 0;
 					newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();	
 					newAiReVision.save();
+
+					// icon and color map:
+					// Edit :
+					// 		icon 'fa fa-edit'
+					//		Color '#ef9a29'
+					// Review:
+					//		Icon 'fa fa-eye'
+					//		color '#04ec65'
+					// Grammer Review
+					//		icon 'fa fa-flag-o'
+					//		color '#cfd603'
+					// Publish
+					//		icon 'fa fa-cloud-upload'
+					//		color '#4ebcd4'	
+
+
 					NotificationDetails = {
 						title: request.body.name,
 						icon: 'fa fa-edit',
