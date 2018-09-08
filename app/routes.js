@@ -1042,9 +1042,8 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 					var UserInSockets = clients.find(o => o.UserID === Employee_ID);
 					if(UserInSockets){
-						console.log(clients);
 						var ClientSocketArray = clients.filter(function(obj) {
-							if(obj.UserID === 1)
+							if(obj.UserID === Employee_ID)
 								return true
 							else
 								return false
@@ -1869,7 +1868,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.save();			
 
 			NotificationDetails = {
-				title: request.body.name,
+				title: request.body.TN_Name,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
 				revisionid : TNRevisionNextCode,
@@ -1881,15 +1880,18 @@ app.post('/addStrengthUnits',function (request, response){
 				AssignTo_Employee_Code : Reviewer_ID,
 				Task_Status 			:0
 			}
+			console.log(NotificationDetails);
+
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
+			console.log(UserInSockets);
 			if(UserInSockets){
-				console.log(clients);
 				var ClientSocketArray = clients.filter(function(obj) {
-					if(obj.UserID === 1)
+					if(obj.UserID === Reviewer_ID)
 						return true
 					else
 						return false
 				});
+				console.log(ClientSocketArray);
 				ClientSocketArray.forEach(function (arrayItem) {
 					var SocktesToSendNotification = arrayItem.Socket;
 					console.log(SocktesToSendNotification)
@@ -2188,22 +2190,24 @@ app.post('/addStrengthUnits',function (request, response){
 			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
 			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
 			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
-			newTNTasks.AI_Master_Clinical_Data_Task_TN_Code 							  = request.body.TN_Master_Clinical_Data_Task_TN_Code;
+			newTNTasks.TN_Master_Clinical_Data_Task_TN_Code 							  = request.body.TN_Master_Clinical_Data_Task_TN_Code;
 			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code;	 
 			newTNTasks.save();
 
-			NotificationDetails ='';
-
 			NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.TN_Name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Publish",
-						AssignTo_Employee_Code 	: Publisher_ID,
-						AIRevision_ID 			: request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code,
-						Task_Status 			:0,
-					}
+				title: request.body.TN_Name,	
+				icon: 'fa fa-cloud-upload',
+				iconColor: '#4ebcd4',
+				revisionid : request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code,
+				taskid: MasterTasks_ID,
+				objid : request.body.TN_Master_Clinical_Data_Task_TN_Code,
+				date : new Date(),
+				group : 'Publish',
+				over: 'Master TN',
+				AssignTo_Employee_Code : Publisher_ID,
+				Task_Status 			:0
+			}
+
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
 			if(UserInSockets){
@@ -2533,7 +2537,30 @@ app.post('/addStrengthUnits',function (request, response){
 	            response.send(tn);
 	        } 
     	}).sort({TN_Code:-1}).limit(20)
-    });
+	});
+	
+	app.get('/searchTNByID', function(request, response) {
+		var Searchquery = request.query.row_id;
+		console.log(request.query.row_id);
+
+			TN.findOne({TN_Code: Number(Searchquery)},function(err, tn) {
+				if (err){
+    	    		return response.send({
+						message: err
+					});
+    	    	}
+
+    	    	if (tn.length == 0) {
+					return response.send({
+						message: 'No TN Code Found !!'
+					});
+            	} else {
+					return response.send({
+						tn: tn
+					});
+				}
+			})
+	}); 
 
 	// new route ::26/8/2018
 
