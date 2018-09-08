@@ -1923,7 +1923,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			
 
-		async function addTaskCountry(ai_ids,cont_ids,revision_tn_id){
+		async function addTaskCountry(ai_ids,cont_ids){
 
 			ids=[];
 			for (var o= 0; o < cont_ids.length; o++) {
@@ -2113,7 +2113,7 @@ app.post('/addStrengthUnits',function (request, response){
 		// country_ids
         // addTaskCountry(request.body.TN_ActiveIngredients,ids);
 
-        addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Country_ID);
+        addTaskCountry(request.body.TN_ActiveIngredientsIDs,request.body.TN_Country_IDs);
 	});
 
 
