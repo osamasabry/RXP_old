@@ -1925,12 +1925,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 		async function addTaskCountry(ai_ids,cont_ids){
 
-			ids=[];
-			for (var o= 0; o < cont_ids.length; o++) {
-				ids.push(cont_ids[o].Country_Code);
-			}
-
-			var CountryIsDB 				= await checkCountryIsDB(ids);
+			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
 			var CountryBasedAIID           	= await getNextCountryBasedAIID();
 			var CountryBasedAIIDRevision    = await getNextCountryBasedAIRevisionID();
 			var CountryBaesdAITaskID     	= await getNextCountryBasedAITaskID();
@@ -1955,6 +1950,7 @@ app.post('/addStrengthUnits',function (request, response){
 		}
 
 		function checkCountryIsDB(cont_ids){
+			
 			return new Promise((resolve, reject) => {
 				Country.find({$and:[ {'Country_Code':{$in:cont_ids}}, {'Country_IsDB':1} ]}, function(err, country) {
 				
