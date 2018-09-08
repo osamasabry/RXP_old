@@ -1923,7 +1923,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			
 
-		async function addTaskCountry(ai_ids,cont_ids){
+		async function addTaskCountry(ai_ids,cont_ids,revision_tn_id){
 
 			ids=[];
 			for (var o= 0; o < cont_ids.length; o++) {
@@ -1945,7 +1945,7 @@ app.post('/addStrengthUnits',function (request, response){
 					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
 					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
 					var InsertCountryBasedAIRevision  = await insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID);
-					var InsertIntoCountryBasedAITasks = await insertIntoCountryBasedAITasks(CountryBaesdAITaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title);
+					var InsertIntoCountryBasedAITasks = await insertIntoCountryBasedAITasks(CountryBaesdAITaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title,ai_id);
 					
 					CountryBasedAIID++;
 					CountryBasedAIIDRevision++;
@@ -2056,7 +2056,7 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function insertIntoCountryBasedAITasks(CountryBasedAITaskID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title){
+		function insertIntoCountryBasedAITasks(CountryBasedAITaskID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title,ai_id){
 			var newCountryBasedAITask =  CountryBasedAITasks() ;
 
 			newCountryBasedAITask.CountryBasedAITask_Code       					= CountryBasedAITaskID;
@@ -2067,21 +2067,25 @@ app.post('/addStrengthUnits',function (request, response){
 			newCountryBasedAITask.CountryBasedAITask_AssignTo_Employee_Code   	    = EditorCountryBasedAIID;
 			newCountryBasedAITask.CountryBasedAITask_ClosedDate 					= null;
 			newCountryBasedAITask.CountryBasedAITask_Status 						= 0;
-			newCountryBasedAITask.CountryBasedAITask_Revision_Code  			  	= CountryBasedAIRevisionID;	 
+			newCountryBasedAITask.CountryBasedAITask_Revision_Code  			  	= CountryBasedAIRevisionID;
+			newCountryBasedAITask.CountryBasedAITask_AI_Code	 					= ai_id; 
 			newCountryBasedAITask.save();
 
 			NotificationDetails ='';
 
 			NotificationDetails = {
-						Task_id 				: CountryBasedAITaskID,
-						Title 					: Title,
-						Task_date 				: new Date(),
-						Type_Code 				: 1,
-						Type_Name 				: "Edit",
-						AssignTo_Employee_Code 	: EditorCountryBasedAIID,
-						AIRevision_ID 			: CountryBasedAIRevisionID,
-						Task_Status 			: 0,
-					}
+				title: Title,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : CountryBasedAIRevisionID,
+				taskid: CountryBasedAITaskID,
+				objid : ai_id,
+				date : new Date(),
+				group : 'Edit',
+				over: 'Country Clinical Data',
+				AssignTo_Employee_Code : EditorCountryBasedAIID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === EditorCountryBasedAIID);
 			if(UserInSockets){
@@ -2461,9 +2465,6 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-
-
-
 	// get  basic data of TN
 	app.get('/getTNRevisionByID', function(request, response) {
 		TNRevisions.find({TNRevision_Code:request.body.tn_revision_id}, function(err, tn) {
@@ -2716,22 +2717,25 @@ app.post('/addStrengthUnits',function (request, response){
 			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Reviewer_ID;
 			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
 			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.based_ai_revision_id;	 
-			
+			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
+			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
 			newBasedAITasks.save();
 
 			NotificationDetails ='';
 
 			NotificationDetails = {
-						Task_id 				: CountryBasedAI_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Review",
-						AssignTo_Employee_Code 	: Reviewer_ID,
-						AIRevision_ID 			: request.body.based_ai_revision_id,
-						Task_Status 			: 0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.CountryBasedAITask_Revision_Code,
+				taskid: CountryBasedAI_ID,
+				objid : request.body.CountryBasedAITask_AI_Code,
+				date : new Date(),
+				group : 'Review',
+				over: 'Country Clinical Data',
+				AssignTo_Employee_Code : Reviewer_ID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
 			if(UserInSockets){
@@ -2862,22 +2866,26 @@ app.post('/addStrengthUnits',function (request, response){
 			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Grammer_ID;
 			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
 			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.based_ai_revision_id;	 
+			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
+			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
 			
 			newBasedAITasks.save();
 
 			NotificationDetails ='';
 
 			NotificationDetails = {
-						Task_id 				: CountryBasedAI_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 3,
-						Type_Name 				: "Grammer",
-						AssignTo_Employee_Code 	: Grammer_ID,
-						AIRevision_ID 			: request.body.based_ai_revision_id,
-						Task_Status 			:  0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.CountryBasedAITask_Revision_Code;,
+				taskid: CountryBasedAI_ID,
+				objid : request.body.CountryBasedAITask_AI_Code,
+				date : new Date(),
+				group : 'Grammer',
+				over: 'Country Clinical Data',
+				AssignTo_Employee_Code : Grammer_ID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
 			if(UserInSockets){
@@ -3007,22 +3015,26 @@ app.post('/addStrengthUnits',function (request, response){
 			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Publisher_ID;
 			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
 			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.based_ai_revision_id;	 
+			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
+			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
 			
 			newBasedAITasks.save();
 
 			NotificationDetails ='';
 
 			NotificationDetails = {
-						Task_id 				: CountryBasedAI_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 4,
-						Type_Name 				: "Publish",
-						AssignTo_Employee_Code 	: Publisher_ID,
-						AIRevision_ID 			: request.body.based_ai_revision_id,
-						Task_Status 			: 0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.CountryBasedAITask_Revision_Code;,
+				taskid: CountryBasedAI_ID,
+				objid : request.body.CountryBasedAITask_AI_Code,
+				date : new Date(),
+				group : 'Publish',
+				over: 'Country Clinical Data',
+				AssignTo_Employee_Code : Publisher_ID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
 			if(UserInSockets){
@@ -4366,15 +4378,19 @@ app.post('/addStrengthUnits',function (request, response){
 			NotificationDetails='';
 
 			NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Review",
-						AssignTo_Employee_Code 	: Reviewer_ID,
-						AIRevision_ID 			: AIRevision_ID,
-						Task_Status 			: 0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.ai_revision_id,
+				taskid: MasterTasks_ID,
+				objid : request.body.ai_id,
+				date : new Date(),
+				group : 'Review',
+				over: 'Master AI',
+				AssignTo_Employee_Code : Reviewer_ID,
+				Task_Status 			:0
+			}
+			
 
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
 			if(UserInSockets){
@@ -4488,7 +4504,6 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-
 		function updateAIRevision(Grammer_ID){
 			return new Promise((resolve, reject) => {
 
@@ -4541,15 +4556,18 @@ app.post('/addStrengthUnits',function (request, response){
 			NotificationDetails='';
 
 			NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Grammer",
-						AssignTo_Employee_Code 	: Grammer_ID,
-						AIRevision_ID 			: AIRevision_ID,
-						Task_Status 			: 0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.ai_revision_id,
+				taskid: MasterTasks_ID,
+				objid : request.body.ai_id,
+				date : new Date(),
+				group : 'Grammer',
+				over: 'Master AI',
+				AssignTo_Employee_Code : Grammer_ID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
 			if(UserInSockets){
@@ -4690,15 +4708,18 @@ app.post('/addStrengthUnits',function (request, response){
 			NotificationDetails='';
 
 			NotificationDetails = {
-						Task_id 				: MasterTasks_ID,
-						Title 					: request.body.name,
-						Task_date 				: new Date(),
-						Type_Code 				: 2,
-						Type_Name 				: "Publish",
-						AssignTo_Employee_Code 	: Publisher_ID,
-						AIRevision_ID 			: AIRevision_ID,
-						Task_Status 			: 0,
-					}
+				title: request.body.name,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+				revisionid : request.body.ai_revision_id,
+				taskid: MasterTasks_ID,
+				objid : request.body.ai_id,
+				date : new Date(),
+				group : 'Publish',
+				over: 'Master AI',
+				AssignTo_Employee_Code : Publisher_ID,
+				Task_Status 			:0
+			}
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
 			if(UserInSockets){
