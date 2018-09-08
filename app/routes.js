@@ -2113,7 +2113,7 @@ app.post('/addStrengthUnits',function (request, response){
 		// country_ids
         // addTaskCountry(request.body.TN_ActiveIngredients,ids);
 
-        addTaskCountry(request.body.TN_ActiveIngredientsIDs,request.body.TN_Country_IDs);
+        addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Countries);
 	});
 
 
