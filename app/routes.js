@@ -979,6 +979,8 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 			newAI.AI_ATC_Code    					 = request.body.atc_code;
 			newAI.AI_Status 	 					 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
+			newAI.AI_VersionCode    				 = 0;
+
 			newAI.save(function(error, doneadd){
 				if(error){
 					return response.send({
@@ -1719,8 +1721,6 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-
-
 	// add  of TN revision
 	app.post('/addTNRevision',function (request, response){
 
@@ -2234,7 +2234,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 		AddNewTasks();
 	});
-
 
 
 	app.post('/AddTNData',function (request, response){
@@ -3408,7 +3407,15 @@ app.post('/addStrengthUnits',function (request, response){
 
     app.post('/editAIRevision',function (request, response){
 
-		var newvalues = { $set: {
+    	async function EditAIRevision(){
+			var insertDataAIRevision = await InsertDataAIRevision();
+			UpdateAI();
+        }
+
+		function InsertDataAIRevision(){
+
+			var newvalues = { $set: {
+				AIMasterRevision_Pharmaceutical_Categories_ID 	: request.body.AIMasterRevision_Pharmaceutical_Categories_ID,
 				AIMasterRevision_FDAFeed			 			: request.body.AIMasterRevision_FDAFeed,
 			    AIMasterRevision_EUFeed			 				: request.body.AIMasterRevision_EUFeed,
 			    AIMasterRevision_ClinicalPracticeGuidelines	 	: request.body.AIMasterRevision_ClinicalPracticeGuidelines,
@@ -3422,26 +3429,55 @@ app.post('/addStrengthUnits',function (request, response){
 			    AIMasterRevision_PregnancyConsideration			: request.body.AIMasterRevision_PregnancyConsideration,
 			} };
 
-		var myquery = { AIMasterRevision_Code: request.body.row_id }; 
+			var myquery = { AIMasterRevision_Code: request.body.row_id }; 
 
+			AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
+	    	    if (err){
+	    	    	return response.send({
+						message: 'Error'
+					});
+	    	    }
+	            if (!field) {
+	            	return response.send({
+						message: 'AI not exists'
+					});
+	            } else {
 
-		AIRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
-    	    if (err){
-    	    	return response.send({
-					message: 'Error'
-				});
-    	    }
-            if (!field) {
-            	return response.send({
-					message: 'AI not exists'
-				});
-            } else {
+	                return response.send({
+						message: true
+					});
+				}
+			})
+		}
 
-                return response.send({
-					message: true
-				});
-			}
-		})
+		function UpdateAI(){
+			var newvalues = { $set: {
+				AI_Pharmaceutical_Categories_ID 	: request.body.AIMasterRevision_Pharmaceutical_Categories_ID,
+			} };
+
+			var myquery = { AI_Code: request.body.ai_id }; 
+
+			AI.findOneAndUpdate( myquery,newvalues, function(err, field) {
+	    	    if (err){
+	    	    	return response.send({
+						message: 'Error'
+					});
+	    	    }
+	            if (!field) {
+	            	return response.send({
+						message: 'AI not exists'
+					});
+	            } else {
+
+	                return response.send({
+						message: true
+					});
+				}
+			})
+		}
+
+		EditAIRevision();
+		
 	});
 
 
@@ -4743,6 +4779,106 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewTasks();
 	});
 
+	app.post('/getTasksAIByAICode', function(request, response) {
+
+		AITasks.find({AI_Master_Clinical_Data_Task_AI_Code:request.body.ai_id}, function(err, tasks) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tasks) {
+	        	// console.log(tasks[0].AI_Master_Clinical_Data_Task_AssignTo_Employee_Code.User_Name);
+	            response.send(tasks);
+	        } 
+    	})
+    });
+
+
+	app.post('/addAIRevisionToEdit',function (request, response){
+		
+		async function getLastAIID(){
+			var AIVersionCode    = await getAIVersionCode();
+			var MasterTasks_ID   = await getMasterTasksId();
+			var AIRevision_ID    = await getAIRevisionId();
+			insetIntoAIRevision(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID,AIVersionCode);
+		}
+
+		function getAIVersionCode(){
+			return new Promise((resolve, reject) => {
+				AI.findOne({AI_Code: Number(request.body.ai_id)},function(err, ai){
+					if (ai) 
+						resolve( Number(ai.AI_VersionCode)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
+
+		function getMasterTasksId(){
+			return new Promise((resolve, reject) => {
+				AITasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function getAIRevisionId(){
+			return new Promise((resolve, reject) => {
+				AIRevisions.getLastCode(function(err, AIMaRe){
+					if (AIMaRe) 
+						resolve( Number(AIMaRe.AIMasterRevision_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+
+		function insetIntoAI(MasterTasks_ID,AIRevision_ID,AIVersionCode){
+		
+			var newAiReVision = AIRevisions();
+
+			newAiReVision.AIMasterRevision_Code  		 			   = AIRevision_ID;
+			newAiReVision.AIMasterRevision_AI_ID 		 			   = request.body.ai_id;
+			newAiReVision.AIMasterRevision_AssiendToEditor_Employee_ID = request.body.user_id;
+			newAiReVision.AIMasterRevision_EditStatus 				   = 0;
+			newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();
+			newAiReVision.AIMasterRevision_VersionCode			   	   = AIVersionCode;	
+
+			newAiReVision.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else{
+
+					var newAITasks =  AITasks() ;
+
+					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name;
+					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
+					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = request.body.user_id;
+					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= ai_id;
+					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
+					newAITasks.save();
+
+					return response.send({
+						message: true
+					});
+				
+				}
+			})
+		}
+
+		getLastAIID();
+	});
+
 
 
 	// add data to AI for user can use it when employe publish it 
@@ -4755,6 +4891,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			var dataAIRevision   	= await getAIRevision(request.body.ai_revision_id);
 			var insertAi         	= await insetIntoAI(dataAIRevision);
+			
 			var AIHistoryID      	= await getNextAIHistoryID();
 			var insertAiHistory  	= await insetIntoAIHistory(dataAIRevision,AIHistoryID);
 			var removeAIRevision 	= await removeOldAiRevision(request.body.ai_revision_id);
@@ -4793,7 +4930,6 @@ app.post('/addStrengthUnits',function (request, response){
 						AIMasterRevision_PublishStatus 				: 1,
 						AIMasterRevision_Publishedby_Employee_ID   	:request.body.user_id,
 						AIMasterRevision_PublishDate_Close 			:new Date(),
-						AIMasterRevision_RevisionCode				:1,
 				} };
 
 				var myquery = { AIMasterRevision_Code: request.body.ai_revision_id }; 
@@ -4839,6 +4975,8 @@ app.post('/addStrengthUnits',function (request, response){
 			    AI_Others						: data.AIMasterRevision_Others,
 			    AI_GeriatricConsideration		: data.AIMasterRevision_GeriatricConsideration,
 			    AI_PregnancyConsideration		: data.AIMasterRevision_PregnancyConsideration,
+				AI_Status 						: 1,
+				AI_VersionCode 				    : data.AIMasterRevision_VersionCode,
 			} };
 
 			var myquery = { AI_Code: request.body.ai_id }; 
@@ -4860,6 +4998,7 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			})
 		}
+
 
 		function getNextAIHistoryID(){
 			return new Promise((resolve, reject) => {
@@ -4915,7 +5054,7 @@ app.post('/addStrengthUnits',function (request, response){
 		    newAIHistory.AIHistory_Publishedby_Employee_ID			= data.AIMasterRevision_Publishedby_Employee_ID;
 		    newAIHistory.AIHistory_PublishDate_Close				= data.AIMasterRevision_PublishDate_Close;
 
-    		newAIHistory.AIHistory_revision                      	= data.AIMasterRevision_RevisionCode;
+    		newAIHistory.AIHistory_VersionCode                      = data.AIMasterRevision_VersionCode;
 
 
 

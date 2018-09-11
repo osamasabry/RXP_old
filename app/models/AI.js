@@ -19,6 +19,8 @@ var rxp_AITableSchema = mongoose.Schema({
     AI_Others							:String,
     AI_GeriatricConsideration			:String,
     AI_PregnancyConsideration			:String,
+    AI_VersionCode                      :Number,
+
 
 });
 

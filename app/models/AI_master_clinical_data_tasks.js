@@ -5,7 +5,7 @@ var rxp_AI_MasterClinicalDataTaskSchema = mongoose.Schema({
     
     AI_Master_Clinical_Data_Task_Code                                    :Number,
     AI_Master_Clinical_Data_Task_AssignDate                              :Date,
-    AI_Master_Clinical_Data_Task_AssignTo_Employee_Code                  :Number,
+    AI_Master_Clinical_Data_Task_AssignTo_Employee_Code                  :{type:Number ,ref: 'rxp_users'},
     AI_Master_Clinical_Data_Task_Task_Type_Code                          :Number,
     AI_Master_Clinical_Data_Task_ClosedDate                              :Date,
     AI_Master_Clinical_Data_Task_Title                                   :String,

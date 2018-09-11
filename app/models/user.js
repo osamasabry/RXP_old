@@ -3,7 +3,7 @@ var bcrypt   = require('bcrypt-nodejs');
 
 var rxpUserSchema = mongoose.Schema({
    
-		User_Code        :Number,
+		User_Code        :{type:Number ,ref: 'RxP_AI_Master_Clinical_Data_Task'},
         User_Name        :String,
         User_Password    :String,
         User_DisplayName :String,

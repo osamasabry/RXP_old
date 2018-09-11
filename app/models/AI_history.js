@@ -43,7 +43,7 @@ var rxp_AIHistorySchema = mongoose.Schema({
     AIHistory_PublishDate_Start             :Date,
     AIHistory_Publishedby_Employee_ID       :Number,
     AIHistory_PublishDate_Close             :Date,
-    AIHistory_revision                      :Number,
+    AIHistory_VersionCode                   :Number,
 
 });
 

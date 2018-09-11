@@ -46,8 +46,7 @@ var rxp_AIMasterRevisionsSchema = mongoose.Schema({
     AIMasterRevision_PublishDate_Start              :Date,
     AIMasterRevision_Publishedby_Employee_ID        :Number,
     AIMasterRevision_PublishDate_Close              :Date,
-    
-    AIMasterRevision_RevisionCode                   :Number,
+    AIMasterRevision_VersionCode                    :Number,
 });
 
 
