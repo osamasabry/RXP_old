@@ -15,8 +15,10 @@ var rxpEmployeeSchema = mongoose.Schema({
 	Employee_Graduation_Year   	:String,
 	Employee_Department_ID   	:Number , 
 	Employee_Senior_Employee_ID :Number , 
-	Employee_Note 				: String
+	Employee_Note 				:String
 });
+
+
 
 
 var Employee = module.exports = mongoose.model('rxp_employees', rxpEmployeeSchema);

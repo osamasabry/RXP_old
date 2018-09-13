@@ -282,7 +282,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 				    length: 8,
 				    numbers: true
 				});
-				
+				console.log(password);
 				
 				function insertNewEmployee(nextCode){
 					
@@ -1040,6 +1040,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee		= Employee_ID;
 					newAITasks.save();
 
 					var UserInSockets = clients.find(o => o.UserID === Employee_ID);
@@ -4780,22 +4781,13 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 	app.post('/getTasksAIByAICode', function(request, response) {
-
-		AITasks.find({AI_Master_Clinical_Data_Task_AI_Code:request.body.ai_id}, function(err, tasks) {
+		AITasks.findOne({AI_Master_Clinical_Data_Task_AI_Code:request.body.ai_id}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).exec(function(err, tasks) {
 		    if (err){
+				console.log(err)
 		    	response.send({message: 'Error'});
 		    }
 	        if (tasks) {
-				
-				Employee.findOne({Employee_Code: tasks[0].AI_Master_Clinical_Data_Task_AssignTo_Employee_Code},function(errr, emp){
-					if (emp) {
-						var FulltaskData = { Employee: emp, Task: tasks[0]};
-						//console.log({ employee: emp, Task: tasks[0]});
-						response.send(FulltaskData);
-					}
-					else
-						response.send(errr);
-				})
+				response.send(tasks);
 	            
 	        } 
     	})

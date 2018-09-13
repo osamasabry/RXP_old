@@ -9,7 +9,8 @@ var flash    = require('connect-flash');
 var generator = require('generate-password');
 var  sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-// console.log(process.env.SENDGRID_API_KEY);
+console.log(process.env.SENDGRID_API_KEY);
+
 var path = require('path');
     // fs = require('fs');
  var urls = require('http');
