@@ -4786,8 +4786,17 @@ app.post('/addStrengthUnits',function (request, response){
 		    	response.send({message: 'Error'});
 		    }
 	        if (tasks) {
-	        	// console.log(tasks[0].AI_Master_Clinical_Data_Task_AssignTo_Employee_Code.User_Name);
-	            response.send(tasks);
+				
+				Employee.findOne({Employee_Code: tasks[0].AI_Master_Clinical_Data_Task_AssignTo_Employee_Code},function(errr, emp){
+					if (emp) {
+						var FulltaskData = { Employee: emp, Task: tasks[0]};
+						//console.log({ employee: emp, Task: tasks[0]});
+						response.send(FulltaskData);
+					}
+					else
+						response.send(errr);
+				})
+	            
 	        } 
     	})
     });
@@ -4799,12 +4808,12 @@ app.post('/addStrengthUnits',function (request, response){
 			var AIVersionCode    = await getAIVersionCode();
 			var MasterTasks_ID   = await getMasterTasksId();
 			var AIRevision_ID    = await getAIRevisionId();
-			insetIntoAIRevision(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID,AIVersionCode);
+			insetIntoAIRevision(MasterTasks_ID,AIRevision_ID,AIVersionCode);
 		}
 
 		function getAIVersionCode(){
 			return new Promise((resolve, reject) => {
-				AI.findOne({AI_Code: Number(request.body.ai_id)},function(err, ai){
+				AI.findOne({AI_Code: Number(request.body.AI_Code)},function(err, ai){
 					if (ai) 
 						resolve( Number(ai.AI_VersionCode)+1);
 					else
@@ -4836,16 +4845,30 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function insetIntoAI(MasterTasks_ID,AIRevision_ID,AIVersionCode){
+		function insetIntoAIRevision(MasterTasks_ID,AIRevision_ID,AIVersionCode){
 		
 			var newAiReVision = AIRevisions();
 
-			newAiReVision.AIMasterRevision_Code  		 			   = AIRevision_ID;
-			newAiReVision.AIMasterRevision_AI_ID 		 			   = request.body.ai_id;
-			newAiReVision.AIMasterRevision_AssiendToEditor_Employee_ID = request.body.user_id;
-			newAiReVision.AIMasterRevision_EditStatus 				   = 0;
-			newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();
-			newAiReVision.AIMasterRevision_VersionCode			   	   = AIVersionCode;	
+			newAiReVision.AIMasterRevision_Code  		 			   		= AIRevision_ID;
+			newAiReVision.AIMasterRevision_Name								= request.body.AI_Name;
+			newAiReVision.AIMasterRevision_Pharmaceutical_Categories_ID 	= request.body.AI_Pharmaceutical_Categories_ID;
+			newAiReVision.AIMasterRevision_FDAFeed			 				= request.body.AI_FDAFeed
+			newAiReVision.AIMasterRevision_EUFeed			 				= request.body.AI_EUFeed
+			newAiReVision.AIMasterRevision_ClinicalPracticeGuidelines	 	= request.body.AI_ClinicalPracticeGuidelines;
+			newAiReVision.AIMasterRevision_Contraindications   				= request.body.AI_Contraindications;
+			newAiReVision.AIMasterRevision_Warnings_Precautions  			= request.body.AI_Warnings_Precautions;
+			newAiReVision.AIMasterRevision_AdverseReactionsConcerns 		= request.body.AI_AdverseReactionsConcerns;
+			newAiReVision.AIMasterRevision_DiseaseRelatedConcerns			= request.body.AI_DiseaseRelatedConcerns;
+			newAiReVision.AIMasterRevision_DoseFormSpecificIssues			= request.body.AI_DoseFormSpecificIssues;
+			newAiReVision.AIMasterRevision_Others							= request.body.AI_Others;
+			newAiReVision.AIMasterRevision_GeriatricConsideration			= request.body.AI_GeriatricConsideration;
+			newAiReVision.AIMasterRevision_PregnancyConsideration			= request.body.AI_PregnancyConsideration;
+			newAiReVision.AIMasterRevision_AI_ID 		 			   		= request.body.AI_Code;
+			newAiReVision.AIMasterRevision_AssiendToEditor_Employee_ID 		= request.body.Employee_ID;
+			newAiReVision.AIMasterRevision_EditStatus 				   		= 0;
+			newAiReVision.AIMasterRevision_EditDate_Start			   		= new Date();
+			newAiReVision.AIMasterRevision_VersionCode			   	   		= AIVersionCode;
+
 
 			newAiReVision.save(function(error, doneadd){
 				if(error){
@@ -4857,19 +4880,21 @@ app.post('/addStrengthUnits',function (request, response){
 					var newAITasks =  AITasks() ;
 
 					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name;
+					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.AI_Name;
 					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
 					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = request.body.user_id;
+					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = request.body.Employee_ID;
 					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
 					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= ai_id;
+					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= request.body.AI_Code;
 					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
 					newAITasks.save();
 
 					return response.send({
-						message: true
+						message: true,
+						TaskID : MasterTasks_ID,
+						RevisionID : AIRevision_ID
 					});
 				
 				}
