@@ -5279,6 +5279,47 @@ app.post('/addStrengthUnits',function (request, response){
 
 	// new route 
 
+	app.get('/getPermisionUserType', function(request, response) {
+			System_setting.findOne({System_Setting_ConfigName:"CP_Users_Permissions"}, function(err, permision) {
+			    if (err){
+			    	response.send({message: 'Error'});
+			    }
+		        if (permision) {
+					
+						response.send(permision.System_Setting_ConfigValue);
+				} 
+
+
+    		});
+    });
+
+	app.post('/editPermisionUser',function (request, response){
+
+		var newvalues = { $set: {
+				User_Permissions_List 				: request.body.User_Permissions_List,
+			} };
+
+		var myquery = { User_Code: request.body.user_id }; 
+
+
+		User.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'User not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
 
 
 };
