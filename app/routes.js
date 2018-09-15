@@ -312,7 +312,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	                newUser.User_IsActive              = 1;
 					newUser.User_Employee_ID           = nextCode;
 					newUser.User_Permissions           = [];
-	                newUser.User_Permissions_List      = request.body.ids_permissions;
 
 	                newUser.save();
 					 const msg = {
@@ -812,37 +811,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		        } 
     		});
     });
-
-    app.post('/getpermission', function(request, response) {
-			User.findOne({User_Code:request.body.code}, function(err, user) {
-			    if (err){
-			    	response.send({message: 'Error'});
-			    }
-		        if (user) {
-					var ids = user.User_Permissions_List.split(',');
-					var permissionList = [];
-					async function getUserPermissions(){
-						for (var i = 0; i < ids.length; i++) {
-						 	permissionList[i] = await getPermisionName(ids[i]);
-						}
-						response.send(permissionList);
-					}
-					function getPermisionName(oneId) {
-						return new Promise((resolve, reject) => {
-							System_setting.find({ System_Setting_ConfigName: "CP_Users_Permissions" },
-								{'System_Setting_ConfigValue': { $elemMatch: { Permission_ID: oneId} } }, function(err, permission) { 
-									resolve(permission[0].System_Setting_ConfigValue[0]['PermissionName']);
-							})
-						})
-					}
-					getUserPermissions();
-				} 
-
-
-    		});
-    });
-
-
+	
     // **************************************************
 
     // new route
@@ -5296,8 +5265,8 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/editPermisionUser',function (request, response){
 
 		var newvalues = { $set: {
-				User_Permissions_List 				: request.body.User_Permissions_List,
-			} };
+			User_Permissions 				: request.body.User_Permissions,
+		} };
 
 		var myquery = { User_Code: request.body.user_id }; 
 
