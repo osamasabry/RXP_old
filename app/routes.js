@@ -5267,8 +5267,20 @@ app.post('/addStrengthUnits',function (request, response){
 
 
     		});
-    });
-
+	});
+	
+	app.get('/getEmployeesWithPermissions', function(request, response) {
+		Employee.find({}).select('Employee_Code Employee_Name').populate({ path: 'User', select: 'User_Permissions' }).exec( function(err, employee) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (employee) {
+	        	
+	            response.send(employee);
+	        } 
+    	});
+	});
+	
 	app.post('/editPermisionUser',function (request, response){
 
 		var newvalues = { $set: {

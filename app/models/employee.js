@@ -16,6 +16,8 @@ var rxpEmployeeSchema = mongoose.Schema({
 	Employee_Department_ID   	:Number , 
 	Employee_Senior_Employee_ID :Number , 
 	Employee_Note 				:String
+}, {
+    toObject: { virtuals: true }
 });
 
 
@@ -27,4 +29,10 @@ module.exports.getLastCode = function(callback){
     
     Employee.findOne({},callback).sort({Employee_Code:-1});
 }
+rxpEmployeeSchema.virtual('User', {
+	ref: 'rxp_users',
+	localField: 'Employee_Code',
+	foreignField: 'User_Employee_ID',
+	justOne: true // for many-to-1 relationships
+  });
 
