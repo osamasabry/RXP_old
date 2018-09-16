@@ -684,16 +684,9 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		} 	
 	});
 
-
-	app.get('/changePassword',  function(request, response) {
-		response.render('change-password.html', {
-			user : request.user
-		});
-	});
-
 	app.post('/changePassword',function (request, response){
 
-		User.findOne({ 'email' :  request.user.email }, function(err, user) {
+		User.findOne({ 'User_Code' :  request.body.User_Code }, function(err, user) {
     	    if (err){
     	    	response.send({message: 'Error'});
     	    }
@@ -2501,6 +2494,20 @@ app.post('/addStrengthUnits',function (request, response){
 	        if (tn) {
 	        	
 	            response.send(tn);
+	        } 
+    	}).sort({TN_Code:-1}).limit(20)
+	});
+
+	app.post('/getTNByCountry', function(request, response) {
+		var Searchquery = request.body.TN_Country_ID;
+
+		TN.find({TN_Country_ID:Searchquery }, function(err, tn) {
+		    if (err){
+		    	return response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            return response.send(tn);
 	        } 
     	}).sort({TN_Code:-1}).limit(20)
 	});
