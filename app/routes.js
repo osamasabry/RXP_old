@@ -2487,8 +2487,12 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.get('/getTN', function(request, response) {
-		TN.find({})
+	app.post('/getTN', function(request, response) {
+		var object={};
+		if (request.body.TN_Country_ID)
+			object = {TN_Country_ID:request.body.TN_Country_ID};
+		console.log(object)
+		TN.find(object)
 		.populate({ path: 'form', select: 'Form_Name' })
 		.populate({ path: 'route', select: 'Route_Name' })
 		.populate({ path: 'strength', select: 'Route_Name' })
@@ -2511,28 +2515,28 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.post('/getTNByCountry', function(request, response) {
-		var Searchquery = request.body.TN_Country_ID;
+	// app.post('/getTNByCountry', function(request, response) {
+	// 	var Searchquery = request.body.TN_Country_ID;
 
-		TN.find({TN_Country_ID:request.body.TN_Country_ID})
-		.populate({ path: 'form', select: 'Form_Name' })
-		.populate({ path: 'route', select: 'Route_Name' })
-		.populate({ path: 'strength', select: 'Route_Name' })
-		.populate({ path: 'weight', select: 'WeightUnit_Name' })
-		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
-		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
-		.populate({ path: 'country', select: 'Country_Name' })
-		.populate({ path: 'ai', select: 'AI_Name' })
-		.exec(function(err, tn) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (tn) {
+	// 	TN.find({TN_Country_ID:request.body.TN_Country_ID})
+	// 	.populate({ path: 'form', select: 'Form_Name' })
+	// 	.populate({ path: 'route', select: 'Route_Name' })
+	// 	.populate({ path: 'strength', select: 'Route_Name' })
+	// 	.populate({ path: 'weight', select: 'WeightUnit_Name' })
+	// 	.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+	// 	.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+	// 	.populate({ path: 'country', select: 'Country_Name' })
+	// 	.populate({ path: 'ai', select: 'AI_Name' })
+	// 	.exec(function(err, tn) {
+	// 	    if (err){
+	// 	    	response.send({message: 'Error'});
+	// 	    }
+	//         if (tn) {
 	        	
-	            response.send(tn);
-	        } 
-    	})
-	});
+	//             response.send(tn);
+	//         } 
+ //    	})
+	// });
 	
 	app.get('/searchTNByID', function(request, response) {
 		var Searchquery = request.query.row_id;
