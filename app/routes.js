@@ -1087,6 +1087,9 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	        if (airevision) {
 	        	
 	            response.send(airevision);
+	        }else{
+
+	        	 response.send(false);
 	        } 
     	})
     });
@@ -5334,6 +5337,8 @@ app.post('/addStrengthUnits',function (request, response){
 			}
 		})
 	});
+
+
 
 
 };
