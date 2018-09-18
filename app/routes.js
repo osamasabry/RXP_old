@@ -311,7 +311,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newUser.User_DisplayName		   = request.body.display_name;
 	                newUser.User_IsActive              = 1;
 					newUser.User_Employee_ID           = nextCode;
-					newUser.User_Permissions           = [];
+					newUser.User_Permissions           = ["LOGEDUSER"];
 
 	                newUser.save();
 					 const msg = {
