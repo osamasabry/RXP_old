@@ -1052,18 +1052,19 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		})
 	});
 	
-
 	// get  basic data of AI 
 	app.get('/getAI', function(request, response) {
-		AI.find({}, function(err, ai) {
+		AI.find({})
+		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name' })
+    	.sort({AI_Code:-1}).limit(20)
+		.exec(function(err, ai) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
 	        if (ai) {
-	        	
 	            response.send(ai);
 	        } 
-    	}).sort({AI_Code:-1}).limit(20)
+    	})
 	});
 	
 	app.get('/getAllAI', function(request, response) {
@@ -2486,8 +2487,23 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.get('/getTN', function(request, response) {
-		TN.find({}, function(err, tn) {
+	app.post('/getTN', function(request, response) {
+		var object={};
+		if (request.body.TN_Country_ID)
+			object = {TN_Country_ID:request.body.TN_Country_ID};
+		console.log(object)
+		TN.find(object)
+		.populate({ path: 'form', select: 'Form_Name' })
+		.populate({ path: 'route', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'Route_Name' })
+		.populate({ path: 'weight', select: 'WeightUnit_Name' })
+		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+		.populate({ path: 'country', select: 'Country_Name' })
+		.populate({ path: 'ai', select: 'AI_Name' })
+		// .select('TN_Name TN_Status TN_Strength_Value TN_Weight_Value TN_Volume_Value TN_Concentration_Value ')
+		.sort({TN_Code:-1}).limit(20)
+		.exec(function(err, tn) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -2495,26 +2511,36 @@ app.post('/addStrengthUnits',function (request, response){
 	        	
 	            response.send(tn);
 	        } 
-    	}).sort({TN_Code:-1}).limit(20)
+    	})
 	});
 
-	app.post('/getTNByCountry', function(request, response) {
-		var Searchquery = request.body.TN_Country_ID;
 
-		TN.find({TN_Country_ID:Searchquery }, function(err, tn) {
-		    if (err){
-		    	return response.send({message: 'Error'});
-		    }
-	        if (tn) {
+	// app.post('/getTNByCountry', function(request, response) {
+	// 	var Searchquery = request.body.TN_Country_ID;
+
+	// 	TN.find({TN_Country_ID:request.body.TN_Country_ID})
+	// 	.populate({ path: 'form', select: 'Form_Name' })
+	// 	.populate({ path: 'route', select: 'Route_Name' })
+	// 	.populate({ path: 'strength', select: 'Route_Name' })
+	// 	.populate({ path: 'weight', select: 'WeightUnit_Name' })
+	// 	.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+	// 	.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+	// 	.populate({ path: 'country', select: 'Country_Name' })
+	// 	.populate({ path: 'ai', select: 'AI_Name' })
+	// 	.exec(function(err, tn) {
+	// 	    if (err){
+	// 	    	response.send({message: 'Error'});
+	// 	    }
+	//         if (tn) {
 	        	
-	            return response.send(tn);
-	        } 
-    	}).sort({TN_Code:-1}).limit(20)
-	});
+	//             response.send(tn);
+	//         } 
+ //    	})
+	// });
 	
 	app.get('/searchTNByID', function(request, response) {
 		var Searchquery = request.query.row_id;
-		console.log(request.query.row_id);
+		// console.log(request.query.row_id);
 
 			TN.findOne({TN_Code: Number(Searchquery)},function(err, tn) {
 				if (err){
