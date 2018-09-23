@@ -2442,51 +2442,56 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 	app.post('/searchTNName', function(request, response) {
-		var Searchquery = request.body.searchField;
-			TN.find ({TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, tn) {
-				if (err){
-    	    		return response.send({
-						user : request.user ,
-						message: err
-					});
-    	    	}
+		var Searchquery = request.body.searchField.searchField;
+		var object={TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }};
+		if (request.body.TN_Country_ID)
+			object = {TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") },TN_Country_ID:request.body.TN_Country_ID};
+		TN.find(object)
+		.populate({ path: 'form', select: 'Form_Name' })
+		.populate({ path: 'route', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'StrengthUnit_Name' })
+		.populate({ path: 'weight', select: 'WeightUnit_Name' })
+		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
+		.populate({ path: 'ai', select: 'AI_Name' })
+		.sort({TN_Name:-1})
+		.exec(function(err, tn) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            response.send(tn);
+	        } 
+    	})
 
-    	    	if (tn.length == 0) {
-					return response.send({
-						user : request.user ,
-						message: 'No TN Name Found !!'
-					});
-            	} else {
-					return response.send({
-						user : request.user ,
-						tn: tn
-					});
-				}
-			}).sort({TN_Name:-1})
 	});
 
 	app.post('/searchAIForTN', function(request, response) {
 		var Searchquery = request.body.searchField;
-			TN.find ({TN_ActiveIngredients:{$in:[Searchquery]}},function(err, tn) {
-				if (err){
-    	    		return response.send({
-						// user : request.user ,
-						message: err
-					});
-    	    	}
-
-    	    	if (tn.length == 0) {
-					return response.send({
-						// user : request.user ,
-						message: 'No TN Found !!'
-					});
-            	} else {
-					return response.send({
-						// user : request.user ,
-						tn: tn
-					});
-				}
-			})
+		var object={TN_ActiveIngredients:{$in:[Searchquery]}};
+		if (request.body.TN_Country_ID)
+			object = {TN_ActiveIngredients:{$in:[Searchquery]},TN_Country_ID:request.body.TN_Country_ID};
+		TN.find(object)
+		.populate({ path: 'form', select: 'Form_Name' })
+		.populate({ path: 'route', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'StrengthUnit_Name' })
+		.populate({ path: 'weight', select: 'WeightUnit_Name' })
+		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
+		.populate({ path: 'ai', select: 'AI_Name' })
+		.sort({TN_Name:-1})
+		.exec(function(err, tn) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            response.send(tn);
+	        } 
+    	})
 	});
 
 
@@ -2498,11 +2503,11 @@ app.post('/addStrengthUnits',function (request, response){
 		TN.find(object)
 		.populate({ path: 'form', select: 'Form_Name' })
 		.populate({ path: 'route', select: 'Route_Name' })
-		.populate({ path: 'strength', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'StrengthUnit_Name' })
 		.populate({ path: 'weight', select: 'WeightUnit_Name' })
 		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
 		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
-		.populate({ path: 'country', select: 'Country_Name' })
+		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
 		.populate({ path: 'ai', select: 'AI_Name' })
 		// .select('TN_Name TN_Status TN_Strength_Value TN_Weight_Value TN_Volume_Value TN_Concentration_Value ')
 		.sort({TN_Code:-1}).limit(20)
@@ -3568,40 +3573,42 @@ app.post('/addStrengthUnits',function (request, response){
 		async function getLastUsage(){
 			var UsageNextCode = await getNextUsage();
 			insetIntoUsageDoseUnit(UsageNextCode);
-        }
+		}
 
 		function getNextUsage(){
 			return new Promise((resolve, reject) => {
 			 	UsageDoseUnit.getLastCode(function(err,usage){
-					if (usage) 
-						resolve( Number(UsageDoseUnit.UsageDoseUnit_Code)+1);
+					if (usage){
+					console.log(usage);
+						resolve( Number(usage.UsageDoseUnit_Code)+1);}
 					else
 					resolve(1);
 				})
 			})
-    	}
+		}
 
-    	function insetIntoUsageDoseUnit(UsageNextCode){
-            var newUsage = new UsageDoseUnit();
-            newUsage.UsageDoseUnit_Code                = UsageNextCode;
-            newUsage.UsageDoseUnit_Name                = request.body.name;
-            newUsage.UsageDoseUnit_Description         = request.body.desc;
-            newUsage.UsageDoseUnit_IsActive            = 1;
-            newUsage.save(function(error, doneadd){
-                if(error){
-                    return response.send({
-                        message: error
-                    });
-                }
-                else{
-                    return response.send({
-                        message: true
-                    });
-                }
-            });
-        }
+		function insetIntoUsageDoseUnit(UsageNextCode){
+			console.log(UsageNextCode);
+			var newUsage = new UsageDoseUnit();
+			newUsage.UsageDoseUnit_Code                = UsageNextCode;
+			newUsage.UsageDoseUnit_Name                = request.body.name;
+			newUsage.UsageDoseUnit_Description         = request.body.desc;
+			newUsage.UsageDoseUnit_IsActive            = 1;
+			newUsage.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}
+				else{
+					return response.send({
+						message: true
+					});
+				}
+			});
+		}
 		getLastUsage();
-    });
+	});
 
 
     app.post('/addUsageDuration',function (request, response){

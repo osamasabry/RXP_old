@@ -30,7 +30,7 @@ rxp_AITableSchema.virtual('pharamaceutical', {
     ref: 'rxp_pharmaceutical_category',
     localField: 'AI_Pharmaceutical_Categories_ID',
     foreignField: 'Pharmaceutical_Category_Code',
-    justOne: true // for many-to-1 relationships
+    justOne: false // for many-to-1 relationships
 
 });
 
