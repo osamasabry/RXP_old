@@ -1055,7 +1055,8 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	// get  basic data of AI 
 	app.get('/getAI', function(request, response) {
 		AI.find({})
-		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name' })
+		.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name Pharmaceutical_Category_ATC_Code' })
     	.sort({AI_Code:-1}).limit(20)
 		.exec(function(err, ai) {
 		    if (err){
