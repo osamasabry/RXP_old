@@ -1222,7 +1222,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
             newForm.Form_IsActive            = 1;
             newForm.Form_Cd         		 = request.body.cd;
             newForm.Form_Cddt           	 = request.body.cddt;
-            newForm.Form_CdPrev         	 = request.body.cdpref;
+            newForm.Form_CdPrev         	 = request.body.cdprev;
 
             newForm.save(function(error, doneadd){
                 if(error){
@@ -1478,7 +1478,7 @@ app.post('/addStrengthUnits',function (request, response){
 				Form_IsActive 				: request.body.status,
 				Form_Cd            			: request.body.cd,
             	Form_Cddt           		: request.body.cddt,
-            	Form_CdPrev         		: request.body.cdpref,
+            	Form_CdPrev         		: request.body.cdprev,
 			} };
 
 		var myquery = { Form_Code: request.body.row_id }; 
