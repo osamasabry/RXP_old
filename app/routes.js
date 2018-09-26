@@ -1078,6 +1078,21 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	            response.send(ai);
 	        } 
     	}).sort({AI_Name:-1})
+	});
+
+	app.get('/getAllAIminiData', function(request, response) {
+		AI.find({})
+		.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+		.sort({AI_Name:-1})
+		.exec(function(err, ai) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (ai) {
+	        	
+	            response.send(ai);
+	        } 
+    	})
     });
 	
 	app.get('/getAIRevision', function(request, response) {
@@ -1207,7 +1222,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
             newForm.Form_IsActive            = 1;
             newForm.Form_Cd         		 = request.body.cd;
             newForm.Form_Cddt           	 = request.body.cddt;
-            newForm.Form_Cdpref         	 = request.body.cdpref;
+            newForm.Form_CdPrev         	 = request.body.cdpref;
 
             newForm.save(function(error, doneadd){
                 if(error){
@@ -1463,7 +1478,7 @@ app.post('/addStrengthUnits',function (request, response){
 				Form_IsActive 				: request.body.status,
 				Form_Cd            			: request.body.cd,
             	Form_Cddt           		: request.body.cddt,
-            	Form_Cdpref         		: request.body.cdpref,
+            	Form_CdPrev         		: request.body.cdpref,
 			} };
 
 		var myquery = { Form_Code: request.body.row_id }; 
@@ -2482,7 +2497,7 @@ app.post('/addStrengthUnits',function (request, response){
 		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
 		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
 		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
-		.populate({ path: 'ai', select: 'AI_Name' })
+		.populate({ path: 'ai', select: 'AI_Code AI_Name AI_ATC_Code' })
 		.sort({TN_Name:-1})
 		.exec(function(err, tn) {
 		    if (err){
