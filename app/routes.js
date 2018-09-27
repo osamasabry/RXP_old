@@ -169,19 +169,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 			// console.log(clients);
 		})
 	})
-	// when login 
-	app.get('/about',  function(request, response) {
-		response.render('about.html', {
-			user : request.user
-		});
-	});
-
-	app.get('/addDepart',function(request, response) {
-		
-		response.render('add-department.html', {
-			user : request.user 
-		});
-	});
+	
 
 	app.post('/addDepart',function (request, response){
 		Departments.findOne({ 'Department_Name' :  request.body.name }, function(err, depart) {
@@ -245,13 +233,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
     	});
     });
 
-    app.get('/addEmployee',function(request, response) {
-		
-		response.render('add-employee.html', {
-			user : request.user 
-		});
-	});
-	
 	app.post('/addEmployee',function (request, response){
 		// console.log(request.body.email);
 		Employee.findOne({ 'Employee_Email' :  request.body.email }, function(err, employee) {
@@ -330,13 +311,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
         });
 	});
 
-	app.get('/addAccount',function(request, response) {
-		
-		response.render('add-account.html', {
-			user : request.user 
-		});
-	});
-
 	app.get('/getCountries', function(request, response) {
 		Country.find({Country_IsActive:1}, function(err, country) {
 		    if (err){
@@ -395,13 +369,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	            response.send(account);
 	        } 
     	});
-    });
-	
-	app.get('/assignRole', function(request, response) {
-    	
-    	response.render('assign-role.html', {
-			user : request.user 
-		});
     });
 
 	app.post('/assignRole',function (request, response){
@@ -482,19 +449,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		})
     });
 
-
-   	app.get('/allEmployees', function(request, response) {
-    	response.render('all-employees.html', {
-			user : request.user ,
-		});
-	});
-
-
-	app.get('/allDeparts', function(request, response) {
-    	response.render('all-departs.html', {
-			user : request.user ,
-		});
-	});
 
     app.get('/getOutSourceDBs', function(request, response) {
 		OutsourceDB.find({}, function(err, db) {
@@ -629,12 +583,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
         });
 	});
 
-	app.get('/searchAccount', function(request, response) {
-    	response.render('search-account.html', {
-			user : request.user ,
-		});
-	});
-
 	app.post('/searchAccount', function(request, response) {
 		var Searchquery = request.body.searchField;
 		if(isNaN(Searchquery)){
@@ -701,51 +649,6 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
                 
             } 
         });
-	});
-
-	
-	app.get('/viewAccount', function(request, response) {	
-		Account.findOne({ Account_Code : request.query.id }, function(err, account) {
-    	    if (err){
-    	    	return response.send({
-					user : request.user ,
-					message: 'Error'
-				});
-    	    }else {
-             	data['account'] = account;
-			}
-    	});
-    	AccountPlan.findOne({ code : request.query.id }, function(err, accountPlan) {
-    	    if (err){
-    	    	return response.send({
-					user : request.user ,
-					message: 'Error'
-				});
-    	    }else {
-             	data['accountPlan'] = accountPlan;
-			}
-    	});
-    	SubScrib_manger.findOne({ code : request.query.id }, function(err, subscribeManager) {
-    	    if (err){
-    	    	return response.send({
-					user : request.user ,
-					message: 'Error'
-				});
-    	    }else {
-             	data['subscribeManager'] = subscribeManager;
-             	getData();
-			}
-    	});
-
-    	function getData(){
-    		console.log(data);
-    		response.render('view-account.html', {
-				user : request.user,
-				account : data['account'],
-				accountPlan : data['accountPlan'],
-				subscribeManager : data['subscribeManager']
-			});
-    	};
 	});
 
 	app.get('/getCountry', function(request, response) {
