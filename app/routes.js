@@ -106,7 +106,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 	// first route call login  
 	app.get('/', function(request, response) {
-		response.render('login.html', { message: request.flash('error') });
+		response.redirect('http://cp.rxpedia.info');
 	});
 
 	// check login 

@@ -9,9 +9,6 @@ var flash    = require('connect-flash');
 var generator = require('generate-password');
 var sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-console.log(process.env.SENDGRID_API_KEY);
-console.log('ddd');
-console.log(process.env.rxpProductionDBConnection);
 
 var path = require('path');
     // fs = require('fs');
@@ -20,7 +17,7 @@ var server = urls.createServer(app);
 var io = require('socket.io')(server);
 
 
-mongoose.connect("mongodb://webappdba:Ma13579@localhost:27017/RxPediaDB");
+mongoose.connect(process.env.rxpProductionDBConnection);
 require('./config/passport')(passport); 
 
 app.configure(function() {
@@ -28,7 +25,7 @@ app.configure(function() {
 	app.use(express.cookieParser());
 	app.use(express.bodyParser()); 
 	app.use(express.static(path.join(__dirname, 'public')));
-	app.set('views', __dirname + '/views');
+	//app.set('views', __dirname + '/views');
 	app.engine('html', require('ejs').renderFile);
 	app.use(express.session({ secret: 'knoldus' })); 
 	app.use(express.bodyParser({uploadDir:'/images'}));
