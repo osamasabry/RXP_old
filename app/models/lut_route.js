@@ -6,10 +6,10 @@ var rxp_LutRouteSchema = mongoose.Schema({
 	Route_Code     	  :Number,
     Route_Name     	  : String,
     Route_Description :String,
-    Route_IsActive    :Number,
     Route_Cd     	  :String,
-    Route_Cddt     	  :String,
-    Route_Cdpref      :String,
+    Route_Cddt     	  :Date,
+    Route_CdPrev      :String,
+    Route_IsActive    :Number
 
 });
 

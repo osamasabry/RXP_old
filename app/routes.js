@@ -1263,7 +1263,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	            newRoute.Route_IsActive      = 1;
 				newRoute.Route_Cd            = request.body.cd;
             	newRoute.Route_Cddt          = request.body.cddt;
-            	newRoute.Route_Cdpref        = request.body.cdpref;
+            	newRoute.Route_CdPrev        = request.body.cdprev;
 	            newRoute.save(function(error, doneadd){
 	                if(error){
 	                    return response.send({
@@ -1546,7 +1546,7 @@ app.post('/addStrengthUnits',function (request, response){
 				Route_IsActive 				: request.body.status,
 				Route_Cd					: request.body.cd,
 				Route_Cddt					: request.body.cddt,
-				Route_Cdpref			    : request.body.cdpref,
+				Route_CdPrev			    : request.body.cdprev,
 			} };
 
 		var myquery = { Route_Code: request.body.row_id }; 

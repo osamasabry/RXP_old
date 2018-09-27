@@ -7,9 +7,11 @@ var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
 var generator = require('generate-password');
-var  sgMail = require('@sendgrid/mail');
+var sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 console.log(process.env.SENDGRID_API_KEY);
+console.log('ddd');
+console.log(process.env.rxpProductionDBConnection);
 
 var path = require('path');
     // fs = require('fs');
@@ -17,17 +19,9 @@ var path = require('path');
 var server = urls.createServer(app);
 var io = require('socket.io')(server);
 
-// comment
 
-// var configDB = require('./config/database.js');
 mongoose.connect("mongodb://webappdba:Ma13579@localhost:27017/RxPediaDB");
-// mongoose.connect("mongodb://webappdba:Ma13579@35.204.1.127:27017/RxPediaDB");
-
-// mongoose.connect("mongodb://localhost:27017/Medical"); 
-
 require('./config/passport')(passport); 
-
-
 
 app.configure(function() {
 
@@ -43,8 +37,6 @@ app.configure(function() {
 	app.use(flash()); 
 
 });
-
-
 
 require('./app/routes.js')(app, passport,server,generator,sgMail,io ); 
 

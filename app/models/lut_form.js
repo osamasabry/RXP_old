@@ -7,7 +7,7 @@ var rxp_LutFormsSchema = mongoose.Schema({
     Form_Name     	  :String,
     Form_Description  :String,
     Form_Cd     	  :String,
-    Form_Cddt     	  :String,
+    Form_Cddt     	  :Date,
     Form_CdPrev       :String,
     Form_IsActive     :Number
 
