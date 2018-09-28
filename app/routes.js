@@ -29,9 +29,6 @@ var AIRevisions    		       = require('../app/models/AI_master_clinical_data_rev
 
 var AIHistory      			   = require('../app/models/AI_history');
 
-var AITasks                    = require('../app/models/AI_master_clinical_data_tasks');
-
-
 var Pharmaceutical_category    =require('../app/models/lut_pharmaceutical_categories');
 
 
@@ -54,7 +51,6 @@ var TN     					   = require('../app/models/TN');
 
 var TNRevisions                = require('../app/models/TN_master_clinical_data_revisions');
 
-var TNTasks                    = require('../app/models/TN_master_clinical_data_tasks');
 
 var TNHistory      			   = require('../app/models/TN_history');
 
@@ -83,7 +79,7 @@ var CountryBasedAIHistory      = require('../app/models/country_based_AI_history
 
 var CountryBasedAITasks        = require('../app/models/country_based_AI_tasks');
 
-
+var UniversalTasks 			   = require('../app/models/Universal_tasks');
 
 
 
@@ -784,10 +780,10 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		async function getLastAIID(){
 			var AINextID = await getNextAIId();
 			var Employee_ID = await getEmployeeId();
-			var MasterTasks_ID   = await getMasterTasksId();
+			var Tasks_ID   = await getTasksId();
 			var AIRevision_ID   = await getAIRevisionId();
 
-			insetIntoAI(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID);
+			insetIntoAI(AINextID,Employee_ID,Tasks_ID,AIRevision_ID);
 		}
 
 		function getNextAIId(){
@@ -814,11 +810,11 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 			})
 		}
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				AITasks.getLastCode(function(err, AIMaTs){
+				UniversalTasks.getLastCode(function(err, AIMaTs){
 					if (AIMaTs) 
-						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
@@ -837,7 +833,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 		};
 
 
-		function insetIntoAI(AINextID,Employee_ID,MasterTasks_ID,AIRevision_ID){
+		function insetIntoAI(AINextID,Employee_ID,Tasks_ID,AIRevision_ID){
 			var newAI = new AI();
 			newAI.AI_Code     						 = AINextID;
 			newAI.AI_Name 	    					 = request.body.name;
@@ -863,50 +859,32 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 					newAiReVision.AIMasterRevision_EditDate_Start			   = new Date();	
 					newAiReVision.save();
 
-					// icon and color map:
-					// Edit :
-					// 		icon 'fa fa-edit'
-					//		Color '#ef9a29'
-					// Review:
-					//		Icon 'fa fa-eye'
-					//		color '#04ec65'
-					// Grammer Review
-					//		icon 'fa fa-flag-o'
-					//		color '#cfd603'
-					// Publish
-					//		icon 'fa fa-cloud-upload'
-					//		color '#4ebcd4'	
-
+					var newTask =  UniversalTasks() ;
+					newTask.Task_Code						= Tasks_ID;
+					newTask.Task_Title 				    	= request.body.name;
+					newTask.Task_AssignTo_Employee_Code		= Employee_ID;
+					newTask.Task_AssignDate 			    = new Date();
+					newTask.Task_ActionTypeName 	  	    = "Edit";
+					newTask.Task_ActionDetails_Code			= AIRevision_ID;
+					newTask.Task_RelatedTo 	  	    		= "Master AI";
+					newTask.Task_RelatedTo_Code				= AINextID;
+					newTask.Task_Status 					= 0;
+					newTask.Task_ClosedDate 			    = null;
+					newTask.save();
 
 					NotificationDetails = {
-						title: request.body.name,
+						Task_Code                       : Tasks_ID,
+						Task_Title                      : request.body.name,
+						Task_AssignTo_Employee_Code     : Employee_ID,
+						Task_AssignDate                 : new Date(),
+						Task_ActionTypeName             : "Edit",
+						Task_ActionDetails_Code         : AIRevision_ID,
+						Task_RelatedTo                  : "Master AI",
+						Task_RelatedTo_Code             : AINextID,
+						Task_Status                     :0,
 						icon: 'fa fa-edit',
 						iconColor: '#ef9a29',
-						revisionid : AIRevision_ID,
-						taskid: MasterTasks_ID,
-						objid : AINextID,
-						date : new Date(),
-						group : 'Edit',
-						over: 'Master AI',
-						AssignTo_Employee_Code : Employee_ID,
-						Task_Status 			:0
 					}
-					
-
-					var newAITasks =  AITasks() ;
-
-					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.name;
-					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = Employee_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= AINextID;
-					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee		= Employee_ID;
-					newAITasks.save();
 
 					var UserInSockets = clients.find(o => o.UserID === Employee_ID);
 					if(UserInSockets){
@@ -932,9 +910,9 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	});
 
 
-	app.post('/getUserAITasksbyUserID', function(request, response) {
-		AITasks.find({ $and:[ {'AI_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
-		 {'AI_Master_Clinical_Data_Task_Status':0} ]},function(err, tasks) {
+	app.post('/getUserTasksbyUserID', function(request, response) {
+		UniversalTasks.find({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},
+		 {'Task_Status':0} ]},function(err, tasks) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -942,13 +920,10 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 	    	}
 	    	if (tasks.length == 0) {
 				return response.send({
-					// user : request.user ,
-					message: 'No Roles Found !!',
-					length: tasks.length
+					message: 'No Task Found !!'
 				});
         	} else {
 				return response.send({
-					// user : request.user ,
 					tasks: tasks
 				});
 			}
@@ -1616,8 +1591,8 @@ app.post('/addStrengthUnits',function (request, response){
 			var TNRevisionNextCode      	  = await getNextTNRevisionCode();
 			var Reviewer_ID 	        	  = await getEmployeeId();
 			var insertIntoTNRevison     	  = await insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID);
-			var MasterTasks_ID   	   		  = await getMasterTasksId();
-			var InsetIntoTNTasks        	  = await insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode,TNID);
+			var Tasks_ID   	   		  		  = await getTasksId();
+			var InsetIntoTasks        	 	  = await insetIntoTasks(Reviewer_ID,Tasks_ID,TNRevisionNextCode,TNID);
 		}
 
 		function getNextTNID(){
@@ -1727,47 +1702,45 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		}
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				TNTasks.getLastCode(function(err, TNMaTs){
-					if (TNMaTs) 
-						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
-					else
-						resolve(1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+				if (AIMaTs) 
+					resolve( Number(AIMaTs.Task_Code)+1);
+				else
+					resolve(1);
 				})
 			})
 		};
+		
+		function insetIntoTasks(Reviewer_ID,Tasks_ID,TNRevisionNextCode,TNID){
 
-		function insetIntoTNTasks(Reviewer_ID,MasterTasks_ID,TNRevisionNextCode,TNID){
-			var newTNTasks =  TNTasks() ;
-
-			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Name;
-			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Review";
-			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Reviewer_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Code 							  = TNID;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = TNRevisionNextCode;	 
-			newTNTasks.save();			
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.TN_Name;
+			newTask.Task_AssignTo_Employee_Code     = Reviewer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Review";
+			newTask.Task_ActionDetails_Code         = TNRevisionNextCode;
+			newTask.Task_RelatedTo                  = "Master TN";
+			newTask.Task_RelatedTo_Code             = TNID;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.TN_Name,
+				Task_Code                      	: Tasks_ID,
+				Task_Title                      : request.body.TN_Name,
+				Task_AssignTo_Employee_Code     : Reviewer_ID,
+				Task_AssignDate   			    : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : TNRevisionNextCode,
+				Task_RelatedTo                  : "Master TN",
+				Task_RelatedTo_Code             : TNID,
+				Task_Status 					:0,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
-				revisionid : TNRevisionNextCode,
-				taskid: MasterTasks_ID,
-				objid : TNID,
-				date : new Date(),
-				group : 'Review',
-				over: 'Master TN',
-				AssignTo_Employee_Code : Reviewer_ID,
-				Task_Status 			:0
 			}
-			console.log(NotificationDetails);
-
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
 			console.log(UserInSockets);
 			if(UserInSockets){
@@ -1814,7 +1787,7 @@ app.post('/addStrengthUnits',function (request, response){
 			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
 			var CountryBasedAIID           	= await getNextCountryBasedAIID();
 			var CountryBasedAIIDRevision    = await getNextCountryBasedAIRevisionID();
-			var CountryBaesdAITaskID     	= await getNextCountryBasedAITaskID();
+			var TaskID  				   	= await getTasksId();
 			
 			for (var i = 0; i < ai_ids.length; i++) {
 				var ai_id 	= Number(ai_ids[i].AI_Code);
@@ -1826,7 +1799,7 @@ app.post('/addStrengthUnits',function (request, response){
 					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
 					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
 					var InsertCountryBasedAIRevision  = await insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID);
-					var InsertIntoCountryBasedAITasks = await insertIntoCountryBasedAITasks(CountryBaesdAITaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title,ai_id);
+					var InsertIntoTasks 			  = await insertIntoTasks(TaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title,ai_id);
 					
 					CountryBasedAIID++;
 					CountryBasedAIIDRevision++;
@@ -1927,48 +1900,45 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-		function getNextCountryBasedAITaskID(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				CountryBasedAITasks.getLastCode(function(err, task){
-					if (task) 
-						resolve( Number(task.CountryBasedAITask_Code)+1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
 
-		function insertIntoCountryBasedAITasks(CountryBasedAITaskID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title,ai_id){
-			var newCountryBasedAITask =  CountryBasedAITasks() ;
-
-			newCountryBasedAITask.CountryBasedAITask_Code       					= CountryBasedAITaskID;
-			newCountryBasedAITask.CountryBasedAITask_Title 							= Title;
-			newCountryBasedAITask.CountryBasedAITask_AssignDate 				    = new Date();
-			newCountryBasedAITask.CountryBasedAITask_Task_Type_Code 	  		    = 1;
-			newCountryBasedAITask.CountryBasedAITask_Task_Type_Name 	  		    = "Edit";
-			newCountryBasedAITask.CountryBasedAITask_AssignTo_Employee_Code   	    = EditorCountryBasedAIID;
-			newCountryBasedAITask.CountryBasedAITask_ClosedDate 					= null;
-			newCountryBasedAITask.CountryBasedAITask_Status 						= 0;
-			newCountryBasedAITask.CountryBasedAITask_Revision_Code  			  	= CountryBasedAIRevisionID;
-			newCountryBasedAITask.CountryBasedAITask_AI_Code	 					= ai_id; 
-			newCountryBasedAITask.save();
-
-			NotificationDetails ='';
+		function insertIntoTasks(Tasks_ID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title,ai_id){
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = Title;
+			newTask.Task_AssignTo_Employee_Code     = EditorCountryBasedAIID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Edit";
+			newTask.Task_ActionDetails_Code         = CountryBasedAIRevisionID;
+			newTask.Task_RelatedTo                  = "Country Clinical Data";
+			newTask.Task_RelatedTo_Code             = ai_id;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: Title,
-				icon: 'fa fa-eye',
-				iconColor: '#04ec65',
-				revisionid : CountryBasedAIRevisionID,
-				taskid: CountryBasedAITaskID,
-				objid : ai_id,
-				date : new Date(),
-				group : 'Edit',
-				over: 'Country Clinical Data',
-				AssignTo_Employee_Code : EditorCountryBasedAIID,
-				Task_Status 			:0
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : Title,
+				Task_AssignTo_Employee_Code     : EditorCountryBasedAIID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Edit",
+				Task_ActionDetails_Code         : CountryBasedAIRevisionID,
+				Task_RelatedTo                  : "Country Clinical Data",
+				Task_RelatedTo_Code             : ai_id,
+				Task_Status                     : 0,
+				icon							: 'fa fa-edit',
+				iconColor						: '#04ec65',
 			}
-
+			
 			var UserInSockets = clients.find(o => o.UserID === EditorCountryBasedAIID);
 			if(UserInSockets){
 				console.log(clients);
@@ -2004,8 +1974,8 @@ app.post('/addStrengthUnits',function (request, response){
 		async function AddNewTasks(){
 			var Publisher_ID = await getEmployeeId();
 			var resultTNRevision = await updateTNRevision(Publisher_ID);
-			var MasterTasks_ID   = await getMasterTasksId();
-			insetIntoTNTasks(Publisher_ID,MasterTasks_ID);
+			var Tasks_ID   = await getTasksId();
+			insetIntoTasks(Publisher_ID,Tasks_ID);
 		}
 
 		function getEmployeeId(){
@@ -2051,13 +2021,11 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
-
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				TNTasks.getLastCode(function(err, TNMaTs){
-					if (TNMaTs) 
-						resolve( Number(TNMaTs.TN_Master_Clinical_Data_Task_Code)+1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
@@ -2065,35 +2033,33 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function insetIntoTNTasks(Publisher_ID,MasterTasks_ID){
-			var newTNTasks =  TNTasks() ;
-
-			newTNTasks.TN_Master_Clinical_Data_Task_Code       							  = MasterTasks_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_Title 								  = request.body.TN_Name;
-			newTNTasks.TN_Master_Clinical_Data_Task_AssignDate 						      = new Date();
-			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Code 	  				      = 2;
-			newTNTasks.TN_Master_Clinical_Data_Task_Task_Type_Name 	  				      = "Publish";
-			newTNTasks.TN_Master_Clinical_Data_Task_AssignTo_Employee_Code   			  = Publisher_ID;
-			newTNTasks.TN_Master_Clinical_Data_Task_ClosedDate 							  = null;
-			newTNTasks.TN_Master_Clinical_Data_Task_Status 								  = 0;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Code 							  = request.body.TN_Master_Clinical_Data_Task_TN_Code;
-			newTNTasks.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code 			  = request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code;	 
-			newTNTasks.save();
+		function insetIntoTasks(Publisher_ID,Tasks_ID){
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.TN_Name;
+			newTask.Task_AssignTo_Employee_Code     = Publisher_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Publish";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Master TN";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo_Code;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.TN_Name,	
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.TN_Name,
+				Task_AssignTo_Employee_Code     : Publisher_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Publish",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Master TN",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo_Code,
+				Task_Status                     :0,
 				icon: 'fa fa-cloud-upload',
 				iconColor: '#4ebcd4',
-				revisionid : request.body.TN_Master_Clinical_Data_Task_TN_Master_Revision_Code,
-				taskid: MasterTasks_ID,
-				objid : request.body.TN_Master_Clinical_Data_Task_TN_Code,
-				date : new Date(),
-				group : 'Publish',
-				over: 'Master TN',
-				AssignTo_Employee_Code : Publisher_ID,
-				Task_Status 			:0
 			}
-
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
 			if(UserInSockets){
@@ -2138,19 +2104,19 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					TN_Master_Clinical_Data_Task_Status 				: 1,
-					TN_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { TN_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				TNTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -2321,30 +2287,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 		AddNewTNData();
 	})
-
-	app.post('/getUserTNTasksbyUserID', function(request, response) {
-		TNTasks.find({ $and:[ {'TN_Master_Clinical_Data_Task_AssignTo_Employee_Code': Number(request.body.user_id)},
-		 {'TN_Master_Clinical_Data_Task_Status':0} ]},function(err, tasks) {
-			if (err){
-	    		return response.send({
-					message: err
-				});
-	    	}
-	    	if (tasks.length == 0) {
-				return response.send({
-					// user : request.user ,
-					message: 'No Roles Found !!',
-					length: tasks.length
-				});
-        	} else {
-				return response.send({
-					// user : request.user ,
-					tasks: tasks
-				});
-			}
-		})
-	});
-
 
 	// get  basic data of TN
 	app.get('/getTNRevisionByID', function(request, response) {
@@ -2546,27 +2488,27 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  			= await updateTaskDone();
 			var Reviewer_ID 			= await getEmployeeId();
 			var resultBasedAIRevision 	= await updateBasedAIRevision(Reviewer_ID);
-			var CountryBasedAI_ID   		= await getCountryBasedAITaskID();
-			insetIntoCountryBasedAITasks(Reviewer_ID,CountryBasedAI_ID);
+			var Task_ID   				= await getTasksId();
+			insetIntoTasks(Reviewer_ID,Task_ID);
 		}
 
 		function updateTaskDone(){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					CountryBasedAITask_Status 				: 1,
-					CountryBasedAITask_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { CountryBasedAITask_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				CountryBasedAITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -2620,46 +2562,44 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
-		function getCountryBasedAITaskID(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				CountryBasedAITasks.getLastCode(function(err, AIbasedTask){
-					if (AIbasedTask) 
-						resolve( Number(AIbasedTask.CountryBasedAITask_Code)+1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
 
-		function insetIntoCountryBasedAITasks(Reviewer_ID,CountryBasedAI_ID){
-			var newBasedAITasks =  CountryBasedAITasks() ;
-			newBasedAITasks.CountryBasedAITask_Code       			    = CountryBasedAI_ID;
-			newBasedAITasks.CountryBasedAITask_Title 					= request.body.name;
-			newBasedAITasks.CountryBasedAITask_AssignDate 				= new Date();
-			newBasedAITasks.CountryBasedAITask_Task_Type_Code 	  		= 2;
-			newBasedAITasks.CountryBasedAITask_Task_Type_Name 	  		= "Review";
-			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Reviewer_ID;
-			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
-			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
-			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
-			newBasedAITasks.save();
+		function insetIntoTasks(Reviewer_ID,Task_ID){
 
-			NotificationDetails ='';
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Task_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Reviewer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Review";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Country Clinical Data";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
+				Task_Code                       : Task_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Reviewer_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Country Clinical Data",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo,
+				Task_Status                     :0,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
-				revisionid : request.body.CountryBasedAITask_Revision_Code,
-				taskid: CountryBasedAI_ID,
-				objid : request.body.CountryBasedAITask_AI_Code,
-				date : new Date(),
-				group : 'Review',
-				over: 'Country Clinical Data',
-				AssignTo_Employee_Code : Reviewer_ID,
-				Task_Status 			:0
 			}
 
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
@@ -2695,21 +2635,21 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  			= await updateTaskDone();
 			var Grammer_ID 			= await getEmployeeId();
 			var resultBasedAIRevision 	= await updateBasedAIRevision(Grammer_ID);
-			var CountryBasedAI_ID   		= await getCountryBasedAITaskID();
-			insetIntoCountryBasedAITasks(Grammer_ID,CountryBasedAI_ID);
+			var Tasks_ID   		= await getTasksId();
+			insetIntoTasks(Grammer_ID,Tasks_ID);
 		}
 
 		function updateTaskDone(){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					CountryBasedAITask_Status 				: 1,
-					CountryBasedAITask_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { CountryBasedAITask_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				CountryBasedAITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
@@ -2770,46 +2710,45 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getCountryBasedAITaskID(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				CountryBasedAITasks.getLastCode(function(err, AIbasedTask){
-					if (AIbasedTask) 
-						resolve( Number(AIbasedTask.CountryBasedAITask_Code)+1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
-
-		function insetIntoCountryBasedAITasks(Grammer_ID,CountryBasedAI_ID){
-			var newBasedAITasks =  CountryBasedAITasks() ;
-			newBasedAITasks.CountryBasedAITask_Code       			    = CountryBasedAI_ID;
-			newBasedAITasks.CountryBasedAITask_Title 					= request.body.name;
-			newBasedAITasks.CountryBasedAITask_AssignDate 				= new Date();
-			newBasedAITasks.CountryBasedAITask_Task_Type_Code 	  		= 3;
-			newBasedAITasks.CountryBasedAITask_Task_Type_Name 	  		= "Grammer";
-			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Grammer_ID;
-			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
-			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
-			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
 			
-			newBasedAITasks.save();
 
-			NotificationDetails ='';
+		function insetIntoTasks(Grammer_ID,Tasks_ID){
+
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Grammer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Grammer";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Country Clinical Data";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo_Code;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Grammer_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Grammer",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Country Clinical Data",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo_Code,
+				Task_Status                     :0,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
-				revisionid : request.body.CountryBasedAITask_Revision_Code,
-				taskid: CountryBasedAI_ID,
-				objid : request.body.CountryBasedAITask_AI_Code,
-				date : new Date(),
-				group : 'Grammer',
-				over: 'Country Clinical Data',
-				AssignTo_Employee_Code : Grammer_ID,
-				Task_Status 			:0
 			}
 
 			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
@@ -2844,27 +2783,27 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  			= await updateTaskDone();
 			var Publisher_ID 			= await getEmployeeId();
 			var resultBasedAIRevision 	= await updateBasedAIRevision(Publisher_ID);
-			var CountryBasedAI_ID   	= await getCountryBasedAITaskID();
-			insetIntoCountryBasedAITasks(Publisher_ID,CountryBasedAI_ID);
+			var Tasks_ID   	= await getTasksId();
+			insetIntoTasks(Publisher_ID,Tasks_ID);
 		}
 
 		function updateTaskDone(){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					CountryBasedAITask_Status 				: 1,
-					CountryBasedAITask_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { CountryBasedAITask_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				CountryBasedAITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -2873,7 +2812,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
 
 		function getEmployeeId(){
 			return new Promise((resolve, reject) => {
@@ -2919,46 +2857,43 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getCountryBasedAITaskID(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				CountryBasedAITasks.getLastCode(function(err, AIbasedTask){
-					if (AIbasedTask) 
-						resolve( Number(AIbasedTask.CountryBasedAITask_Code)+1);
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
 
-		function insetIntoCountryBasedAITasks(Publisher_ID,CountryBasedAI_ID){
-			var newBasedAITasks =  CountryBasedAITasks() ;
-			newBasedAITasks.CountryBasedAITask_Code       			    = CountryBasedAI_ID;
-			newBasedAITasks.CountryBasedAITask_Title 					= request.body.name;
-			newBasedAITasks.CountryBasedAITask_AssignDate 				= new Date();
-			newBasedAITasks.CountryBasedAITask_Task_Type_Code 	  		= 4;
-			newBasedAITasks.CountryBasedAITask_Task_Type_Name 	  		= "Publish";
-			newBasedAITasks.CountryBasedAITask_AssignTo_Employee_Code   = Publisher_ID;
-			newBasedAITasks.CountryBasedAITask_ClosedDate 				= null;
-			newBasedAITasks.CountryBasedAITask_Status 				    = 0;
-			newBasedAITasks.CountryBasedAITask_Revision_Code 			= request.body.CountryBasedAITask_Revision_Code;	 
-			newBasedAITasks.CountryBasedAITask_AI_Code  				= request.body.CountryBasedAITask_AI_Code;
-			
-			newBasedAITasks.save();
-
-			NotificationDetails ='';
+		function insetIntoTasks(Publisher_ID,Tasks_ID){
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Publisher_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Publish";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Country Clinical Data";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo_Code;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
-				icon: 'fa fa-eye',
-				iconColor: '#04ec65',
-				revisionid : request.body.CountryBasedAITask_Revision_Code,
-				taskid: CountryBasedAI_ID,
-				objid : request.body.CountryBasedAITask_AI_Code,
-				date : new Date(),
-				group : 'Publish',
-				over: 'Country Clinical Data',
-				AssignTo_Employee_Code : Publisher_ID,
-				Task_Status 			:0
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Publisher_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Country Clinical Data",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo_Code,
+				Task_Status                     :0,
+				icon: 'fa fa-cloud-upload',
+				iconColor: '#4ebcd4',
 			}
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
@@ -4214,8 +4149,8 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultAI  			= await updateAI();
 			var Reviewer_ID 		= await getEmployeeId();
 			var resultAIRevision  	= await updateAIRevision(Reviewer_ID);
-			var MasterTasks_ID   	= await getMasterTasksId();
-			insetIntoAITasks(Reviewer_ID,MasterTasks_ID);
+			var Tasks_ID   			= await getTasksId();
+			insetIntoTasks(Reviewer_ID,Tasks_ID);
 		}
 
 		function updateTaskDone(){
@@ -4313,48 +4248,46 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				AITasks.getLastCode(function(err, AIMaTs){
+				UniversalTasks.getLastCode(function(err, AIMaTs){
 					if (AIMaTs) 
-						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
+			
 
-		function insetIntoAITasks(Reviewer_ID,MasterTasks_ID){
+		function insetIntoTasks(Reviewer_ID,Tasks_ID){
 
-			var newAITasks =  AITasks() ;
-			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 				    = new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Review";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code      = Reviewer_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 				    = null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id;	 
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
-			newAITasks.save();
-
-			NotificationDetails='';
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Reviewer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Review";
+			newTask.Task_ActionDetails_Code         = request.body.ai_revision_id;
+			newTask.Task_RelatedTo                  = "Master AI";
+			newTask.Task_RelatedTo_Code             = request.body.ai_id;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Reviewer_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : request.body.ai_revision_id,
+				Task_RelatedTo                  : "Master AI",
+				Task_RelatedTo_Code             : request.body.ai_id,
+				Task_Status                     : 0,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
-				revisionid : request.body.ai_revision_id,
-				taskid: MasterTasks_ID,
-				objid : request.body.ai_id,
-				date : new Date(),
-				group : 'Review',
-				over: 'Master AI',
-				AssignTo_Employee_Code : Reviewer_ID,
-				Task_Status 			:0
 			}
-			
 
 			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
 			if(UserInSockets){
@@ -4414,8 +4347,8 @@ app.post('/addStrengthUnits',function (request, response){
 			var resultTask  	  = await updateTaskDone();
 			var Grammer_ID  	  = await getEmployeeId();
 			var resultAIRevision  = await updateAIRevision(Grammer_ID);
-			var MasterTasks_ID    = await getMasterTasksId();
-			insetIntoAITasks(Grammer_ID,MasterTasks_ID);
+			var Tasks_ID    	  = await getTasksId();
+			insetIntoTasks(Grammer_ID,Tasks_ID);
 		}
 
 		function updateTaskDone(){
@@ -4444,16 +4377,17 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				AITasks.getLastCode(function(err, AIMaTs){
-					if (AIMaTs) 
-						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
-					else
-						resolve(1);
+			UniversalTasks.getLastCode(function(err, AIMaTs){
+				if (AIMaTs) 
+					resolve( Number(AIMaTs.Task_Code)+1);
+				else
+					resolve(1);
 				})
 			})
 		};
+			
 
 		function getEmployeeId(){
 			return new Promise((resolve, reject) => {
@@ -4500,37 +4434,33 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function insetIntoAITasks(Grammer_ID,MasterTasks_ID){
-		
-			var newAITasks =  AITasks() ;
+		function insetIntoTasks(Grammer_ID,Tasks_ID){
 
-			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 				    = new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Grammer Review";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code   	= Grammer_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 				    = null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 					    = 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id; 
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
-			
-			newAITasks.save();
-
-			NotificationDetails='';
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Grammer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Grammer Review";
+			newTask.Task_ActionDetails_Code         = request.body.ai_revision_id;
+			newTask.Task_RelatedTo                  = "Master AI";
+			newTask.Task_RelatedTo_Code             = request.body.ai_id;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Grammer_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Grammer Review",
+				Task_ActionDetails_Code         : request.body.ai_revision_id,
+				Task_RelatedTo                  : "Master TN",
+				Task_RelatedTo_Code             : request.body.ai_id,
+				Task_Status                     : 0,
 				icon: 'fa fa-eye',
 				iconColor: '#04ec65',
-				revisionid : request.body.ai_revision_id,
-				taskid: MasterTasks_ID,
-				objid : request.body.ai_id,
-				date : new Date(),
-				group : 'Grammer',
-				over: 'Master AI',
-				AssignTo_Employee_Code : Grammer_ID,
-				Task_Status 			:0
 			}
 
 			var UserInSockets = clients.find(o => o.UserID === Grammer_ID);
@@ -4566,8 +4496,8 @@ app.post('/addStrengthUnits',function (request, response){
 			var Publisher_ID 	  = await getEmployeeId();
 			var resultAIRevision  = await updateAIRevision(Publisher_ID);
 
-			var MasterTasks_ID    = await getMasterTasksId();
-			insetIntoAITasks(Publisher_ID,MasterTasks_ID);
+			var Tasks_ID    = await getTasksId();
+			insetIntoTasks(Publisher_ID,Tasks_ID);
 		}
 
 		function updateTaskDone(){
@@ -4640,50 +4570,46 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				AITasks.getLastCode(function(err, AIMaTs){
-					if (AIMaTs) 
-						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
-					else
-						resolve(1);
+			UniversalTasks.getLastCode(function(err, AIMaTs){
+				if (AIMaTs) 
+					resolve( Number(AIMaTs.Task_Code)+1);
+				else
+					resolve(1);
 				})
 			})
 		};
 
 
-		function insetIntoAITasks(Publisher_ID,MasterTasks_ID){
+		function insetIntoTasks(Publisher_ID,Tasks_ID){
 		
-			var newAITasks =  AITasks() ;
-
-			newAITasks.AI_Master_Clinical_Data_Task_Code       					= MasterTasks_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_Title 					    = request.body.name;
-			newAITasks.AI_Master_Clinical_Data_Task_AssignDate 					= new Date();
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  		    = 2;
-			newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  		    = "Publish";
-			newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code      = Publisher_ID;
-			newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 					= null;
-			newAITasks.AI_Master_Clinical_Data_Task_Status 						= 0;
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code 	= request.body.ai_revision_id;	 
-			newAITasks.AI_Master_Clinical_Data_Task_AI_Code						= request.body.ai_id;
-			
-			newAITasks.save();
-
-			NotificationDetails='';
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Publisher_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Publish";
+			newTask.Task_ActionDetails_Code         = request.body.ai_revision_id;
+			newTask.Task_RelatedTo                  = "Master AI";
+			newTask.Task_RelatedTo_Code             = request.body.ai_id;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
 
 			NotificationDetails = {
-				title: request.body.name,
-				icon: 'fa fa-eye',
-				iconColor: '#04ec65',
-				revisionid : request.body.ai_revision_id,
-				taskid: MasterTasks_ID,
-				objid : request.body.ai_id,
-				date : new Date(),
-				group : 'Publish',
-				over: 'Master AI',
-				AssignTo_Employee_Code : Publisher_ID,
-				Task_Status 			:0
-			}
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Publisher_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Publish",
+				Task_ActionDetails_Code         : request.body.ai_revision_id,
+				Task_RelatedTo                  : "Master AI",
+				Task_RelatedTo_Code             : request.body.ai_id,
+				Task_Status                     :0,
+				icon: 'fa fa-cloud-upload',
+				iconColor: '#4ebcd4',
+			}				
 
 			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
 			if(UserInSockets){
@@ -4729,9 +4655,9 @@ app.post('/addStrengthUnits',function (request, response){
 		
 		async function getLastAIID(){
 			var AIVersionCode    = await getAIVersionCode();
-			var MasterTasks_ID   = await getMasterTasksId();
+			var Tasks_ID   = await getTasksId();
 			var AIRevision_ID    = await getAIRevisionId();
-			insetIntoAIRevision(MasterTasks_ID,AIRevision_ID,AIVersionCode);
+			insetIntoAIRevision(Tasks_ID,AIRevision_ID,AIVersionCode);
 		}
 
 		function getAIVersionCode(){
@@ -4745,16 +4671,17 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		}
 
-		function getMasterTasksId(){
+		function getTasksId(){
 			return new Promise((resolve, reject) => {
-				AITasks.getLastCode(function(err, AIMaTs){
+				UniversalTasks.getLastCode(function(err, AIMaTs){
 					if (AIMaTs) 
-						resolve( Number(AIMaTs.AI_Master_Clinical_Data_Task_Code)+1);
+						resolve( Number(AIMaTs.Task_Code)+1);
 					else
 						resolve(1);
 				})
 			})
 		};
+				
 
 		function getAIRevisionId(){
 			return new Promise((resolve, reject) => {
@@ -4768,7 +4695,7 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 
-		function insetIntoAIRevision(MasterTasks_ID,AIRevision_ID,AIVersionCode){
+		function insetIntoAIRevision(Tasks_ID,AIRevision_ID,AIVersionCode){
 		
 			var newAiReVision = AIRevisions();
 
@@ -4799,21 +4726,48 @@ app.post('/addStrengthUnits',function (request, response){
 						message: error
 					});
 				}else{
+					var newTask =  UniversalTasks() ;
+					newTask.Task_Code                       = Tasks_ID;
+					newTask.Task_Title                      = request.body.AI_Name;
+					newTask.Task_AssignTo_Employee_Code     = request.body.Employee_ID;
+					newTask.Task_AssignDate                 = new Date();
+					newTask.Task_ActionTypeName             = "Edit";
+					newTask.Task_ActionDetails_Code         = AIRevision_ID;
+					newTask.Task_RelatedTo                  = "Master AI";
+					newTask.Task_RelatedTo_Code             = request.body.AI_Code;
+					newTask.Task_Status                     = 0;
+					newTask.Task_ClosedDate                 = null;
+					newTask.save();
 
-					var newAITasks =  AITasks() ;
-
-					newAITasks.AI_Master_Clinical_Data_Task_Code       				= MasterTasks_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_Title 				    = request.body.AI_Name;
-					newAITasks.AI_Master_Clinical_Data_Task_AssignDate 			    = new Date();
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Code 	  	    = 1;
-					newAITasks.AI_Master_Clinical_Data_Task_Task_Type_Name 	  	    = "Edit";
-					newAITasks.AI_Master_Clinical_Data_Task_AssignTo_Employee_Code  = request.body.Employee_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_ClosedDate 			    = null;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Master_Revision_Code	= AIRevision_ID;
-					newAITasks.AI_Master_Clinical_Data_Task_AI_Code					= request.body.AI_Code;
-					newAITasks.AI_Master_Clinical_Data_Task_Status 					= 0;
-					newAITasks.save();
-
+					NotificationDetails = {
+						Task_Code                       : Tasks_ID,
+						Task_Title                      : request.body.AI_Name,
+						Task_AssignTo_Employee_Code     : request.body.Employee_ID,
+						Task_AssignDate                 : new Date(),
+						Task_ActionTypeName             : "Edit",
+						Task_ActionDetails_Code         : TNRevisionNextCode,
+						Task_RelatedTo                  : "Master AI",
+						Task_RelatedTo_Code             : request.body.AI_Code,
+						Task_Status                     :0,
+						icon: 'fa fa-edit',
+						iconColor: '#ef9a29',
+					}
+					var UserInSockets = clients.find(o => o.UserID === request.body.Employee_ID);
+					if(UserInSockets){
+						console.log(clients);
+						var ClientSocketArray = clients.filter(function(obj) {
+							if(obj.UserID === 1)
+								return true
+							else
+								return false
+						});
+						ClientSocketArray.forEach(function (arrayItem) {
+							var SocktesToSendNotification = arrayItem.Socket;
+							console.log(SocktesToSendNotification)
+							io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+						});
+						
+					}
 					return response.send({
 						message: true,
 						TaskID : MasterTasks_ID,
