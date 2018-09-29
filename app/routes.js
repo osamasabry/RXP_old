@@ -75,6 +75,15 @@ var CountryBasedAIHistory      = require('../app/models/country_based_AI_history
 var UniversalTasks 			   = require('../app/models/Universal_tasks');
 
 
+var CountryBasedTN             = require('../app/models/country_based_TN');
+
+var CountryBasedTNRevision     = require('../app/models/country_based_TN_revision');
+
+var CountryBasedTNHistory      = require('../app/models/country_based_TN_history');
+
+
+
+
 
 var  nextCode ='';
 var data = [];
@@ -1577,9 +1586,9 @@ app.post('/addStrengthUnits',function (request, response){
 
 	// add  of TN revision
 	app.post('/addTNRevision',function (request, response){
-
+		var TNID =0;
 		async function AddNewTNRevisionData(){
-			var TNID 					 	  = await getNextTNID();
+			TNID 					 	  	  = await getNextTNID();
 			var insertTN         		 	  = await insetIntoTN(TNID);
 			var TNRevisionNextCode      	  = await getNextTNRevisionCode();
 			var Reviewer_ID 	        	  = await getEmployeeId();
@@ -1775,7 +1784,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 			
 
-		async function addTaskCountry(ai_ids,cont_ids){
+		async function addTaskCountryClincal(ai_ids,cont_ids){
 
 			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
 			var CountryBasedAIID           	= await getNextCountryBasedAIID();
@@ -1957,11 +1966,159 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-		AddNewTNRevisionData();
-		// country_ids
-        // addTaskCountry(request.body.TN_ActiveIngredients,ids);
 
-        addTaskCountry(request.body.TN_ActiveIngredients,request.body.TN_Countries);
+
+
+		async function addTaskCountryNonClincal(TNID,cont_ids){
+
+			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
+			var CountryBasedTNID           	= await getNextCountryBasedTNID();
+			var CountryBasedTNIDRevision    = await getNextCountryBasedTNRevisionID();
+			var TaskID  				   	= await getTasksId();
+			
+				
+				for (var j = 0; j < CountryIsDB.length; j++) {
+					var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
+					var Title 				  		  = ai_name +' for '+ CountryIsDB[j].Country_Name; 			
+					var InsertCountryBasedTN      	  = await insertIntoCountryBasedTN(CountryBasedTNID,country_id,TNID);
+					var EditorCountryBasedTNID        = await getEditorCountryBasedTN(country_id);
+					var InsertCountryBasedTNRevision  = await insertIntoCountryBasedTNRevision(CountryBasedTNIDRevision,CountryBasedTNID,country_id,TNID,EditorCountryBasedTNID);
+					var InsertIntoTasks 			  = await insertIntoTasks(TaskID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID);
+					
+					CountryBasedTNID++;
+					CountryBasedTNIDRevision++;
+					TaskID++;
+				}
+		}
+
+
+		function getNextCountryBasedTNID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedTN.getLastCode(function(err, tn){
+					if (tn) 
+						resolve( Number(tn.CountryBasedTN_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
+			
+		function getNextCountryBasedTNRevisionID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedTNRevision.getLastCode(function(err, revision){
+					if (revision) 
+						resolve( Number(revision.CountryBasedTNRevision_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
+
+		function insertIntoCountryBasedTN(CountryBasedTNID,country_id,TNID){
+			var newCountryBasedTN =  CountryBasedTN() ;
+
+			newCountryBasedTN.CountryBasedTN_Code       	= CountryBasedTNID;
+			newCountryBasedTN.CountryBasedTN_TN_Code 		= TNID;
+			newCountryBasedTN.CountryBasedTN_Country_ID 	= country_id;
+			newCountryBasedTN.save(function(err,done){;
+				if (err) {
+					return response.send({
+						message: err
+					});
+				}
+				if (done) {
+					return response.send({
+						message: true
+					});
+				}	
+				
+			})
+		}
+
+		function getEditorCountryBasedTN(country_id){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 2 },{ Employee_Role_Sub_Role_Type:4 },{ Employee_Role_Country_Code:country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Employee_Code);
+			        }
+		    	});
+			})
+		}
+
+		function insertIntoCountryBasedTNRevision(CountryBasedTNIDRevision,CountryBasedTNID,country_id,TNID,EditorCountryBasedTNID){
+			var newCountryBasedTNRevision =  CountryBasedTNRevision() ;
+
+			newCountryBasedTNRevision.CountryBasedTNRevision_Code       					    = CountryBasedTNIDRevision;
+			newCountryBasedTNRevision.CountryBasedTNRevision_TN_Code       					    = TNID;
+			newCountryBasedTNRevision.CountryBasedTNRevision_Country_ID       					= country_id;
+			newCountryBasedTNRevision.CountryBasedTNRevision_CountryBasedTN_Code				= CountryBasedTNID;
+			newCountryBasedTNRevision.CountryBasedTNRevision_AssiendToEditor_Employee_ID 		= EditorCountryBasedTNID;
+			newCountryBasedTNRevision.CountryBasedTNRevision_EditStatus 						= 0;
+			newCountryBasedTNRevision.CountryBasedTNRevision_EditDate_Start 	  				= new Date();
+			newCountryBasedTNRevision.save();
+
+			return response.send({
+				message: true
+			});
+		}
+
+		function insertIntoTasks(Tasks_ID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID){
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = Title;
+			newTask.Task_AssignTo_Employee_Code     = EditorCountryBasedTNID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Edit";
+			newTask.Task_ActionDetails_Code         = CountryBasedTNIDRevision;
+			newTask.Task_RelatedTo                  = "Country Non Clinical Data";
+			newTask.Task_RelatedTo_Code             = TNID;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
+
+			NotificationDetails = {
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : Title,
+				Task_AssignTo_Employee_Code     : EditorCountryBasedTNID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Edit",
+				Task_ActionDetails_Code         : CountryBasedTNIDRevision,
+				Task_RelatedTo                  : "Country Non Clinical Data",
+				Task_RelatedTo_Code             : TNID,
+				Task_Status                     : 0,
+				icon							: 'fa fa-edit',
+				iconColor						: '#04ec65',
+			}
+			
+			var UserInSockets = clients.find(o => o.UserID === EditorCountryBasedTNID);
+			if(UserInSockets){
+				console.log(clients);
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
+			return response.send({
+				message: true
+			});
+		}
+
+		AddNewTNRevisionData();
+		
+        addTaskCountryClincal(request.body.TN_ActiveIngredients,request.body.TN_Countries);
+        addTaskCountryNonClincal(TNID,request.body.TN_Countries);
+		
 	});
 
 
@@ -2425,6 +2582,518 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			})
 	}); 
+
+
+
+	// new route :: 29/9/2018
+
+	app.get('/getCountryBasedTNRevision', function(request, response) {
+
+		CountryBasedTNRevision.find({CountryBasedTNRevision_Code:request.body.CountryBasedTNRevision_Code}, function(err, basedtn) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (basedtn) {
+	        	
+	            response.send(basedtn);
+	        } 
+    	})
+    });
+
+
+	app.post('/editCountryBasedTNRevision',function (request, response){
+
+		var newvalues = { $set: {
+				CountryBasedTNRevision_Price		: request.body.CountryBasedTNRevision_Price,
+			    CountryBasedTNRevision_Images		: request.body.CountryBasedTNRevision_Images,
+			   
+			} };
+
+		var myquery = { CountryBasedTNRevision_Code: request.body.row_id }; 
+
+
+		CountryBasedTNRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'Country TN not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
+
+	app.post('/AddTaskCountryBasedTNRevisionToReviewer',function (request, response){
+
+		async function AddNewTasks(){
+			var resultTask  			= await updateTaskDone();
+			var Reviewer_ID 			= await getEmployeeId();
+			var resultBasedTNRevision 	= await updateBasedTNRevision(Reviewer_ID);
+			var Task_ID   				= await getTasksId();
+			insetIntoTasks(Reviewer_ID,Task_ID);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { Task_Code: request.body.task_id }; 
+
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Task Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 2 }, { Employee_Role_Sub_Role_Type: 4 },{ Employee_Role_Country_Code:request.body.country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Employee_Code);
+			        } 
+		    	});
+			})
+		}
+
+		function updateBasedTNRevision(Reviewer_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						CountryBasedTNRevision_EditStatus 						: 1,
+						CountryBasedTNRevision_EditedBy_Employee_ID   			:request.body.user_id,
+						CountryBasedTNRevision_EditDate_Close 					:new Date(),
+
+						CountryBasedTNRevision_AssiendToReviewer_Employee_ID  	:Reviewer_ID,
+						CountryBasedTNRevision_ReviewStatus						:0,
+						CountryBasedTNRevision_ReviewDate_Start					:new Date(),
+				} };
+
+				var myquery = { CountryBasedTNRevision_Code: request.body.based_tn_revision_id }; 
+
+				CountryBasedTNRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getTasksId(){
+			return new Promise((resolve, reject) => {
+				UniversalTasks.getLastCode(function(err, AIMaTs){
+					if (AIMaTs) 
+						resolve( Number(AIMaTs.Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insetIntoTasks(Reviewer_ID,Task_ID){
+
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Task_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Reviewer_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Review";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Country Non Clinical Data";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
+
+			NotificationDetails = {
+				Task_Code                       : Task_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Reviewer_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Country Clinical Data",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo,
+				Task_Status                     :0,
+				icon: 'fa fa-eye',
+				iconColor: '#04ec65',
+			}
+
+			var UserInSockets = clients.find(o => o.UserID === Reviewer_ID);
+			if(UserInSockets){
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+		AddNewTasks();
+	});
+
+	app.post('/AddTaskCountryBasedTNRevisionToPublisher',function (request, response){
+
+		async function AddNewTasks(){
+			var resultTask  			= await updateTaskDone();
+			var Publisher_ID 			= await getEmployeeId();
+			var resultBasedTNRevision 	= await updateBasedTNRevision(Publisher_ID);
+			var Tasks_ID   	= await getTasksId();
+			insetIntoTasks(Publisher_ID,Tasks_ID);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { Task_Code: request.body.task_id }; 
+
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Task Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:4 }, { Employee_Role_Type_Code: 2 }, { Employee_Role_Sub_Role_Type: 4 },{ Employee_Role_Country_Code:request.body.country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Employee_Code);
+			        } 
+		    	});
+			})
+		}
+
+		function updateBasedTNRevision(Publisher_ID){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						CountryBasedTNRevision_ReviewStatus 					: 1,
+						CountryBasedTNRevision_ReviewedBy_Employee_ID   		:request.body.user_id,
+						CountryBasedTNRevision_ReviewDate_Close 				:new Date(),
+
+						CountryBasedTNRevision_AssiendToPublisher_Employee_ID  	:Publisher_ID,
+						CountryBasedTNRevision_PublishStatus					:0,
+						CountryBasedTNRevision_PublishDate_Start				:new Date(),
+				} };
+
+				var myquery = { CountryBasedTNRevision_Code: request.body.based_tn_revision_id }; 
+
+				CountryBasedTNRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getTasksId(){
+			return new Promise((resolve, reject) => {
+				UniversalTasks.getLastCode(function(err, TNMaTs){
+					if (TNMaTs) 
+						resolve( Number(TNMaTs.Task_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+		function insetIntoTasks(Publisher_ID,Tasks_ID){
+			var newTask =  UniversalTasks() ;
+			newTask.Task_Code                       = Tasks_ID;
+			newTask.Task_Title                      = request.body.name;
+			newTask.Task_AssignTo_Employee_Code     = Publisher_ID;
+			newTask.Task_AssignDate                 = new Date();
+			newTask.Task_ActionTypeName             = "Publish";
+			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_RelatedTo                  = "Country Non Clinical Data";
+			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo_Code;
+			newTask.Task_Status                     = 0;
+			newTask.Task_ClosedDate                 = null;
+			newTask.save();
+
+			NotificationDetails = {
+				Task_Code                       : Tasks_ID,
+				Task_Title                      : request.body.name,
+				Task_AssignTo_Employee_Code     : Publisher_ID,
+				Task_AssignDate                 : new Date(),
+				Task_ActionTypeName             : "Review",
+				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_RelatedTo                  : "Country 	Non linical Data",
+				Task_RelatedTo_Code             : request.body.Task_RelatedTo_Code,
+				Task_Status                     :0,
+				icon: 'fa fa-cloud-upload',
+				iconColor: '#4ebcd4',
+			}
+
+			var UserInSockets = clients.find(o => o.UserID === Publisher_ID);
+			if(UserInSockets){
+				var ClientSocketArray = clients.filter(function(obj) {
+					if(obj.UserID === 1)
+						return true
+					else
+						return false
+				});
+				ClientSocketArray.forEach(function (arrayItem) {
+					var SocktesToSendNotification = arrayItem.Socket;
+					io.sockets.connected[SocktesToSendNotification].emit("notification", NotificationDetails);
+				});
+				
+			}
+
+			return response.send({
+				message: true
+			});
+		}
+
+
+		AddNewTasks();
+	});
+
+	app.post('/AddCountryBasedTNData',function (request, response){
+
+		async function AddNewCountryBasedTNData(){
+			var resultTask  					= await updateTaskDone();
+			var resultCountryBasedTNRevision    = await updateCountryBasedTNRevision();
+			var dataCountryBasedRevision   		= await getCountryBasedTNRevision(request.body.based_tn_revision_id);
+			var UpdateCountryBasedTN         	= await UpdateCountryBasedTN(dataCountryBasedRevision);
+			var CountryBasedTNHistoryID      	= await getCountryBasedTNHistoryID();
+			var insertCountryBasedHistory  		= await insetCountryBasedHistory(dataCountryBasedRevision,CountryBasedTNHistoryID);
+			var removeCountryBasedRevision 		= await removeOldCountryBasedRevision(request.body.based_tn_revision_id);
+		}
+
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { Task_Code: request.body.task_id }; 
+
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function updateCountryBasedTNRevision(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+						CountryBasedTNRevision_PublishStatus 			: 1,
+						CountryBasedTNRevision_Publishedby_Employee_ID  :request.body.user_id,
+						CountryBasedTNRevision_PublishDate_Close 		:new Date(),
+						CountryBasedTNRevision_RevisionCode				:1,
+				} };
+
+				var myquery = { CountryBasedTNRevision_Code: request.body.based_tn_revision_id }; 
+
+				CountryBasedTNRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Field Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
+
+		function getCountryBasedTNRevision(revision_id){
+			return new Promise((resolve, reject) => {
+				CountryBasedTNRevision.findOne({CountryBasedTNRevision_Code:revision_id} ,function(err, Basedrevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(Basedrevision);
+				})
+			})
+		};
+
+		function UpdateCountryBasedTN(data){
+
+			var newvalues = { $set: {
+	            
+	            CountryBasedTN_Price					: data.CountryBasedTNRevision_Price,
+	            CountryBasedTN_Images					: data.CountryBasedTNRevision_Images,
+			} };
+
+			var myquery = { CountryBasedTN_Code: data.CountryBasedTNRevision_CountryBasedTN_Code };
+
+
+			CountryBasedTN.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'Country TN not exists'
+				});
+            } else {
+
+                return response.send({
+					message: true
+				});
+			}
+			})
+		}
+
+		function getCountryBasedTNHistoryID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedTNHistory.getLastCode(function(err, BasedTN){
+					if (BasedTN) 
+						resolve( Number(BasedTN.CountryBasedTNHistory_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		};
+
+
+		function insetCountryBasedHistory(data,CountryBasedTNHistoryID){
+			var newCountryBasedTNHistory = new CountryBasedTNHistory();
+			newCountryBasedTNHistory.CountryBasedTNHistory_Code     						= CountryBasedTNHistoryID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_Storage   						= data.CountryBasedTNRevision_Storage;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_Stability  						= data.CountryBasedTNRevision_Stability;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_TN_Code 							= data.CountryBasedTNRevision_TN_Code;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_Country_ID						= data.CountryBasedTNRevision_Country_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_CountryBasedTN_Code				= data.CountryBasedTNRevision_CountryBasedTN_Code;
+		    
+		    newCountryBasedTNHistory.CountryBasedTNHistory_AssiendToEditor_Employee_ID		= data.CountryBasedTNRevision_AssiendToEditor_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_EditStatus						= data.CountryBasedTNRevision_EditStatus;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_EditDate_Start					= data.CountryBasedTNRevision_EditDate_Start;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_EditedBy_Employee_ID				= data.CountryBasedTNRevision_EditedBy_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_EditDate_Close					= data.CountryBasedTNRevision_EditDate_Close;
+		    
+		    newCountryBasedTNHistory.CountryBasedTNHistory_AssiendToReviewer_Employee_ID	= data.CountryBasedTNRevision_AssiendToReviewer_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_ReviewStatus						= data.CountryBasedTNRevision_ReviewStatus;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_ReviewDate_Start					= data.CountryBasedTNRevision_ReviewDate_Start;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_ReviewedBy_Employee_ID			= data.CountryBasedTNRevision_ReviewedBy_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_ReviewDate_Close					= data.CountryBasedTNRevision_ReviewDate_Close;
+		   
+		    newCountryBasedTNHistory.CountryBasedTNHistory_AssiendToPublisher_Employee_ID	= data.CountryBasedTNRevision_AssiendToPublisher_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_PublishStatus					= data.CountryBasedTNRevision_PublishStatus;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_PublishDate_Start				= data.CountryBasedTNRevision_PublishDate_Start;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_Publishedby_Employee_ID			= data.CountryBasedTNRevision_Publishedby_Employee_ID;
+		    newCountryBasedTNHistory.CountryBasedTNHistory_PublishDate_Close				= data.CountryBasedTNRevision_PublishDate_Close;
+
+    		newCountryBasedTNHistory.CountryBasedTNHistory_RevisionCode                     = data.CountryBasedTNRevision_RevisionCode;
+
+		   	newCountryBasedTNHistory.save(function(error, doneadd){
+				if(error){
+					return response.send({
+						message: error
+					});
+				}else {
+	                return response.send({
+						message: true
+					});
+				}
+
+			})	
+		}
+
+		function removeOldCountryBasedRevision(revision_id){
+			return new Promise((resolve, reject) => {
+				CountryBasedTNRevision.remove({CountryBasedTNRevision_Code:revision_id} ,function(err, basedrevision) {
+					if (err) 
+						resolve( err);
+					else
+						resolve(true);
+				})
+			})
+		};
+
+		AddNewCountryBasedTNData();
+	})
 
 	// new route ::26/8/2018
 
@@ -2923,7 +3592,7 @@ app.post('/addStrengthUnits',function (request, response){
 		async function AddNewCountryBasedAIData(){
 			var resultTask  					= await updateTaskDone();
 			var resultCountryBasedAIRevision    = await updateCountryBasedAIRevision();
-			var dataCountryBasedRevision   		= await getCountryBasedRevision(request.body.based_ai_revision_id);
+			var dataCountryBasedRevision   		= await getCountryBasedAIRevision(request.body.based_ai_revision_id);
 			var UpdateCountryBasedAI         	= await UpdateCountryBasedAI(dataCountryBasedRevision);
 			var CountryBasedAIHistoryID      	= await getCountryBasedAIHistoryID();
 			var insertCountryBasedHistory  		= await insetCountryBasedHistory(dataCountryBasedRevision,CountryBasedAIHistoryID);
@@ -2984,7 +3653,7 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
-		function getTNRevision(revision_id){
+		function getCountryBasedAIRevision(revision_id){
 			return new Promise((resolve, reject) => {
 				CountryBasedAIRevision.findOne({CountryBasedAIRevision_Code:revision_id} ,function(err, Basedrevision) {
 					if (err) 
