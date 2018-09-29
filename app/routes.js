@@ -46,16 +46,13 @@ var VolumeUnits				   = require('../app/models/lut_volume_units');
 
 var SizeUnits				   = require('../app/models/lut_size_units');
 
-
 var TN     					   = require('../app/models/TN');
 
 var TNRevisions                = require('../app/models/TN_master_clinical_data_revisions');
 
-
 var TNHistory      			   = require('../app/models/TN_history');
 
 var UsageDoseUnit              = require('../app/models/lut_usage_dose_unit');
-
 
 var UsageDoseDuration          = require('../app/models/lut_usage_dose_duration_unit');
 
@@ -69,15 +66,11 @@ var Currency       			   = require('../app/models/lut_currency');
 
 var MedicalCondition           = require('../app/models/lut_medical_condition');
 
-
-
 var CountryBasedAI             = require('../app/models/country_based_AI');
 
 var CountryBasedAIRevision     = require('../app/models/country_based_AI_revision');
 
 var CountryBasedAIHistory      = require('../app/models/country_based_AI_history');
-
-var CountryBasedAITasks        = require('../app/models/country_based_AI_tasks');
 
 var UniversalTasks 			   = require('../app/models/Universal_tasks');
 
@@ -912,7 +905,7 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 	app.post('/getUserTasksbyUserID', function(request, response) {
 		UniversalTasks.find({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},
-		 {'Task_Status':0} ]},function(err, tasks) {
+		 {'Task_Status':0} ]}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).exec(function(err, tasks) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -1792,9 +1785,12 @@ app.post('/addStrengthUnits',function (request, response){
 			for (var i = 0; i < ai_ids.length; i++) {
 				var ai_id 	= Number(ai_ids[i].AI_Code);
 				var ai_name = ai_ids[i].AI_Name;
-
+				console.log('CountryIsDB.length');
+				console.log(CountryIsDB.length);
 				for (var j = 0; j < CountryIsDB.length; j++) {
 					var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
+					console.log('country_id');
+					console.log(country_id)
 					var Title 				  		  = ai_name +' for '+ CountryIsDB[j].Country_Name; 			
 					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
 					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
@@ -1803,7 +1799,7 @@ app.post('/addStrengthUnits',function (request, response){
 					
 					CountryBasedAIID++;
 					CountryBasedAIIDRevision++;
-					CountryBaesdAITaskID++;
+					TaskID++;
 				}
 			}
 		}
@@ -2938,13 +2934,13 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					CountryBasedAITask_Status 				: 1,
-					CountryBasedAITask_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { CountryBasedAITask_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				CountryBasedAITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
@@ -3116,20 +3112,6 @@ app.post('/addStrengthUnits',function (request, response){
 
 		AddNewCountryBasedAIData();
 	})
-	
-	app.get('/getTasksBasedAIByEmployeeID', function(request, response) {
-
-		CountryBasedAITasks.find({CountryBasedAITask_AssignTo_Employee_Code:request.body.employee_id}, function(err, tasks) {
-		    if (err){
-		    	response.send({message: 'Error'});
-		    }
-	        if (tasks) {
-	        	
-	            response.send(tasks);
-	        } 
-    	})
-    });
-
 
 	app.post('/addCountry',function (request, response){
 
@@ -4157,19 +4139,19 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					AI_Master_Clinical_Data_Task_Status 				: 1,
-					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -4355,19 +4337,19 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					AI_Master_Clinical_Data_Task_Status 				: 1,
-					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -4504,19 +4486,19 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					AI_Master_Clinical_Data_Task_Status 				: 1,
-					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
@@ -4637,8 +4619,9 @@ app.post('/addStrengthUnits',function (request, response){
 		AddNewTasks();
 	});
 
-	app.post('/getTasksAIByAICode', function(request, response) {
-		AITasks.findOne({AI_Master_Clinical_Data_Task_AI_Code:request.body.ai_id}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).exec(function(err, tasks) {
+	app.post('/getTaskByAICode', function(request, response) {
+		UniversalTasks.findOne({ $and:[ {Task_RelatedTo_Code: request.body.ai_id},
+		{'Task_Status':0} ]}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).exec(function(err, tasks) {
 		    if (err){
 				console.log(err)
 		    	response.send({message: 'Error'});
@@ -4803,19 +4786,19 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-					AI_Master_Clinical_Data_Task_Status 				: 1,
-					AI_Master_Clinical_Data_Task_ClosedDate 			: new Date(), 
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
 				} };
 
-				var myquery = { AI_Master_Clinical_Data_Task_Code: request.body.task_id }; 
+				var myquery = { Task_Code: request.body.task_id }; 
 
-				AITasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
 						resolve("Error");
     	    		}
             		if (!field) {
 
-						resolve("Field Not Exist");
+						resolve("Task Not Exist");
 
 		            } else {
 
