@@ -913,23 +913,38 @@ module.exports = function(app, passport, server, generator, sgMail,io) {
 
 
 	app.post('/getUserTasksbyUserID', function(request, response) {
-		UniversalTasks.find({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},
-		 {'Task_Status':0} ]}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).exec(function(err, tasks) {
-			if (err){
-	    		return response.send({
-					message: err
+		async function GetUserTasks(){
+			var TasksCount = await getTasksCount();
+			UniversalTasks.find({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},
+			{'Task_Status':0} ]}).populate({ path: 'Employee', select: 'Employee_Name Employee_Email' }).sort({Task_AssignDate:1}).limit(10).exec(function(err, tasks) {
+				if (err){
+					return response.send({
+						message: err
+					});
+				}
+				if (tasks.length == 0) {
+					return response.send({
+						message: 'No Task Found !!'
+					});
+				} else {
+					return response.send({
+						tasks: tasks,
+						taskCount : TasksCount
+					});
+				}
+			})
+		}
+		function getTasksCount(){
+			return new Promise((resolve, reject) => {
+				UniversalTasks.count({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},{'Task_Status':0} ]},function(err, tasksCount) {
+					if (tasksCount) 
+						resolve(tasksCount);
+					else
+						resolve(0);
 				});
-	    	}
-	    	if (tasks.length == 0) {
-				return response.send({
-					message: 'No Task Found !!'
-				});
-        	} else {
-				return response.send({
-					tasks: tasks
-				});
-			}
-		})
+			});
+		}
+		GetUserTasks()
 	});
 	
 	// get  basic data of AI 
@@ -1587,6 +1602,7 @@ app.post('/addStrengthUnits',function (request, response){
 	// add  of TN revision
 	app.post('/addTNRevision',function (request, response){
 		var TNID =0;
+		var CountryIsDB = {};
 		async function AddNewTNRevisionData(){
 			TNID 					 	  	  = await getNextTNID();
 			var insertTN         		 	  = await insetIntoTN(TNID);
@@ -1594,9 +1610,8 @@ app.post('/addStrengthUnits',function (request, response){
 			var Reviewer_ID 	        	  = await getEmployeeId();
 			var insertIntoTNRevison     	  = await insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID);
 			var Tasks_ID   	   		  		  = await getTasksId();
-			var InsetIntoTasks        	 	  = await insetIntoTasks(Reviewer_ID,Tasks_ID,TNRevisionNextCode,TNID);
+			insetIntoTasks(Reviewer_ID,Tasks_ID,TNRevisionNextCode,TNID);
 		}
-
 		function getNextTNID(){
 			return new Promise((resolve, reject) => {
 				TN.getLastCode(function(err, tn){
@@ -1607,8 +1622,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-
-
 		function insetIntoTN(TNID){
 
 			var newTn  = new TN();
@@ -1639,7 +1652,6 @@ app.post('/addStrengthUnits',function (request, response){
        			}
        		})
 		}
-
 		function getNextTNRevisionCode(){	
         	return new Promise((resolve, reject) => {		
 				TNRevisions.getLastCode(function(err,tnrev){
@@ -1651,7 +1663,18 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})   
 		}
-
+		function getEmployeeId(){
+			return new Promise((resolve, reject) => {
+				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 },{ Employee_Role_Sub_Role_Type:2 } ] }, function(err, emp_role) {
+				    if (err){
+				    	resolve({message: 'Error'});
+				    }
+			        if (emp_role) {
+			            resolve(emp_role.Employee_Role_Employee_Code);
+			        } 
+		    	});
+			})
+		}
 		function insertNewTNRevision(TNRevisionNextCode,TNID,Reviewer_ID){
             var newTnRevision = new TNRevisions();
             newTnRevision.TNRevision_Code     	 							= TNRevisionNextCode;
@@ -1690,20 +1713,6 @@ app.post('/addStrengthUnits',function (request, response){
        			}
        		})
         }
-
-        function getEmployeeId(){
-			return new Promise((resolve, reject) => {
-				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:2 }, { Employee_Role_Type_Code: 1 },{ Employee_Role_Sub_Role_Type:2 } ] }, function(err, emp_role) {
-				    if (err){
-				    	resolve({message: 'Error'});
-				    }
-			        if (emp_role) {
-			            resolve(emp_role.Employee_Role_Employee_Code);
-			        } 
-		    	});
-			})
-		}
-
 		function getTasksId(){
 			return new Promise((resolve, reject) => {
 				UniversalTasks.getLastCode(function(err, AIMaTs){
@@ -1714,7 +1723,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		};
-		
 		function insetIntoTasks(Reviewer_ID,Tasks_ID,TNRevisionNextCode,TNID){
 
 			var newTask =  UniversalTasks() ;
@@ -1765,46 +1773,24 @@ app.post('/addStrengthUnits',function (request, response){
 				message: true
 			});
 		}
-			
-		// country_ids=[];
-		// country_ids = [
-		// 				{
-		// 					"Country_Code":1,
-		// 					"Country_Name":"Qatar"
-		// 				},
-		// 				{
-		// 					"Country_Code":2,
-		// 					"Country_Name":"Egypt"
-		// 				},
-		// 				{
-		// 					"Country_Code":3,
-		// 					"Country_Name":"KSA"
-		// 				}
-		// 			];
 
-			
-
-		async function addTaskCountryClincal(ai_ids,cont_ids){
-
-			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
+		async function addTaskCountryClincal(){
+			var ai_ids = request.body.TN_ActiveIngredients;
+			//var cont_ids = request.body.TN_Countries;
+			CountryIsDB 					= await checkCountryIsDB(request.body.TN_Country_IDs);
 			var CountryBasedAIID           	= await getNextCountryBasedAIID();
 			var CountryBasedAIIDRevision    = await getNextCountryBasedAIRevisionID();
 			var TaskID  				   	= await getTasksId();
-			
 			for (var i = 0; i < ai_ids.length; i++) {
 				var ai_id 	= Number(ai_ids[i].AI_Code);
 				var ai_name = ai_ids[i].AI_Name;
-				console.log('CountryIsDB.length');
-				console.log(CountryIsDB.length);
 				for (var j = 0; j < CountryIsDB.length; j++) {
 					var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
-					console.log('country_id');
-					console.log(country_id)
 					var Title 				  		  = ai_name +' for '+ CountryIsDB[j].Country_Name; 			
 					var InsertCountryBasedAI      	  = await insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id);
 					var EditorCountryBasedAIID        = await getEditorCountryBasedAI(country_id);
 					var InsertCountryBasedAIRevision  = await insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID);
-					var InsertIntoTasks 			  = await insertIntoTasks(TaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title,ai_id);
+					var InsertIntoTasks 			  = await insertIntoTasksCountryClincal(TaskID,EditorCountryBasedAIID,CountryBasedAIIDRevision,Title,ai_id);
 					
 					CountryBasedAIID++;
 					CountryBasedAIIDRevision++;
@@ -1812,7 +1798,6 @@ app.post('/addStrengthUnits',function (request, response){
 				}
 			}
 		}
-
 		function checkCountryIsDB(cont_ids){
 			
 			return new Promise((resolve, reject) => {
@@ -1830,8 +1815,6 @@ app.post('/addStrengthUnits',function (request, response){
 		    	});
 			})
 		}
-			
-
 		function getNextCountryBasedAIID(){
 			return new Promise((resolve, reject) => {
 				CountryBasedAI.getLastCode(function(err, ai){
@@ -1842,7 +1825,16 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		}
-
+		function getNextCountryBasedAIRevisionID(){
+			return new Promise((resolve, reject) => {
+				CountryBasedAIRevision.getLastCode(function(err, revision){
+					if (revision) 
+						resolve( Number(revision.CountryBasedAIRevision_Code)+1);
+					else
+						resolve(1);
+				})
+			})
+		}
 		function insertIntoCountryBasedAI(CountryBasedAIID,country_id,ai_id){
 			var newCountryBasedAI =  CountryBasedAI() ;
 
@@ -1863,7 +1855,6 @@ app.post('/addStrengthUnits',function (request, response){
 				
 			})
 		}
-
 		function getEditorCountryBasedAI(country_id){
 			return new Promise((resolve, reject) => {
 				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 2 },{ Employee_Role_Sub_Role_Type:3 },{ Employee_Role_Country_Code:country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
@@ -1876,18 +1867,6 @@ app.post('/addStrengthUnits',function (request, response){
 		    	});
 			})
 		}
-
-		function getNextCountryBasedAIRevisionID(){
-			return new Promise((resolve, reject) => {
-				CountryBasedAIRevision.getLastCode(function(err, revision){
-					if (revision) 
-						resolve( Number(revision.CountryBasedAIRevision_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		}
-
 		function insertIntoCountryBasedAIRevision(CountryBasedAIIDRevision,CountryBasedAIID,country_id,ai_id,EditorCountryBasedAIID){
 			var newCountryBasedAIRevision =  CountryBasedAIRevision() ;
 
@@ -1904,19 +1883,7 @@ app.post('/addStrengthUnits',function (request, response){
 				message: true
 			});
 		}
-
-		function getTasksId(){
-			return new Promise((resolve, reject) => {
-				UniversalTasks.getLastCode(function(err, AIMaTs){
-					if (AIMaTs) 
-						resolve( Number(AIMaTs.Task_Code)+1);
-					else
-						resolve(1);
-				})
-			})
-		};
-
-		function insertIntoTasks(Tasks_ID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title,ai_id){
+		function insertIntoTasksCountryClincal(Tasks_ID,EditorCountryBasedAIID,CountryBasedAIRevisionID,Title,ai_id){
 			var newTask =  UniversalTasks() ;
 			newTask.Task_Code                       = Tasks_ID;
 			newTask.Task_Title                      = Title;
@@ -1966,32 +1933,23 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-
-
-
-		async function addTaskCountryNonClincal(TNID,cont_ids){
-
-			var CountryIsDB 				= await checkCountryIsDB(request.body.TN_Country_IDs);
+		async function addTaskCountryNonClincal(){
 			var CountryBasedTNID           	= await getNextCountryBasedTNID();
 			var CountryBasedTNIDRevision    = await getNextCountryBasedTNRevisionID();
 			var TaskID  				   	= await getTasksId();
-			
+			for (var j = 0; j < CountryIsDB.length; j++) {
+				var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
+				var Title 				  		  = request.body.TN_Name +' for '+ CountryIsDB[j].Country_Name; 			
+				var InsertCountryBasedTN      	  = await insertIntoCountryBasedTN(CountryBasedTNID,country_id,TNID);
+				var EditorCountryBasedTNID        = await getEditorCountryBasedTN(country_id);
+				var InsertCountryBasedTNRevision  = await insertIntoCountryBasedTNRevision(CountryBasedTNIDRevision,CountryBasedTNID,country_id,TNID,EditorCountryBasedTNID);
+				var InsertIntoTasks 			  = await insertIntoTasksCountryNonClinical(TaskID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID);
 				
-				for (var j = 0; j < CountryIsDB.length; j++) {
-					var country_id 			   		  = Number(CountryIsDB[j].Country_Code);
-					var Title 				  		  = ai_name +' for '+ CountryIsDB[j].Country_Name; 			
-					var InsertCountryBasedTN      	  = await insertIntoCountryBasedTN(CountryBasedTNID,country_id,TNID);
-					var EditorCountryBasedTNID        = await getEditorCountryBasedTN(country_id);
-					var InsertCountryBasedTNRevision  = await insertIntoCountryBasedTNRevision(CountryBasedTNIDRevision,CountryBasedTNID,country_id,TNID,EditorCountryBasedTNID);
-					var InsertIntoTasks 			  = await insertIntoTasks(TaskID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID);
-					
-					CountryBasedTNID++;
-					CountryBasedTNIDRevision++;
-					TaskID++;
-				}
+				CountryBasedTNID++;
+				CountryBasedTNIDRevision++;
+				TaskID++;
+			}
 		}
-
-
 		function getNextCountryBasedTNID(){
 			return new Promise((resolve, reject) => {
 				CountryBasedTN.getLastCode(function(err, tn){
@@ -2001,8 +1959,7 @@ app.post('/addStrengthUnits',function (request, response){
 						resolve(1);
 				})
 			})
-		}
-			
+		}	
 		function getNextCountryBasedTNRevisionID(){
 			return new Promise((resolve, reject) => {
 				CountryBasedTNRevision.getLastCode(function(err, revision){
@@ -2013,7 +1970,6 @@ app.post('/addStrengthUnits',function (request, response){
 				})
 			})
 		}
-
 		function insertIntoCountryBasedTN(CountryBasedTNID,country_id,TNID){
 			var newCountryBasedTN =  CountryBasedTN() ;
 
@@ -2034,7 +1990,6 @@ app.post('/addStrengthUnits',function (request, response){
 				
 			})
 		}
-
 		function getEditorCountryBasedTN(country_id){
 			return new Promise((resolve, reject) => {
 				Employee_role.findOne({ $and: [ { Employee_Role_Role_Code:1 }, { Employee_Role_Type_Code: 2 },{ Employee_Role_Sub_Role_Type:4 },{ Employee_Role_Country_Code:country_id },{ Employee_Role_Status:1 } ] }, function(err, emp_role) {
@@ -2047,7 +2002,6 @@ app.post('/addStrengthUnits',function (request, response){
 		    	});
 			})
 		}
-
 		function insertIntoCountryBasedTNRevision(CountryBasedTNIDRevision,CountryBasedTNID,country_id,TNID,EditorCountryBasedTNID){
 			var newCountryBasedTNRevision =  CountryBasedTNRevision() ;
 
@@ -2064,8 +2018,7 @@ app.post('/addStrengthUnits',function (request, response){
 				message: true
 			});
 		}
-
-		function insertIntoTasks(Tasks_ID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID){
+		function insertIntoTasksCountryNonClinical(Tasks_ID,EditorCountryBasedTNID,CountryBasedTNIDRevision,Title,TNID){
 			var newTask =  UniversalTasks() ;
 			newTask.Task_Code                       = Tasks_ID;
 			newTask.Task_Title                      = Title;
@@ -2114,10 +2067,12 @@ app.post('/addStrengthUnits',function (request, response){
 			});
 		}
 
-		AddNewTNRevisionData();
-		
-        addTaskCountryClincal(request.body.TN_ActiveIngredients,request.body.TN_Countries);
-        addTaskCountryNonClincal(TNID,request.body.TN_Countries);
+		async function MainProcessFunction(){
+			await AddNewTNRevisionData();
+			await addTaskCountryClincal();
+			await addTaskCountryNonClincal();
+		}
+		MainProcessFunction();
 		
 	});
 
