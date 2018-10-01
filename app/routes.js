@@ -48,7 +48,7 @@ var SizeUnits				   = require('../app/models/lut_size_units');
 
 var TN     					   = require('../app/models/TN');
 
-var TNRevisions                = require('../app/models/TN_master_clinical_data_revisions');
+var TNRevisions                = require('./models/TN_revisions');
 
 var TNHistory      			   = require('../app/models/TN_history');
 
@@ -2077,12 +2077,13 @@ app.post('/addStrengthUnits',function (request, response){
 	});
 
 
-	app.post('/AddTaskTNToPublisher',function (request, response){
+	app.post('/AddTNToPublisher',function (request, response){
 
 		async function AddNewTasks(){
 			var Publisher_ID = await getEmployeeId();
 			var resultTNRevision = await updateTNRevision(Publisher_ID);
 			var Tasks_ID   = await getTasksId();
+			updateTaskDone();
 			insetIntoTasks(Publisher_ID,Tasks_ID);
 		}
 
@@ -2103,16 +2104,16 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-						TNMasterRevision_ReviewStatus 					: 1,
-						TNMasterRevision_ReviewedBy_Employee_ID   		:request.body.TNMasterRevision_ReviewedBy_Employee_ID,
-						TNMasterRevision_ReviewDate_Close 				:new Date(),
+					TNRevision_ReviewStatus 					: 1,
+					TNRevision_ReviewedBy_Employee_ID   		:request.body.TNRevision_ReviewedBy_Employee_ID,
+					TNRevision_ReviewDate_Close 				:new Date(),
 
-						TNMasterRevision_AssiendToPublisher_Employee_ID :Publisher_ID,
-						TNMasterRevision_PublishStatus					:0,
-						TNMasterRevision_PublishDate_Start				:new Date(),
+					TNRevision_AssiendToPublisher_Employee_ID :Publisher_ID,
+					TNRevision_PublishStatus					:0,
+					TNRevision_PublishDate_Start				:new Date(),
 				} };
 
-				var myquery = { TNMasterRevision_Code: request.body.TNMasterRevision_Code }; 
+				var myquery = { TNRevision_Code: request.body.TNRevision_Code }; 
 
 				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
@@ -2140,6 +2141,31 @@ app.post('/addStrengthUnits',function (request, response){
 			})
 		};
 
+		function updateTaskDone(){
+			return new Promise((resolve, reject) => {
+
+				var newvalues = { $set: {
+					Task_Status 				: 1,
+					Task_ClosedDate 			: new Date(), 
+				} };
+
+				var myquery = { Task_Code: request.body.task_id }; 
+
+				UniversalTasks.findOneAndUpdate( myquery,newvalues, function(err, field) {
+					if (err){
+						resolve("Error");
+    	    		}
+            		if (!field) {
+
+						resolve("Task Not Exist");
+
+		            } else {
+
+						resolve(true);
+					}
+				})
+			})
+		};
 
 		function insetIntoTasks(Publisher_ID,Tasks_ID){
 			var newTask =  UniversalTasks() ;
@@ -2148,9 +2174,9 @@ app.post('/addStrengthUnits',function (request, response){
 			newTask.Task_AssignTo_Employee_Code     = Publisher_ID;
 			newTask.Task_AssignDate                 = new Date();
 			newTask.Task_ActionTypeName             = "Publish";
-			newTask.Task_ActionDetails_Code         = request.body.Task_ActionDetails_Code;
+			newTask.Task_ActionDetails_Code         = request.body.TNRevision_Code;
 			newTask.Task_RelatedTo                  = "Master TN";
-			newTask.Task_RelatedTo_Code             = request.body.Task_RelatedTo_Code;
+			newTask.Task_RelatedTo_Code             = request.body.TN_Code;
 			newTask.Task_Status                     = 0;
 			newTask.Task_ClosedDate                 = null;
 			newTask.save();
@@ -2161,9 +2187,9 @@ app.post('/addStrengthUnits',function (request, response){
 				Task_AssignTo_Employee_Code     : Publisher_ID,
 				Task_AssignDate                 : new Date(),
 				Task_ActionTypeName             : "Publish",
-				Task_ActionDetails_Code         : request.body.Task_ActionDetails_Code,
+				Task_ActionDetails_Code         : request.body.TaskRevisionID,
 				Task_RelatedTo                  : "Master TN",
-				Task_RelatedTo_Code             : request.body.Task_RelatedTo_Code,
+				Task_RelatedTo_Code             : request.body.TN_Code,
 				Task_Status                     :0,
 				icon: 'fa fa-cloud-upload',
 				iconColor: '#4ebcd4',
@@ -2227,7 +2253,19 @@ app.post('/addStrengthUnits',function (request, response){
 						resolve("Task Not Exist");
 
 		            } else {
-
+						var UserInSockets = clients.find(o => o.UserID === request.body.user_id);
+						if(UserInSockets){
+							var ClientSocketArray = clients.filter(function(obj) {
+								if(obj.UserID === request.body.user_id)
+									return true
+								else
+									return false
+							});
+							ClientSocketArray.forEach(function (arrayItem) {
+								var SocktesToSendNotification = arrayItem.Socket;
+								io.sockets.connected[SocktesToSendNotification].emit("taskfinished", {taskisdone: true});
+							});
+						}
 						resolve(true);
 					}
 				})
@@ -2238,13 +2276,13 @@ app.post('/addStrengthUnits',function (request, response){
 			return new Promise((resolve, reject) => {
 
 				var newvalues = { $set: {
-						TNMasterRevision_PublishStatus 				: 1,
-						TNMasterRevision_Publishedby_Employee_ID   	:request.body.user_id,
-						TNMasterRevision_PublishDate_Close 			:new Date(),
-						TNMasterRevision_RevisionCode				:1,
+					TNRevision_PublishStatus 				: 1,
+					TNRevision_Publishedby_Employee_ID   	:request.body.user_id,
+					TNRevision_PublishDate_Close 			:new Date(),
+					TNRevision_RevisionCode					:1,
 				} };
 
-				var myquery = { TNMasterRevision_Code: request.body.tn_revision_id }; 
+				var myquery = { TNRevision_Code: request.body.revision_id }; 
 
 				TNRevisions.findOneAndUpdate( myquery,newvalues, function(err, field) {
 					if (err){
@@ -2264,7 +2302,7 @@ app.post('/addStrengthUnits',function (request, response){
 
 		function getTNRevision(revision_id){
 			return new Promise((resolve, reject) => {
-				TNRevisions.findOne({TNMasterRevision_Code:revision_id} ,function(err, TNrevision) {
+				TNRevisions.findOne({TNRevision_Code:revision_id} ,function(err, TNrevision) {
 					if (err) 
 						resolve( err);
 					else
@@ -2274,7 +2312,7 @@ app.post('/addStrengthUnits',function (request, response){
 		};
 
 		function UpdateIntoTN(data){
-
+			console.log(data);
 			var newvalues = { $set: {
 	            TN_Name 	     				: data.TNRevision_Name,
 	            TN_ActiveIngredients	 		: data.TNRevision_ActiveIngredients,
@@ -2517,25 +2555,32 @@ app.post('/addStrengthUnits',function (request, response){
 	
 	app.get('/searchTNByID', function(request, response) {
 		var Searchquery = request.query.row_id;
-		// console.log(request.query.row_id);
+		TN.findOne({TN_Code: Number(Searchquery)})
+		.populate({ path: 'form', select: 'Form_Name' })
+		.populate({ path: 'route', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'StrengthUnit_Name' })
+		.populate({ path: 'weight', select: 'WeightUnit_Name' })
+		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+		.populate({ path: 'country', select: 'Country_Name' })
+		.populate({ path: 'ai', select: 'AI_Name AI_ATC_Code' })
+		.exec(function(err, tn) {
+			if (err){
+				return response.send({
+					message: err
+				});
+			}
 
-			TN.findOne({TN_Code: Number(Searchquery)},function(err, tn) {
-				if (err){
-    	    		return response.send({
-						message: err
-					});
-    	    	}
-
-    	    	if (tn.length == 0) {
-					return response.send({
-						message: 'No TN Code Found !!'
-					});
-            	} else {
-					return response.send({
-						tn: tn
-					});
-				}
-			})
+			if (tn.length == 0) {
+				return response.send({
+					message: 'No TN Code Found !!'
+				});
+			} else {
+				return response.send({
+					tn: tn
+				});
+			}
+		})
 	}); 
 
 
