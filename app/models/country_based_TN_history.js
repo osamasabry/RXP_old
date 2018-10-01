@@ -4,8 +4,8 @@ var bcrypt   = require('bcrypt-nodejs');
 var rxp_CountryBasedTNHistorySchema = mongoose.Schema({
     
     CountryBasedTNHistory_Code                             :Number,
-	CountryBasedTNHistory_Price     	  				   :Object,
-    CountryBasedTNHistory_Images	                           :[String],
+	CountryBasedTNHistory_Price     	  				   :Number,
+    CountryBasedTNHistory_Images	                       :[String],
     
     CountryBasedTNHistory_TN_Code                          :Number,
     CountryBasedTNHistory_Country_ID                       :Number,

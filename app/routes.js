@@ -95,7 +95,12 @@ var NotificationDetails = {};
 var clients = [];
 
 
-module.exports = function(app, passport, server, generator, sgMail,io) {
+var path = require('path'),
+	 fs = require('fs');
+var shell = require('shelljs');
+
+
+module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 	
 	app.get('/logout', function(request, response) {
 		request.logout();
@@ -2603,11 +2608,29 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.post('/editCountryBasedTNRevision',function (request, response){
 
+		var images 	  = [];
+		var date 	  = new Date();
+    	var year  	  = date.getFullYear();
+    	var month     = date.getMonth()+1; 
+    	
+    	var dir = path.resolve('./public/images/'+year+'/'+month);
+		if (!fs.existsSync(dir)){
+    		shell.mkdir('-p', dir);
+		}
+
+		var files = request.files.image;
+		for (var i = 0; i < files.length; i++) {
+			var file_name   = files[i].originalFilename;
+			var source_file =  tinify.fromFile(files[i].path);
+			source_file.toFile(dir+'/'+Date.now() + '.' + file_name);
+			images.push(dir+'/'+Date.now() + '.' + file_name);
+		}
+
 		var newvalues = { $set: {
 				CountryBasedTNRevision_Price		: request.body.CountryBasedTNRevision_Price,
-			    CountryBasedTNRevision_Images		: request.body.CountryBasedTNRevision_Images,
+			    CountryBasedTNRevision_Images		: images,
 			   
-			} };
+		} };
 
 		var myquery = { CountryBasedTNRevision_Code: request.body.row_id }; 
 

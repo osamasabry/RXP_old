@@ -17,11 +17,13 @@
     "generate-password": "^1.4.0",
     "http": "0.0.0",
     "mongoose": "^5.0.11",
+    "mongoose-unique-validator": "^2.0.1",
     "ng-multiselect-dropdown": "^0.1.6",
     "nodemailer": "^4.6.4",
     "now": ">=0.0.1",
     "passport": "0.2.0",
     "passport-local": "0.1.6",
-    "socket.io": "latest"
+    "socket.io": "latest",
+    "tinify": "^1.6.0-beta.2"
   }
 }

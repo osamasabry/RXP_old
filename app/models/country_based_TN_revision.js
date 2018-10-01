@@ -5,7 +5,7 @@ var rxp_CountryBasedTNRevisionSchema = mongoose.Schema({
     
     CountryBasedTNRevision_Code                            :Number,
     CountryBasedTNRevision_Price			               :String,
-    CountryBasedTNRevision_Images					       :String,
+    CountryBasedTNRevision_Images					       :[String],
     CountryBasedTNRevision_TN_Code                         :Number,
     CountryBasedTNRevision_Country_ID                      :Number,
     CountryBasedTNRevision_CountryBasedTN_Code             :Number,
