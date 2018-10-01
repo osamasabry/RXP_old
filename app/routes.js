@@ -5425,10 +5425,24 @@ app.post('/addStrengthUnits',function (request, response){
 						resolve("Task Not Exist");
 
 		            } else {
-
+						var UserInSockets = clients.find(o => o.UserID === request.body.user_id);
+						if(UserInSockets){
+							var ClientSocketArray = clients.filter(function(obj) {
+								if(obj.UserID === request.body.user_id)
+									return true
+								else
+									return false
+							});
+							ClientSocketArray.forEach(function (arrayItem) {
+								var SocktesToSendNotification = arrayItem.Socket;
+								io.sockets.connected[SocktesToSendNotification].emit("taskfinished", {taskisdone: true});
+							});
+						}
 						resolve(true);
 					}
-				})
+				});
+
+
 			})
 		};
 
