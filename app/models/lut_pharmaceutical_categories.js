@@ -6,6 +6,7 @@ var RXP_PharmaceuticalCategorySchema = mongoose.Schema({
 	Pharmaceutical_Category_Code     	  :Number,
     Pharmaceutical_Category_Name      	  :String,
     Pharmaceutical_Category_ATC_Code  	  :String,
+    Pharmaceutical_Category_Parent        :Number,
     Pharmaceutical_Category_IsActive      :Number,
 
     

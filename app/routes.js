@@ -3123,7 +3123,6 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/editCountryBasedAIRevision',function (request, response){
 
 		var newvalues = { $set: {
-				CountryBasedAIRevision_Dosing			 			: request.body.CountryBasedAIRevision_Dosing,
 			    CountryBasedAIRevision_UsaageLabeledIndications		: request.body.CountryBasedAIRevision_UsaageLabeledIndications,
 			    CountryBasedAIRevision_UsaageOffLabeledIndications	: request.body.CountryBasedAIRevision_UsaageOffLabeledIndications,
 			    CountryBasedAIRevision_Administration   			: request.body.CountryBasedAIRevision_Administration,
@@ -3134,7 +3133,7 @@ app.post('/addStrengthUnits',function (request, response){
 			    CountryBasedAIRevision_Stability					: request.body.CountryBasedAIRevision_Stability,
 			} };
 
-		var myquery = { CountryBasedAIRevision_Code: request.body.row_id }; 
+		var myquery = { CountryBasedAIRevision_Code: request.body.CountryBasedAIRevision_Code }; 
 
 
 		CountryBasedAIRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
@@ -3155,21 +3154,54 @@ app.post('/addStrengthUnits',function (request, response){
 			}
 		})
 	});
-
+	app.post('/AddCountryBasedAIRevisionDosing',function (request, response){
+		var myquery = { CountryBasedAIRevision_Code: request.body.CountryBasedAIRevision_Code }; 
+		//console.log(request.body.CountryBasedAIRevision_Dosing)
+		var newvalues = { $push: {
+			CountryBasedAIRevision_Dosing		: request.body.CountryBasedAIRevision_Dosing
+		} };
+		
+		CountryBasedAIRevision.findOneAndUpdate( myquery,newvalues, function(err, field) {
+    	    if (err){
+				console.log(err);
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!field) {
+            	return response.send({
+					message: 'Country AI not exists'
+				});
+            } else {
+                return response.send({
+					message: true
+				});
+			}
+		})
+	});
 	app.get('/getCountryBasedAIRevision', function(request, response) {
 
-		CountryBasedAIRevision.find({CountryBasedAIRevision_Code:request.body.CountryBasedAIRevision_Code}, function(err, basedai) {
+		CountryBasedAIRevision.find({CountryBasedAIRevision_Code:request.query.CountryBasedAIRevision_Code})
+		.populate({ path: 'CountryBasedAIRevisionCountry', select: 'Country_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageAge', select: 'UsageAge_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingMedicalCondition'})
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageDoseType', select: 'UsageDoseType_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageDoseUnit', select: 'UsageDoseUnit_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageRoute', select: 'Route_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageForm', select: 'Form_Name' })
+		.populate({ path: 'CountryBasedAIRevisionDosingUsageFrequenIntervalUnit', select: 'UsageFrequenIntervalUnit_Name' })
+		.exec(function(err, basedai) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
 	        if (basedai) {
-	        	
 	            response.send(basedai);
 	        } 
     	})
     });
 
-
+	//editAIRevision
+	
 	app.post('/AddTaskCountryBasedAIRevisionToReviewer',function (request, response){
 
 		async function AddNewTasks(){

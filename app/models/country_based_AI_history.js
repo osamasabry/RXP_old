@@ -4,10 +4,22 @@ var bcrypt   = require('bcrypt-nodejs');
 var rxp_CountryBasedAIHistorySchema = mongoose.Schema({
     
     CountryBasedAIHistory_Code                             :Number,
-	CountryBasedAIHistory_Dosing     	  				   :Object,
-    CountryBasedAIHistory_UsaageLabeledIndications 	       :[String],
-    CountryBasedAIHistory_UsaageOffLabeledIndications 	   :[String],
-    CountryBasedAIHistory_Administration  				   :[String],
+	CountryBasedAIHistory_Dosing     	  				   :[{
+        Dosing_UsageAge_Code                       : Number,
+        Dosing_MedicalCondition_Code               : Number,
+        Dosing_UsageDoseType_Code                  : Number,
+        Dosing_MinDose                             : Number,
+        Dosing_MaxDose                             : Number,
+        Dosing_UsageDoseUnit_Code                  : Number,
+        Dosing_Route_Code                          : Number,
+        Dosing_Form_Code                           : Number,
+        Dosing_Frequency                           : Number,
+        Dosing_UsageFrequenIntervalUnit_Code       : Number,
+        Dosing_ScheduleOfAdministration            : String
+    }],
+    CountryBasedAIHistory_UsaageLabeledIndications 	       :String,
+    CountryBasedAIHistory_UsaageOffLabeledIndications 	   :String,
+    CountryBasedAIHistory_Administration  				   :String,
     CountryBasedAIHistory_DietaryConsiderations		       :String,
     CountryBasedAIHistory_PreparationForAdministration     :String,
     CountryBasedAIHistory_PregnancyConsideration		   :String,
