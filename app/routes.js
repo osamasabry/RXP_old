@@ -565,7 +565,7 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 	                newAccountUser.User_Code              = nextCode;
 		            newAccountUser.User_Name 	     	  = request.body.email;
 	                newAccountUser.User_Password    	  = newAccount.generateHash(password);
-	                AccountUser_Account_ID   				= nextCode;
+	                AccountUser_Account_ID   			  = nextCode;
 	                newAccountUser.save();
 
 	           		const msg = {
@@ -5939,6 +5939,301 @@ app.post('/addStrengthUnits',function (request, response){
 		})
 	});
 
+	app.post('/SearchForm',function (request, response){
+		var Searchquery = request.body.search_field;
+		Forms.find({Form_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, form) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!form) {
+            	return response.send({
+					message: 'Form not exists'
+				});
+            } else {
+
+                return response.send({
+					form: form
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchRoute',function (request, response){
+		var Searchquery = request.body.search_field;
+		Routes.find({Route_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, route) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!route) {
+            	return response.send({
+					message: 'Route not exists'
+				});
+            } else {
+
+                return response.send({
+					route: route
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchStrengthUnit',function (request, response){
+		var Searchquery = request.body.search_field;
+		StrengthUnits.find({StrengthUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, strengthunits) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!strengthunits) {
+            	return response.send({
+					message: 'Strength Units not exists'
+				});
+            } else {
+
+                return response.send({
+					strengthunits: strengthunits
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchConcentration',function (request, response){
+		var Searchquery = request.body.search_field;
+		Concentration.find({ConcentrationUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, concentration) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!concentration) {
+            	return response.send({
+					message: 'Concentration not exists'
+				});
+            } else {
+
+                return response.send({
+					concentration: concentration
+				});
+			}
+
+		})
+	})
+
+
+	app.post('/SearchWeightUnits',function (request, response){
+		var Searchquery = request.body.search_field;
+		WeightUnits.find({WeightUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, weightunits) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!weightunits) {
+            	return response.send({
+					message: 'Weight Units not exists'
+				});
+            } else {
+
+                return response.send({
+					weightunits: weightunits
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchVolumeUnits',function (request, response){
+		var Searchquery = request.body.search_field;
+		VolumeUnits.find({VolumeUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, volumeunits) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!volumeunits) {
+            	return response.send({
+					message: 'Volume Units not exists'
+				});
+            } else {
+
+                return response.send({
+					volumeunits: volumeunits
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchSizeUnits',function (request, response){
+		var Searchquery = request.body.search_field;
+		SizeUnits.find({SizeUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, sizeunits) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!sizeunits) {
+            	return response.send({
+					message: 'Size Units not exists'
+				});
+            } else {
+
+                return response.send({
+					sizeunits: sizeunits
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchUsageAge',function (request, response){
+		var Searchquery = request.body.search_field;
+		UsageAge.find({UsageAge_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, usageage) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!usageage) {
+            	return response.send({
+					message: 'Usage Age not exists'
+				});
+            } else {
+
+                return response.send({
+					usageage: usageage
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchUsageDoseType',function (request, response){
+		var Searchquery = request.body.search_field;
+		UsageDoseType.find({UsageDoseType_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, usagedoseyype) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!usagedoseyype) {
+            	return response.send({
+					message: 'Dose Type not exists'
+				});
+            } else {
+
+                return response.send({
+					usagedoseyype: usagedoseyype
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchUsageDoseUnit',function (request, response){
+		var Searchquery = request.body.search_field;
+		UsageDoseUnit.find({UsageDoseUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, usagedoseunit) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!usagedoseunit) {
+            	return response.send({
+					message: 'Dose Unit not exists'
+				});
+            } else {
+
+                return response.send({
+					usagedoseunit: usagedoseunit
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchUsageDoseDuration',function (request, response){
+		var Searchquery = request.body.search_field;
+		UsageDoseDuration.find({UsageDoseDurationUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, usagedoseduration) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!usagedoseduration) {
+            	return response.send({
+					message: 'Dose Duration not exists'
+				});
+            } else {
+
+                return response.send({
+					usagedoseduration: usagedoseduration
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchUsageFrequenInterval',function (request, response){
+		var Searchquery = request.body.search_field;
+		UsageFrequenInterval.find({UsageFrequenIntervalUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.exec(function(err, usagefrequeninterval) {
+			 if (err){
+    	    	return response.send({
+					message: 'Error'
+				});
+    	    }
+            if (!usagefrequeninterval) {
+            	return response.send({
+					message: 'Frequen Interval not exists'
+				});
+            } else {
+
+                return response.send({
+					usagefrequeninterval: usagefrequeninterval
+				});
+			}
+
+		})
+	})
+
+	app.post('/SearchPharmaceuticalAtcName', function(request, response) {
+		var Searchquery = request.body.searchField;
+		Pharmaceutical_category.find({Pharmaceutical_Category_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, atcname) {
+			if (err){
+	    		return response.send({
+					message: err
+				});
+	    	}else if (atcname.length == 0) {
+				return response.send({
+					message: 'ATC Name Not Found !!'
+				});
+        	} else {
+				return response.send({
+					atcname: atcname
+				});
+			}
+		})
+	});
 
 
 

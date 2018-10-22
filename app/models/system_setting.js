@@ -12,4 +12,4 @@ var rxp_SystemSettingsSchema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('rxp_system_setting', rxp_SystemSettingsSchema);
+module.exports = mongoose.model('system_setting', SystemSettingsSchema);
