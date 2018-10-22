@@ -967,6 +967,24 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 	        } 
     	})
 	});
+
+	app.get('/getAIletterfilter', function(request, response) {
+		//var regexp = new RegExp('^'+request.query.letter+'$', "i")//new RegExp("^"+ request.query.letter);
+		//console.log(regexp)
+		
+		AI.find({ AI_Name: { $regex: new RegExp("^" + request.query.letter, "i") }})
+		.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name Pharmaceutical_Category_ATC_Code' })
+    	.sort({AI_Name:1})
+		.exec(function(err, ai) {
+		    if (err){
+		    	response.send({message: err});
+		    }
+	        if (ai) {
+	            response.send(ai);
+	        } 
+    	})
+	});
 	
 	app.get('/getAllAI', function(request, response) {
 		AI.find({}, function(err, ai) {
@@ -2454,10 +2472,13 @@ app.post('/addStrengthUnits',function (request, response){
 
 
 	app.post('/searchTNName', function(request, response) {
-		var Searchquery = request.body.searchField.searchField;
-		var object={TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }};
+		var Searchquery = request.body.searchField;
+		if(Searchquery) Searchquery = Searchquery.toLowerCase();
+		else Searchquery = '';
+
+		var object={TN_Name:{ $regex: new RegExp("^" + Searchquery, "i") }};
 		if (request.body.TN_Country_ID)
-			object = {TN_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") },TN_Country_ID:request.body.TN_Country_ID};
+			object = {TN_Name:{ $regex: new RegExp("^" + Searchquery, "i") },TN_Country_ID:request.body.TN_Country_ID};
 		TN.find(object)
 		.populate({ path: 'form', select: 'Form_Name' })
 		.populate({ path: 'route', select: 'Route_Name' })
@@ -2467,7 +2488,7 @@ app.post('/addStrengthUnits',function (request, response){
 		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
 		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
 		.populate({ path: 'ai', select: 'AI_Name' })
-		.sort({TN_Name:-1})
+		.sort({TN_Name:1})
 		.exec(function(err, tn) {
 		    if (err){
 		    	response.send({message: 'Error'});
@@ -2494,7 +2515,7 @@ app.post('/addStrengthUnits',function (request, response){
 		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
 		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
 		.populate({ path: 'ai', select: 'AI_Code AI_Name AI_ATC_Code' })
-		.sort({TN_Name:-1})
+		.sort({TN_Name:1})
 		.exec(function(err, tn) {
 		    if (err){
 		    	response.send({message: 'Error'});
@@ -2525,6 +2546,35 @@ app.post('/addStrengthUnits',function (request, response){
 		.sort({TN_Code:-1}).limit(20)
 		.exec(function(err, tn) {
 		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (tn) {
+	        	
+	            response.send(tn);
+	        } 
+    	})
+	});
+
+	app.post('/getTNFilterByLetter', function(request, response) {
+		var object={};
+		if (request.body.TN_Country_ID)
+			object = {TN_Country_ID:request.body.TN_Country_ID};
+		object.TN_Name = {$regex: new RegExp("^" + request.body.letter.toLowerCase(), "i")}; //	request.query.letter
+		console.log(object)
+		TN.find(object)
+		.populate({ path: 'form', select: 'Form_Name' })
+		.populate({ path: 'route', select: 'Route_Name' })
+		.populate({ path: 'strength', select: 'StrengthUnit_Name' })
+		.populate({ path: 'weight', select: 'WeightUnit_Name' })
+		.populate({ path: 'volume', select: 'VolumeUnit_Name' })
+		.populate({ path: 'concentration', select: 'ConcentrationUnit_Name' })
+		.populate({ path: 'country', select: 'Country_Name Country_Tcode' })
+		.populate({ path: 'ai', select: 'AI_Name' })
+		// .select('TN_Name TN_Status TN_Strength_Value TN_Weight_Value TN_Volume_Value TN_Concentration_Value ')
+		.sort({TN_Name:1})
+		.exec(function(err, tn) {
+		    if (err){
+				console.log(err)
 		    	response.send({message: 'Error'});
 		    }
 	        if (tn) {
@@ -4054,51 +4104,106 @@ app.post('/addStrengthUnits',function (request, response){
 
     app.post('/searchAIName', function(request, response) {
 		var Searchquery = request.body.searchField;
-			AI.find ({AI_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
+		AI.find ({AI_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name Pharmaceutical_Category_ATC_Code' })
+		.sort({AI_Name:1})
+		.exec(function(err, ai) {
+			if (err){
+				return response.send({
+					user : request.user ,
+					message: err
+				});
+			}
+
+			if (ai.length == 0) {
+				return response.send({
+					user : request.user ,
+					message: 'No AI Name Found !!'
+				});
+			} else {
+				return response.send({
+					user : request.user ,
+					ai: ai
+				});
+			}
+		})
+	});
+
+	app.post('/searchAIPharmaceuticalName', function(request, response) {
+		var Searchquery = request.body.searchField;
+		Pharmaceutical_category.find({Pharmaceutical_Category_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.select('Pharmaceutical_Category_Code')
+		.exec(function(err, Pharmaceutical) {
+		    if (err){
+		    	response.send({message: 'Error'});
+		    }
+	        if (Pharmaceutical) {
+	            getAIData(Pharmaceutical);
+	        } 
+    	});
+
+		function getAIData(Pharmaceutical){
+			var ParmacuticalIDs =[];
+			Pharmaceutical.forEach(function(obj){ ParmacuticalIDs.push(obj.Pharmaceutical_Category_Code)});
+			AI.find ({AI_Pharmaceutical_Categories_ID:{ $in: ParmacuticalIDs}})
+			.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+			.populate({ path: 'pharamaceutical', 
+						select: 'Pharmaceutical_Category_Name Pharmaceutical_Category_ATC_Code'})
+			.sort({AI_Name:1})
+			.exec(function(err, ai) {
 				if (err){
-    	    		return response.send({
+					return response.send({
 						user : request.user ,
 						message: err
 					});
-    	    	}
+				}
 
-    	    	if (ai.length == 0) {
+				if (ai.length == 0) {
 					return response.send({
 						user : request.user ,
 						message: 'No AI Name Found !!'
 					});
-            	} else {
-					return response.send({
-						user : request.user ,
-						ai: ai
-					});
-				}
-			}).sort({AI_Name:-1})
-	});
-
-
-    app.post('/searchAIATCCode', function(request, response) {
-		var Searchquery = request.body.searchField;
-			AI.find ({AI_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, ai) {
-				if (err){
-    	    		return response.send({
-						user : request.user ,
-						message: err
-					});
-    	    	}
-
-    	    	if (ai.length == 0) {
-					return response.send({
-						user : request.user ,
-						message: 'No AI ATC Code Found !!'
-					});
-            	} else {
+				} else {
+					console.log(ai)
 					return response.send({
 						user : request.user ,
 						ai: ai
 					});
 				}
 			})
+		}
+		
+		console.log(Searchquery)
+		
+	});
+
+    app.post('/searchAIATCCode', function(request, response) {
+		var Searchquery = request.body.searchField;
+		AI.find ({AI_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.select('AI_Code AI_Name AI_ATC_Code AI_Status AI_Pharmaceutical_Categories_ID')
+		.populate({ path: 'pharamaceutical', select: 'Pharmaceutical_Category_Name Pharmaceutical_Category_ATC_Code' })
+		.sort({AI_Name:1})
+		.exec(function(err, ai) {
+			if (err){
+				return response.send({
+					user : request.user ,
+					message: err
+				});
+			}
+
+			if (ai.length == 0) {
+				return response.send({
+					user : request.user ,
+					message: 'No AI ATC Code Found !!'
+				});
+			} else {
+				return response.send({
+					user : request.user ,
+					ai: ai
+				});
+			}
+		})
 	});
 
     app.post('/searchPharmaceuticalAtcCode', function(request, response) {
