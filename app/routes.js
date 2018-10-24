@@ -845,6 +845,7 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 			newAI.AI_Code     						 = AINextID;
 			newAI.AI_Name 	    					 = request.body.name;
 			newAI.AI_ATC_Code    					 = request.body.atc_code;
+			newAI.AI_NDC_Code    					 = request.body.AI_NDC_Code;
 			newAI.AI_Status 	 					 = null;
 			newAI.AI_Pharmaceutical_Categories_ID    = request.body.category_Ids;
 			newAI.AI_VersionCode    				 = 0;
@@ -858,7 +859,8 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 				else{
 
 					var newAiReVision = AIRevisions();
-
+					newAiReVision.AIMasterRevision_NDC_Code					   = request.body.AI_NDC_Code;
+					newAiReVision.AIMasterRevision_ATC_Code 				   = request.body.atc_code;
 					newAiReVision.AIMasterRevision_Code  		 			   = AIRevision_ID;
 					newAiReVision.AIMasterRevision_AI_ID 		 			   = AINextID;
 					newAiReVision.AIMasterRevision_AssiendToEditor_Employee_ID = Employee_ID;
@@ -4001,6 +4003,7 @@ app.post('/addStrengthUnits',function (request, response){
 		var newvalues = { $set: {
 				AI_Name 					    				: request.body.name,
 				AI_ATC_Code 									: request.body.atc_code, 
+				AI_NDC_Code 									: request.body.AI_NDC_Code, 
 				AI_Status 										: request.body.status,
 				AI_Pharmaceutical_Categories_ID 				: request.body.category_Ids,
 			} };
@@ -5744,6 +5747,7 @@ app.post('/addStrengthUnits',function (request, response){
 			newAIHistory.AIHistory_Code     						= AIHistoryID;
 			newAIHistory.AIHistory_Name 	    					= data.AIMasterRevision_Name;
 			newAIHistory.AIHistory_ATC_Code    						= data.AIMasterRevision_ATC_Code;
+			newAIHistory.AIHistory_NDC_Code    						= data.AIMasterRevision_NDC_Code;
 			newAIHistory.AIHistory_Status 	 					 	= data.AIMasterRevision_Status;
 			newAIHistory.AIHistory_Pharmaceutical_Categories_ID     = data.AIMasterRevision_Pharmaceutical_Categories_ID;
 			newAIHistory.AIHistory_FDAFeed			 				= data.AIMasterRevision_FDAFeed;

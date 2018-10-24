@@ -6,6 +6,7 @@ var rxp_AITableSchema = mongoose.Schema({
 	AI_Code     	  				 	:Number,
     AI_Name     	 				 	:String,
     AI_ATC_Code							:[String],
+    AI_NDC_Code                         :String,
     AI_Status 						 	:Number,
     AI_Pharmaceutical_Categories_ID  	:[Number],
     AI_FDAFeed			 				:String,
