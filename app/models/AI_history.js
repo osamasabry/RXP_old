@@ -6,6 +6,7 @@ var rxp_AIHistorySchema = mongoose.Schema({
 	AIHistory_Code     	  				 	:Number,
     AIHistory_Name     	 				 	:String,
     AIHistory_ATC_Code						:String,
+    AIHistory_NDC_Code                      :String,
     AIHistory_Status 						:Number,
     AIHistory_Pharmaceutical_Categories_ID  :[Number],
     AIHistory_FDAFeed			 			:String,
