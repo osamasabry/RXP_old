@@ -770,7 +770,9 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 	// get all  Pharmaceutical Category 
 
 	app.get('/getPharmaceuticalCategory', function(request, response) {
-		Pharmaceutical_category.find({}, function(err, Pharmaceutical) {
+		Pharmaceutical_category.find({})
+		.sort({Pharmaceutical_Category_Name:1})
+		.exec(function(err, Pharmaceutical) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1030,7 +1032,9 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 
 	//  get data  
 	app.get('/getForm', function(request, response) {
-		Forms.find({}, function(err, form) {
+		Forms.find({})
+		.sort({Form_Name:1})
+        .exec(function(err, form) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1042,19 +1046,23 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 	});
 
 	app.get('/getConcentration', function(request, response) {
-		Concentration.find({}, function(err, form) {
+		Concentration.find({})
+		.sort({ConcentrationUnit_Name:1})
+		.exec(function(err, ConcentrationUnits) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
-	        if (form) {
+	        if (ConcentrationUnits) {
 	        	
-	            response.send(form);
+	            response.send(ConcentrationUnits);
 	        } 
     	});
     });
 
 	app.get('/getRoute', function(request, response) {
-		Routes.find({}, function(err, route) {
+		Routes.find({})
+		.sort({Route_Name:1})
+		 .exec(function(err, route) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1078,7 +1086,9 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
     });
 
     app.get('/getWeightUnits', function(request, response) {
-		WeightUnits.find({}, function(err, WeightUnits) {
+		WeightUnits.find({})
+		.sort({WeightUnit_Name:1})
+        .exec(function(err, WeightUnits) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1090,7 +1100,9 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
     });
 
     app.get('/getVolumeUnits', function(request, response) {
-		VolumeUnits.find({}, function(err, VolumeUnits) {
+		VolumeUnits.find({})
+		.sort({VolumeUnit_Name:1})
+        .exec(function(err, VolumeUnits) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -1102,7 +1114,9 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
     });
 
     app.get('/getSizeUnits', function(request, response) {
-		SizeUnits.find({}, function(err, SizeUnits) {
+		SizeUnits.find({})
+		.sort({SizeUnit_Name:1})
+        .exec( function(err, SizeUnits) {
 		    if (err){
 		    	response.send({message: 'Error'});
 		    }
@@ -4208,7 +4222,9 @@ app.post('/addStrengthUnits',function (request, response){
 
     app.post('/searchPharmaceuticalAtcCode', function(request, response) {
 		var Searchquery = request.body.searchField;
-			Pharmaceutical_category.find({Pharmaceutical_Category_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, atc_code) {
+			Pharmaceutical_category.find({Pharmaceutical_Category_ATC_Code:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+			.sort({Pharmaceutical_Category_ATC_Code:1})
+        	.exec(function(err, PharmaCats) {
 				if (err){
     	    		return response.send({
 						user : request.user ,
@@ -4216,7 +4232,7 @@ app.post('/addStrengthUnits',function (request, response){
 					});
     	    	}
 
-    	    	if (atc_code.length == 0) {
+    	    	if (PharmaCats.length == 0) {
 					return response.send({
 						user : request.user ,
 						message: 'No ATC Code Found !!'
@@ -4224,10 +4240,10 @@ app.post('/addStrengthUnits',function (request, response){
             	} else {
 					return response.send({
 						user : request.user ,
-						atc_code: atc_code
+						PharmaCats: PharmaCats
 					});
 				}
-			}).sort({Pharmaceutical_Category_ATC_Code:-1})
+			})
 	});
 
 	   
@@ -5852,7 +5868,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/searchMedicalCondationByICD9', function(request, response) {
 		var Searchquery = request.body.searchField;
 
-		MedicalCondition.find({MedicalCondition_ICD9:Searchquery},function(err, medical_condation) {
+		MedicalCondition.find({MedicalCondition_ICD9:{$regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, medical_condation) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -5875,7 +5891,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/searchMedicalCondationByICD10', function(request, response) {
 		var Searchquery = request.body.searchField;
 		
-		MedicalCondition.find({MedicalCondition_ICD10:Searchquery},function(err, medical_condation) {
+		MedicalCondition.find({MedicalCondition_ICD10:{$regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, medical_condation) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -5898,7 +5914,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/searchMedicalCondationByICD10am', function(request, response) {
 		var Searchquery = request.body.searchField;
 		
-		MedicalCondition.find({MedicalCondition_ICD10am:Searchquery},function(err, medical_condation) {
+		MedicalCondition.find({MedicalCondition_ICD10am:{$regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, medical_condation) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -5921,7 +5937,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/searchMedicalCondationByICD11', function(request, response) {
 		var Searchquery = request.body.searchField;
 		
-		MedicalCondition.find({MedicalCondition_ICD11:Searchquery},function(err, medical_condation) {
+		MedicalCondition.find({MedicalCondition_ICD11:{$regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, medical_condation) {
 			if (err){
 	    		return response.send({
 					message: err
@@ -6047,6 +6063,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchForm',function (request, response){
 		var Searchquery = request.body.search_field;
 		Forms.find({Form_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({Form_Name:1})
 		.exec(function(err, form) {
 			 if (err){
     	    	return response.send({
@@ -6070,6 +6087,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchRoute',function (request, response){
 		var Searchquery = request.body.search_field;
 		Routes.find({Route_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({Route_Name:1})
 		.exec(function(err, route) {
 			 if (err){
     	    	return response.send({
@@ -6116,6 +6134,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchConcentration',function (request, response){
 		var Searchquery = request.body.search_field;
 		Concentration.find({ConcentrationUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({ConcentrationUnit_Name:1})
 		.exec(function(err, concentration) {
 			 if (err){
     	    	return response.send({
@@ -6140,6 +6159,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchWeightUnits',function (request, response){
 		var Searchquery = request.body.search_field;
 		WeightUnits.find({WeightUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({WeightUnit_Name:1})
 		.exec(function(err, weightunits) {
 			 if (err){
     	    	return response.send({
@@ -6163,6 +6183,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchVolumeUnits',function (request, response){
 		var Searchquery = request.body.search_field;
 		VolumeUnits.find({VolumeUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({VolumeUnit_Name:1})
 		.exec(function(err, volumeunits) {
 			 if (err){
     	    	return response.send({
@@ -6186,6 +6207,7 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchSizeUnits',function (request, response){
 		var Searchquery = request.body.search_field;
 		SizeUnits.find({SizeUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({SizeUnit_Name:1})
 		.exec(function(err, sizeunits) {
 			 if (err){
     	    	return response.send({
@@ -6232,20 +6254,20 @@ app.post('/addStrengthUnits',function (request, response){
 	app.post('/SearchUsageDoseType',function (request, response){
 		var Searchquery = request.body.search_field;
 		UsageDoseType.find({UsageDoseType_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
-		.exec(function(err, usagedoseyype) {
+		.exec(function(err, usagedoseType) {
 			 if (err){
     	    	return response.send({
 					message: 'Error'
 				});
     	    }
-            if (!usagedoseyype) {
+            if (!usagedoseType) {
             	return response.send({
 					message: 'Dose Type not exists'
 				});
             } else {
 
                 return response.send({
-					usagedoseyype: usagedoseyype
+					usagedoseType: usagedoseType
 				});
 			}
 
@@ -6298,23 +6320,23 @@ app.post('/addStrengthUnits',function (request, response){
 		})
 	})
 
-	app.post('/SearchUsageFrequenInterval',function (request, response){
+	app.post('/SearchUsageFrequencyInterval',function (request, response){
 		var Searchquery = request.body.search_field;
 		UsageFrequenInterval.find({UsageFrequenIntervalUnit_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
-		.exec(function(err, usagefrequeninterval) {
+		.exec(function(err, usagefrequencyinterval) {
 			 if (err){
     	    	return response.send({
 					message: 'Error'
 				});
     	    }
-            if (!usagefrequeninterval) {
+            if (!usagefrequencyinterval) {
             	return response.send({
 					message: 'Frequen Interval not exists'
 				});
             } else {
 
                 return response.send({
-					usagefrequeninterval: usagefrequeninterval
+					usagefrequencyinterval: usagefrequencyinterval
 				});
 			}
 
@@ -6323,18 +6345,20 @@ app.post('/addStrengthUnits',function (request, response){
 
 	app.post('/SearchPharmaceuticalAtcName', function(request, response) {
 		var Searchquery = request.body.searchField;
-		Pharmaceutical_category.find({Pharmaceutical_Category_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }},function(err, atcname) {
+		Pharmaceutical_category.find({Pharmaceutical_Category_Name:{ $regex: new RegExp("^" + Searchquery.toLowerCase(), "i") }})
+		.sort({Pharmaceutical_Category_Name:1})
+        .exec(function(err, PharmaCats) {
 			if (err){
 	    		return response.send({
 					message: err
 				});
-	    	}else if (atcname.length == 0) {
+	    	}else if (PharmaCats.length == 0) {
 				return response.send({
 					message: 'ATC Name Not Found !!'
 				});
         	} else {
 				return response.send({
-					atcname: atcname
+					PharmaCats: PharmaCats
 				});
 			}
 		})
