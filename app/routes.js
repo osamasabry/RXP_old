@@ -5571,12 +5571,12 @@ app.post('/addStrengthUnits',function (request, response){
 					newTask.save();
 
 					NotificationDetails = {
-						Task_Code                       : Tasks_ID,
+						Task_Code						: Tasks_ID,
 						Task_Title                      : request.body.AI_Name,
 						Task_AssignTo_Employee_Code     : request.body.Employee_ID,
 						Task_AssignDate                 : new Date(),
 						Task_ActionTypeName             : "Edit",
-						Task_ActionDetails_Code         : TNRevisionNextCode,
+						Task_ActionDetails_Code         : AIRevision_ID,
 						Task_RelatedTo                  : "Master AI",
 						Task_RelatedTo_Code             : request.body.AI_Code,
 						Task_Status                     :0,
@@ -5601,7 +5601,7 @@ app.post('/addStrengthUnits',function (request, response){
 					}
 					return response.send({
 						message: true,
-						TaskID : MasterTasks_ID,
+						TaskID : Tasks_ID,
 						RevisionID : AIRevision_ID
 					});
 				
