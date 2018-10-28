@@ -955,6 +955,30 @@ module.exports = function(app, passport, server, generator, sgMail,io,tinify) {
 		}
 		GetUserTasks()
 	});
+	app.post('/getUserAllTasksbyUserID', function(request, response) {
+		async function GetUserTasks(){
+			UniversalTasks.find({ $and:[ {'Task_AssignTo_Employee_Code': Number(request.body.user_id)},{'Task_Status':0} ]})
+			.populate({ path: 'Employee', select: 'Employee_Name Employee_Email' })
+			.sort({Task_AssignDate:1})
+			.exec(function(err, tasks) {
+				if (err){
+					return response.send({
+						message: err
+					});
+				}
+				if (tasks.length == 0) {
+					return response.send({
+						message: 'No Task Found !!'
+					});
+				} else {
+					return response.send({
+						tasks: tasks
+					});
+				}
+			})
+		}
+		GetUserTasks()
+	});
 	
 	// get  basic data of AI 
 	app.get('/getAI', function(request, response) {
